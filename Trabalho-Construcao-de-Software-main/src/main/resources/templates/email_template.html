@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Recuperação de Senha</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+
+<table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+        <td align="center">
+            <table width="500" style="background: white; padding: 30px; border-radius: 10px;">
+                <tr>
+                    <td align="center">
+                        <h2 style="color: #333;">Recuperação de Senha ToDaily</h2>
+
+                        <p style="font-size: 16px; color: #555;">
+                            Olá, <strong>{nome}</strong>! <br><br>
+                            Clique no botão abaixo para recuperar sua senha.
+                        </p>
+
+                        <a href="http://localhost:8080/redefinicaoSenha?token={token}"
+                           style="
+                               display: inline-block;
+                               background-color: #4CAF50;
+                               color: white;
+                               padding: 12px 25px;
+                               text-decoration: none;
+                               border-radius: 6px;
+                               font-size: 16px;
+                               margin-top: 20px;">
+                            Recuperar Senha
+                        </a>
+
+                        <p style="font-size: 13px; color: #999; margin-top: 25px;">
+                            Este link expira em 10 minutos. <br>
+                            Se você não solicitou esta recuperação, apenas ignore este e-mail.
+                        </p>
+
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

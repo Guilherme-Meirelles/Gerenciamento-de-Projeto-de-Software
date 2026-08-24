@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToDaily</title>
+    <link rel="stylesheet" href="/css/sidebar.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/css/acessibilidade.css" />
+    <link rel="stylesheet" href="/css/calendario.css" />
+</head>
+<body>
+<div class="app-container">
+
+    <!-- Importa a Sidebar do fragment -->
+    <div th:replace="~{sidebar :: sidebar}"></div>
+
+    <!-- Conteúdo Principal -->
+    <main class="conteudo">
+        <div class="titulo">
+            <div class="titulo-info">
+                <h2 id="titulo-principal">Para Hoje</h2>
+                <span id="subtitulo-principal" th:text="${descricaoDaLista}" th:title="${descricaoDaLista}"></span>
+                <div class="titulo-acoes">
+                    <button class="btn-filtro" id="btnFiltro" title="Filtrar tarefas">
+                        <i data-lucide="filter"></i>
+                    </button>
+                    <button class="btn-ordenar" id="btnOrdenar" title="Ordenar tarefas">
+                    <i data-lucide="arrow-up-down"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="add-tarefa" id="btnAddTarefa">
+            <i data-lucide="plus"></i>
+            <span>Adicionar Tarefa</span>
+        </div>
+
+        <!-- Container para as tarefas -->
+        <div class="container-tarefas" id="containerTarefas">
+            <!-- As tarefas serão adicionadas aqui dinamicamente -->
+        </div>
+
+        <!-- Menu de Filtro -->
+        <div class="menu-filtro" id="menuFiltro" style="display: none;">
+            <h4 class="menu-filtro-titulo">Filtrar por:</h4>
+
+            <div class="campo-filtro">
+                <input type="text" id="filtroTexto" placeholder="Pesquisa..." />
+            </div>
+
+            <button class="menu-filtro-item" data-filtro="todas">
+                <i data-lucide="circle"></i> Todas as tarefas
+            </button>
+            <button class="menu-filtro-item" data-filtro="andamento">
+                <i data-lucide="circle"></i> Tarefas em andamento
+            </button>
+            <button class="menu-filtro-item" data-filtro="concluidas">
+                <i data-lucide="circle"></i> Tarefas concluídas
+            </button>
+            <button class="menu-filtro-item" data-filtro="atrasadas">
+                <i data-lucide="circle"></i> Atrasadas
+            </button>
+            <button class="menu-filtro-item" data-filtro="titulo">
+                <i data-lucide="circle"></i> Título
+            </button>
+            <button class="menu-filtro-item" data-filtro="responsavel">
+                <i data-lucide="circle"></i> Responsável
+            </button>
+        </div>
+
+        <!-- Menu de Ordenação -->
+        <div class="menu-filtro" id="menuOrdenar" style="display: none;">
+            <h4 class="menu-filtro-titulo">Ordenar por:</h4>
+
+            <button class="menu-filtro-item" data-ordem="titulo">
+                <i data-lucide="circle"></i> Título
+            </button>
+            <button class="menu-filtro-item" data-ordem="responsavel">
+                <i data-lucide="circle"></i> Responsável
+            </button>
+            <button class="menu-filtro-item" data-ordem="data-fim">
+                <i data-lucide="circle"></i> Data de fim
+            </button>
+            <button class="menu-filtro-item" data-ordem="data-adicao">
+                <i data-lucide="circle"></i> Data de adição
+            </button>
+            <button class="menu-filtro-item" data-ordem="status">
+                <i data-lucide="circle"></i> Status de completude
+            </button>
+        </div>
+
+    </main>
+
+</div>
+
+<!-- Importa o Botão de Acessibilidade -->
+<div th:replace="~{acessibilidade :: acessibilidade}"></div>
+
+<!-- Importa o Botão de Calendário -->
+<div th:replace="~{calendario :: calendario}"></div>
+
+<!-- Modal de Confirmação de Remoção -->
+<div class="overlay-tarefa" id="modalConfirmarRemocao" style="display: none;">
+    <div class="modal-remover">
+        <p class="modal-remover-mensagem">Deseja realmente remover esta tarefa?</p>
+        <div class="modal-remover-botoes">
+            <button class="btn-remover-nao" id="btnCancelarRemocao">Não</button>
+            <button class="btn-remover-sim" id="btnConfirmarRemocao">Sim</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Adicionar Tarefa -->
+<div class="overlay-tarefa" id="modalAddTarefa" style="display: none;">
+    <div class="modal-tarefa">
+        <h3 class="titulo-modal-tarefa" id="tituloModalTarefa">Adicionar Tarefa</h3>
+        <form class="form-tarefa">
+
+            <!-- LISTA -->
+            <div class="campo-tarefa">
+                <label>Lista*:</label>
+                <select id="tarefaLista"></select>
+            </div>
+
+            <!-- TÍTULO -->
+            <div class="campo-tarefa">
+                <label>Título*:</label>
+                <input type="text" id="tarefaTitulo" placeholder="Digite o título da tarefa" />
+            </div>
+
+            <!-- DESCRIÇÃO -->
+            <div class="campo-tarefa">
+                <label>Descrição:</label>
+                <textarea id="tarefaDescricao" rows="3" placeholder="Adicione uma descrição (opcional)"></textarea>
+            </div>
+
+            <!-- DATA -->
+            <div class="campo-tarefa">
+                <label>Data de Fim:</label>
+                <input type="date" id="tarefaDataFim" />
+            </div>
+
+            <!-- RESPONSÁVEIS -->
+            <div class="campo-tarefa">
+                <label>Responsáveis:</label>
+                <select id="tarefaResponsavel"></select>
+            </div>
+
+            <div class="campo-tarefa-row">
+                <div class="campo-tarefa-checkbox">
+                    <label>Checklist:</label>
+                    <button type="button" class="btn-checklist" id="btnChecklist">
+                        <i data-lucide="list"></i>
+                    </button>
+                </div>
+
+                <div class="campo-tarefa-checkbox">
+                    <label>Notificações:</label>
+                    <input type="checkbox" id="tarefaNotificacoes" class="toggle-switch" />
+                </div>
+
+                <div class="campo-tarefa-checkbox">
+                    <label>Anexo(s):</label>
+                    <button type="button" class="btn-anexo" id="btnAnexo">
+                        <i data-lucide="paperclip"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="botoes-acao-tarefa">
+                <button type="button" class="btn-cancelar-tarefa" id="btnCancelarTarefa">Cancelar</button>
+                <button type="button" class="btn-ok-tarefa" id="btnOkTarefa">OK</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Modal: Gerenciar Checklists -->
+<div class="overlay-tarefa" id="modalGerenciarChecklist" style="display: none;">
+    <div class="modal-checklist">
+        <h3 class="titulo-modal-checklist">Gerenciar Checklists</h3>
+
+        <div class="lista-checklists" id="listaChecklists">
+            <!-- Checklists serão renderizados aqui -->
+        </div>
+
+        <div class="botoes-acao-checklist">
+            <button type="button" class="btn-novo-checklist" id="btnNovoChecklist">
+                <i data-lucide="plus"></i> Novo Checklist
+            </button>
+            <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciar">
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Adicionar/Editar Checklist -->
+<div class="overlay-tarefa" id="modalAddChecklist" style="display: none;">
+    <div class="modal-checklist-form">
+        <h3 class="titulo-modal-checklist" id="tituloModalChecklist">Novo Checklist</h3>
+
+        <form class="form-checklist">
+            <div class="campo-checklist">
+                <label>Nome do Checklist*:</label>
+                <input type="text" id="checklistNome" placeholder="Digite o nome do checklist" />
+            </div>
+
+            <div class="campo-checklist">
+                <label>Cor:</label>
+                <div class="seletor-cor">
+                    <button type="button" class="btn-cor-selecionada" id="btnAbrirPaleta">
+                        <div class="cor-preview" id="corPreview" style="background-color: #4caf50;"></div>
+                        <span>Escolher cor</span>
+                    </button>
+
+                    <div class="paleta-cores" id="paletaCores" style="display: none;">
+                        <button type="button" class="cor-opcao" data-cor="#4caf50" style="background-color: #4caf50;"></button>
+                        <button type="button" class="cor-opcao" data-cor="#2196f3" style="background-color: #2196f3;"></button>
+                        <button type="button" class="cor-opcao" data-cor="#ff9800" style="background-color: #ff9800;"></button>
+                        <button type="button" class="cor-opcao" data-cor="#f44336" style="background-color: #f44336;"></button>
+                        <button type="button" class="cor-opcao" data-cor="#9c27b0" style="background-color: #9c27b0;"></button>
+                        <button type="button" class="cor-opcao" data-cor="#ff5722" style="background-color: #ff5722;"></button>
+                        <button type="button" class="cor-opcao" data-cor="#00bcd4" style="background-color: #00bcd4;"></button>
+                        <button type="button" class="cor-opcao" data-cor="#ffeb3b" style="background-color: #ffeb3b;"></button>
+                        <button type="button" class="cor-opcao" data-cor="#795548" style="background-color: #795548;"></button>
+                        <button type="button" class="cor-opcao" data-cor="#607d8b" style="background-color: #607d8b;"></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="botoes-acao-checklist-form">
+                <button type="button" class="btn-cancelar-checklist" id="btnCancelarChecklist">Cancelar</button>
+                <button type="button" class="btn-salvar-checklist" id="btnSalvarChecklist">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal: Remover Checklist -->
+<div class="overlay-tarefa" id="modalRemoverChecklist" style="display: none;">
+    <div class="modal-remover">
+        <p class="modal-remover-mensagem">Deseja realmente remover este checklist?</p>
+        <div class="modal-remover-botoes">
+            <button class="btn-remover-nao" id="btnCancelarRemoverChecklist">Não</button>
+            <button class="btn-remover-sim" id="btnConfirmarRemoverChecklist">Sim</button>
+        </div>
+    </div>
+</div>
+
+<!-- Importa os Modais do fragment -->
+<div th:replace="~{sidebar :: modais}"></div>
+
+<!-- Importa os Scripts do fragment -->
+<div th:replace="~{sidebar :: scripts}"></div>
+
+<!-- Importa o Script de Acessibilidade -->
+<div th:replace="~{acessibilidade :: acessibilidade-script}"></div>
+
+<!-- Importa o Script de Calendário -->
+<div th:replace="~{calendario :: calendario-script}"></div>
+
+<script>
+    window.areaName = /*[[${areaName}]]*/ "";
+</script>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="/js/menu.js"></script>
+</body>
+</html>

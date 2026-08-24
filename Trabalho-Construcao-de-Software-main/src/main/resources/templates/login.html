@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToDaily - Login</title>
+    <link rel="stylesheet" href="/css/login.css" />
+</head>
+<body>
+<div class="logo">
+    <img src="/img/logo.png" alt="ToDaily logo" />
+
+</div>
+
+<div class="login-container">
+    <h2>ToDaily</h2>
+    <p th:if="${mensagem != null}" th:text="${mensagem}" style="color: lightgreen; text-align:center;"></p>
+    <p th:if="${erro != null}" th:text="${erro}" style="color: red; text-align:center;"></p>
+    <p th:if="${remocao != null}" th:text="${remocao}"  style="color: orange; text-align:center;"></p>
+    <form action = "/login" method="post">
+        <label for="login">Login:</label>
+        <input type="text" id="login" name="email" required />
+
+        <label for="senha">Senha:</label>
+        <input type="password" id="senha" name="senha" required />
+        <p class="forgot-password-link" style="text-align: right;">
+            <a href="/recuperarSenhaEmail">
+                Esqueci a Senha
+            </a>
+        </p>
+        <button type="submit" class="btn">Entrar</button>
+        <button type="button" class="btn secundario" onclick="window.location.href='/cadastro'">Cadastrar-se</button>
+
+
+    </form>
+</div>
+</body>
+</html>

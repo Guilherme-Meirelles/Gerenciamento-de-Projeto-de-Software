@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToDaily - Redefinição de Senha</title>
+    <link rel="stylesheet" href="/css/login.css" />
+</head>
+<body>
+<div class="logo">
+    <img src="/img/logo.png" alt="ToDaily logo" />
+
+</div>
+
+<div class="login-container">
+    <h4>Redefinição de Senha</h4>
+
+    <p th:if="${erro != null}" th:text="${erro}" style="color: red; text-align:center;"></p>
+
+    <form action = "/redefinirSenha" method="post" onsubmit="return validarSenha()">
+
+        <input type="hidden" name="token" th:value="${token}">
+        <label for="senha">Senha:</label>
+        <input type="password" id="senha" name="senha" required />
+
+        <label for="senha">Confirmar Senha:</label>
+        <input type="password" id="confirmarSenha" name="confirmarSenha" required />
+        <!-- Link "Esqueci a Senha" -->
+
+        <button type="submit" class="btn">Confirmar</button>
+
+
+    </form>
+</div>
+<script>
+    function validarSenha() {
+        const senha = document.getElementById("senha").value.trim();
+        const confirmar = document.getElementById("confirmarSenha").value.trim();
+        const erroElement = document.querySelector('p[style*="color: red"]');
+
+        // Criar elemento de erro se não existir
+        let erro = erroElement;
+        if (!erro) {
+            erro = document.createElement('p');
+            erro.style.color = 'red';
+            erro.style.textAlign = 'center';
+            document.querySelector('form').insertBefore(erro, document.querySelector('form').firstChild);
+        }
+
+        if (senha.length < 8) {
+            erro.textContent = "A senha deve ter pelo menos 8 caracteres.";
+            return false;
+        }
+
+        if (confirmar.length < 8) {
+            erro.textContent = "A senha deve ter pelo menos 8 caracteres.";
+            return false;
+        }
+
+        if (senha !== confirmar) {
+            erro.textContent = "As senhas não coincidem.";
+            return false;
+        }
+
+        erro.textContent = ""; // Limpa mensagem de erro
+        return true;
+    }
+    </script>
+</body>
+</html>

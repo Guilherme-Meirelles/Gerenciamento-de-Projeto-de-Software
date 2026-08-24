@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<!-- Fragment do Botão de Acessibilidade -->
+<div th:fragment="acessibilidade">
+    <div class="botao-acessibilidade-container" id="acessibilidadeContainer">
+        <!-- Opções de Acessibilidade (inicialmente ocultas) -->
+        <div class="opcoes-acessibilidade" id="opcoesAcessibilidade">
+            <button class="opcao-acessibilidade" id="btnTamanhoFonte" title="Alterar tamanho da fonte">
+                <i data-lucide="type"></i>
+            </button>
+            <button class="opcao-acessibilidade" id="btnDiminuirZoom" title="Diminuir zoom">
+                <i data-lucide="zoom-out"></i>
+            </button>
+            <button class="opcao-acessibilidade" id="btnAumentarZoom" title="Aumentar zoom">
+                <i data-lucide="zoom-in"></i>
+            </button>
+            <button class="opcao-acessibilidade" id="btnTranscricaoVoz" title="Transcrição por voz">
+                <i data-lucide="mic"></i>
+            </button>
+            <button class="opcao-acessibilidade" id="btnIdioma" title="Idioma">
+                <i data-lucide="globe"></i>
+            </button>
+            <button class="opcao-acessibilidade" id="btnTema" title="Tema (Claro/Escuro)">
+                <i data-lucide="sun"></i>
+            </button>
+        </div>
+
+        <!-- Botão Principal de Acessibilidade -->
+        <button class="btn-acessibilidade" id="btnAcessibilidade" title="Acessibilidade">
+            <i data-lucide="plus" id="iconAcessibilidade"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Script do Botão de Acessibilidade -->
+<div th:fragment="acessibilidade-script">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnAcessibilidade = document.getElementById('btnAcessibilidade');
+            const opcoesAcessibilidade = document.getElementById('opcoesAcessibilidade');
+            const iconAcessibilidade = document.getElementById('iconAcessibilidade');
+            let acessibilidadeAberto = false;
+
+            // Toggle do menu de acessibilidade
+            btnAcessibilidade.addEventListener('click', function() {
+                acessibilidadeAberto = !acessibilidadeAberto;
+
+                if (acessibilidadeAberto) {
+                    opcoesAcessibilidade.classList.add('ativo');
+                    btnAcessibilidade.classList.add('ativo');
+
+                    // Trocar ícone de + para -
+                    iconAcessibilidade.setAttribute('data-lucide', 'minus');
+                    lucide.createIcons();
+                } else {
+                    opcoesAcessibilidade.classList.remove('ativo');
+                    btnAcessibilidade.classList.remove('ativo');
+
+                    // Trocar ícone de - para +
+                    iconAcessibilidade.setAttribute('data-lucide', 'plus');
+                    lucide.createIcons();
+                }
+            });
+
+            // Fechar ao clicar fora
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.botao-acessibilidade-container')) {
+                    if (acessibilidadeAberto) {
+                        acessibilidadeAberto = false;
+                        opcoesAcessibilidade.classList.remove('ativo');
+                        btnAcessibilidade.classList.remove('ativo');
+                        iconAcessibilidade.setAttribute('data-lucide', 'plus');
+                        lucide.createIcons();
+                    }
+                }
+            });
+
+            // Eventos dos botões (apenas console.log para demonstração)
+            document.getElementById('btnTamanhoFonte').addEventListener('click', function() {
+                console.log('Tamanho da fonte clicado');
+            });
+
+            document.getElementById('btnDiminuirZoom').addEventListener('click', function() {
+                console.log('Diminuir zoom clicado');
+            });
+
+            document.getElementById('btnAumentarZoom').addEventListener('click', function() {
+                console.log('Aumentar zoom clicado');
+            });
+
+            document.getElementById('btnTranscricaoVoz').addEventListener('click', function() {
+                console.log('Transcrição por voz clicado');
+            });
+
+            document.getElementById('btnIdioma').addEventListener('click', function() {
+                console.log('Idioma clicado');
+            });
+
+            document.getElementById('btnTema').addEventListener('click', function() {
+                console.log('Tema clicado');
+            });
+        });
+    </script>
+</div>
+
+</body>
+</html>

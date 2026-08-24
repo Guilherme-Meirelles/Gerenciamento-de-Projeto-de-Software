@@ -1,0 +1,1107 @@
+/* ===== Conteúdo Principal - Áreas de Trabalho ===== */
+.conteudo-areas {
+    flex-grow: 1;
+    background-color: #121212;
+    padding: 40px 60px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.titulo {
+    margin-bottom: 40px;
+}
+
+.titulo h2 {
+    font-size: 32px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.header-areas h1 {
+    font-size: 32px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 40px;
+}
+
+/* ===== Áreas de Trabalho - Grid ===== */
+.areas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* ===== Cards de Área ===== */
+.area-card {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 60px 30px;
+    min-height: 180px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.area-card:hover {
+    background-color: #454545;
+    transform: translateY(-2px);
+}
+
+.area-card h3 {
+    font-size: 22px;
+    font-weight: 400;
+    color: #fff;
+    text-align: center;
+}
+
+/* Badge de compartilhamento */
+.badge-compartilhado {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background-color: #b8b8b8;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.badge-compartilhado i {
+    width: 16px;
+    height: 16px;
+    color: #333;
+}
+
+/* ===== Card de Adicionar ===== */
+.area-add {
+    background-color: #b8b8b8;
+}
+
+.area-add:hover {
+    background-color: #c8c8c8;
+}
+
+.area-add i {
+    width: 52px;
+    height: 52px;
+    color: #333;
+}
+
+.area-add svg {
+    width: 52px !important;
+    height: 52px !important;
+    stroke: #333;
+}
+
+/* ===== Botões de Ação Flutuantes ===== */
+.acoes-flutuantes {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    z-index: 100;
+}
+
+.btn-acao {
+    background-color: #b8b8b8;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.btn-acao:hover {
+    background-color: #c8c8c8;
+    transform: scale(1.05);
+}
+
+.btn-acao i {
+    width: 26px;
+    height: 26px;
+    color: #333;
+}
+
+/* ===== Botão Adicionar Fixo ===== */
+.btn-adicionar-fixo {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    background-color: #b8b8b8;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+}
+
+.btn-adicionar-fixo:hover {
+    background-color: #c8c8c8;
+    transform: scale(1.05);
+}
+
+.btn-adicionar-fixo i {
+    width: 28px;
+    height: 28px;
+    color: #333;
+}
+
+/* ===== Modal Overlay ===== */
+.overlay-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== Modal Nova Área ===== */
+.modal-nova-area {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 35px 40px;
+    width: 90%;
+    max-width: 450px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.titulo-modal {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #ffffff;
+}
+
+/* ===== Formulário Nova Área ===== */
+.formulario-nova-area {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.campo-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.campo-modal label {
+    font-size: 14px;
+    color: #d0d0d0;
+    font-weight: 400;
+}
+
+.campo-modal input {
+    background-color: #4a4a4a;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 15px;
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.campo-modal input:focus {
+    background-color: #555;
+}
+
+.campo-modal input::placeholder {
+    color: #888;
+}
+
+/* ===== Botões do Modal ===== */
+.botoes-modal {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.btn-criar,
+.btn-cancelar-modal {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-criar {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+.btn-criar:hover {
+    background-color: #252525;
+}
+
+.btn-cancelar-modal {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+.btn-cancelar-modal:hover {
+    background-color: #252525;
+}
+
+/* ===== Modal Compartilhar ===== */
+.modal-compartilhar,
+.modal-excluir {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 35px 40px;
+    width: 90%;
+    max-width: 500px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.lista-areas-compartilhar,
+.lista-areas-excluir {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 30px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.area-item-compartilhar,
+.area-item-excluir {
+    background-color: #4a4a4a;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    box-sizing: border-box;
+}
+
+.area-item-compartilhar:hover,
+.area-item-excluir:hover {
+    background-color: #555;
+}
+
+.area-item-compartilhar.selecionada {
+    border-color: #b8b8b8;
+    background-color: #555;
+}
+
+.area-item-excluir.selecionada {
+    border-color: #ff6b6b;
+    background-color: #553333;
+}
+
+.area-item-compartilhar input[type="radio"],
+.area-item-excluir input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.area-item-compartilhar input[type="radio"] {
+    accent-color: #b8b8b8;
+}
+
+.area-item-excluir input[type="checkbox"] {
+    accent-color: #ff6b6b;
+}
+
+.area-item-compartilhar label,
+.area-item-excluir label {
+    font-size: 15px;
+    color: #fff;
+    cursor: pointer;
+    flex: 1;
+}
+
+.secao-metodos-compartilhamento {
+    border-top: 1px solid #4a4a4a;
+    padding-top: 25px;
+}
+
+.secao-metodos-compartilhamento h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #d0d0d0;
+    margin-bottom: 15px;
+}
+
+.metodos-compartilhamento {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.btn-metodo-compartilhar {
+    background-color: #4a4a4a;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 20px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-metodo-compartilhar:hover {
+    background-color: #555;
+    transform: translateY(-1px);
+}
+
+.btn-metodo-compartilhar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-metodo-compartilhar:disabled:hover {
+    background-color: #4a4a4a;
+    transform: none;
+}
+
+.btn-metodo-compartilhar i {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-link-compartilhar {
+    background-color: #2e2e2e;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 20px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.btn-link-compartilhar:hover:not(:disabled) {
+    background-color: #252525;
+}
+
+.btn-link-compartilhar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-link-compartilhar i {
+    width: 18px;
+    height: 18px;
+}
+
+/* Botão de excluir (vermelho) */
+.btn-excluir-areas {
+    background-color: #ff6b6b;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 20px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-excluir-areas:hover:not(:disabled) {
+    background-color: #ff5252;
+}
+
+.btn-excluir-areas:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-excluir-areas i {
+    width: 18px;
+    height: 18px;
+}
+
+/* ===== Modal de Gerenciamento ===== */
+.modal-gerenciamento {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 35px 40px;
+    width: 90%;
+    max-width: 700px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+/* Etapa 1: Seleção de área */
+.lista-areas-gerenciar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.area-item-gerenciar {
+    background-color: #4a4a4a;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.area-item-gerenciar:hover {
+    background-color: #555;
+}
+
+.area-item-gerenciar.selecionada {
+    border-color: #b8b8b8;
+    background-color: #555;
+}
+
+.area-item-gerenciar .info-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.area-item-gerenciar input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #b8b8b8;
+}
+
+.area-item-gerenciar label {
+    font-size: 15px;
+    color: #fff;
+    cursor: pointer;
+    flex: 1;
+}
+
+.area-item-gerenciar .badge-compartilhado-mini {
+    background-color: #b8b8b8;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.area-item-gerenciar .badge-compartilhado-mini i {
+    width: 12px;
+    height: 12px;
+    color: #333;
+}
+
+.btn-avancar-gerenciar {
+    background-color: #2e2e2e;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 20px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-avancar-gerenciar:hover:not(:disabled) {
+    background-color: #252525;
+}
+
+.btn-avancar-gerenciar:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-avancar-gerenciar i {
+    width: 18px;
+    height: 18px;
+}
+
+/* Etapa 2: Detalhes da área */
+.detalhes-area-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #4a4a4a;
+}
+
+.btn-voltar-gerenciar {
+    background: none;
+    border: none;
+    color: #b8b8b8;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-voltar-gerenciar:hover {
+    background-color: #4a4a4a;
+}
+
+.btn-voltar-gerenciar i {
+    width: 20px;
+    height: 20px;
+}
+
+.detalhes-area-header h3 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #fff;
+    flex: 1;
+}
+
+.menu-detalhes-area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 25px;
+}
+
+.item-menu-detalhes {
+    background-color: #4a4a4a;
+    border: none;
+    border-radius: 10px;
+    padding: 16px 20px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+}
+
+.item-menu-detalhes:hover {
+    background-color: #555;
+}
+
+.item-menu-detalhes .info-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.item-menu-detalhes i {
+    width: 20px;
+    height: 20px;
+}
+
+.item-menu-detalhes .texto-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.item-menu-detalhes .titulo-item {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.item-menu-detalhes .subtitulo-item {
+    font-size: 13px;
+    color: #b0b0b0;
+}
+
+.item-menu-detalhes .badge-contador {
+    background-color: #2e2e2e;
+    color: #b8b8b8;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Etapa 3: Lista de membros */
+.lista-membros {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}
+
+.membro-item {
+    background-color: #4a4a4a;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.2s;
+}
+
+.membro-item:hover {
+    background-color: #505050;
+}
+
+.membro-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.membro-info {
+    flex: 1;
+}
+
+.membro-nome {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.membro-email {
+    font-size: 13px;
+    color: #b0b0b0;
+}
+
+.membro-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.badge-funcao,
+.badge-permissao {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.badge-funcao {
+    background-color: #2e2e2e;
+    color: #b8b8b8;
+}
+
+.badge-funcao.admin {
+    background-color: #4a3a5a;
+    color: #c9a3ff;
+}
+
+.badge-permissao {
+    background-color: #2e2e2e;
+    color: #8ecf8e;
+}
+
+.badge-permissao.criador {
+    color: #ffd966;
+}
+
+.badge-permissao.editar {
+    color: #66b3ff;
+}
+
+.membro-acoes {
+    display: flex;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #555;
+}
+
+.btn-acao-membro {
+    flex: 1;
+    background-color: #2e2e2e;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: #b8b8b8;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-acao-membro:hover {
+    background-color: #252525;
+}
+
+.btn-acao-membro.remover {
+    background-color: #4a2e2e;
+    color: #ff8888;
+}
+
+.btn-acao-membro.remover:hover {
+    background-color: #5a3333;
+}
+
+.btn-acao-membro:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-acao-membro:disabled:hover {
+    background-color: #2e2e2e;
+}
+
+.btn-acao-membro i {
+    width: 14px;
+    height: 14px;
+}
+
+/* Modal de alteração de permissão */
+.modal-permissao {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 35px 40px;
+    width: 90%;
+    max-width: 450px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.opcoes-permissao {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.opcao-permissao {
+    background-color: #4a4a4a;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.opcao-permissao:hover {
+    background-color: #555;
+}
+
+.opcao-permissao.selecionada {
+    border-color: #b8b8b8;
+    background-color: #555;
+}
+
+.opcao-permissao input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #b8b8b8;
+}
+
+.opcao-permissao label {
+    cursor: pointer;
+    flex: 1;
+}
+
+.opcao-permissao .titulo-permissao {
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.opcao-permissao .desc-permissao {
+    font-size: 13px;
+    color: #b0b0b0;
+}
+
+.membro-detalhes {
+    display: flex;
+    gap: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #555;
+    font-size: 13px;
+    color: #b0b0b0;
+}
+
+.membro-detalhes div {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.membro-detalhes i {
+    width: 14px;
+    height: 14px;
+}
+
+/* ===== Menu de Contexto (Botão Direito) ===== */
+.menu-contexto {
+    position: absolute;
+    background-color: #3a3a3a;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    padding: 8px;
+    z-index: 10000;
+    min-width: 160px;
+}
+
+.item-menu-contexto {
+    background: none;
+    border: none;
+    color: #fff;
+    padding: 10px 12px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.item-menu-contexto:hover {
+    background-color: #4a4a4a;
+}
+
+.item-menu-contexto i {
+    width: 16px;
+    height: 16px;
+}
+
+/* ===== Responsividade ===== */
+@media (max-width: 1024px) {
+    .areas-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .conteudo-areas {
+        padding: 30px 30px;
+    }
+
+    .areas-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .acoes-flutuantes {
+        bottom: 25px;
+        gap: 15px;
+    }
+
+    .btn-acao {
+        width: 50px;
+        height: 50px;
+    }
+
+    .btn-adicionar-fixo {
+        bottom: 25px;
+        right: 25px;
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* ===== Ajuste do botão de acessibilidade para esta página ===== */
+.conteudo-areas ~ .botao-acessibilidade-container {
+    right: 15px !important;
+    bottom: 15px !important;
+}
+
+@media (max-width: 768px) {
+    .conteudo-areas ~ .botao-acessibilidade-container {
+        right: 25px !important;
+        bottom: 25px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-nova-area {
+        padding: 28px 32px;
+        width: 95%;
+    }
+
+    .botoes-modal {
+        flex-direction: column;
+    }
+}
+
+/* ===== Modal de Compartilhamento (Estilo Login) ===== */
+
+/* 1. O Fundo (Overlay) - Centraliza e deixa o resto opaco */
+#ModalCompartilhamentoOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); /* Fundo escuro transparente */
+    z-index: 10000; /* Garante que fique acima de tudo */
+    display: flex; /* Para centralizar o conteúdo */
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px); /* Opcional: leve desfoque no fundo */
+}
+
+/* 2. A Caixa (Container) - Baseada no login.css */
+#ModalCompartilhamentoOverlay .login-container {
+    background-color: #2a2a2a;
+    padding: 40px 50px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 380px;
+    max-width: 90%;
+    /* Garante que a caixa não fique transparente, apenas o overlay */
+    opacity: 1;
+}
+
+/* 3. Tipografia e Títulos */
+#ModalCompartilhamentoOverlay h4 {
+    margin-bottom: 25px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    text-align: center;
+    line-height: 1.4;
+}
+
+#ModalCompartilhamentoOverlay p {
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+/* 4. Formulário e Inputs (Estilo login.css) */
+#ModalCompartilhamentoOverlay form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#ModalCompartilhamentoOverlay label {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #ccc;
+    text-align: left;
+    width: 100%;
+}
+
+#ModalCompartilhamentoOverlay input {
+    background-color: #1e1e1e;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    height: 40px; /* Um pouco mais alto para facilitar o clique */
+    color: #fff;
+    padding: 0 12px;
+    outline: none;
+    width: 100%;
+    font-family: "Inter", Arial, sans-serif;
+    transition: border 0.2s;
+}
+
+#ModalCompartilhamentoOverlay input:focus {
+    border: 1px solid #b8b8b8; /* Cor de destaque do tema areasTrabalho */
+}
+
+/* 5. Botões (Estilo login.css) */
+#ModalCompartilhamentoOverlay .btn {
+    background-color: #111;
+    color: #fff;
+    border: none;
+    margin-top: 25px;
+    padding: 12px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+    width: 100%;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#ModalCompartilhamentoOverlay .btn:hover {
+    background-color: #000;
+}
+
+#ModalCompartilhamentoOverlay .btn.secundario {
+    background-color: #2a2a2a; /* Fundo igual ao modal */
+    border: 1px solid #444;
+    margin-top: 10px;
+}
+
+#ModalCompartilhamentoOverlay .btn.secundario:hover {
+    background-color: #333;
+}

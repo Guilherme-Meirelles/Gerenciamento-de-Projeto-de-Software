@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToDaily - Áreas de Trabalho</title>
+    <link rel="stylesheet" href="/css/sidebar.css" />
+    <link rel="stylesheet" href="/css/areasTrabalho.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
+    <link rel="stylesheet" href="/css/acessibilidade.css" />
+
+</head>
+<body>
+<div class="app-container">
+    <!-- Sidebar (importada) -->
+    <div th:replace="~{sidebar :: sidebar}"></div>
+
+    <!-- Conteúdo principal - Áreas de Trabalho -->
+    <main class="conteudo-areas">
+        <div class="titulo">
+            <h2>Áreas de Trabalho</h2>
+        </div>
+
+        <!-- Renderiza cada área do usuário -->
+        <div class="areas-grid" id="areasGrid">
+
+            <div class="area-card"
+                 th:each="participacao : ${participacoes}"
+                 th:data-id="${participacao.area.id}"
+                 th:data-nome="${participacao.area.nome}"
+                 th:data-permissao="${participacao.permissao}"
+                 onclick="abrirArea(this)"
+                 oncontextmenu="abrirMenuContexto(event, this)">
+
+                <h3 th:text="${participacao.area.nome}"></h3>
+            </div>
+
+            <div class="area-card area-add" onclick="abrirModalNovaArea()">
+                <i data-lucide="plus-circle" data-size="52"></i>
+            </div>
+        </div>
+        <!-- Botões de ação flutuantes -->
+        <div class="acoes-flutuantes">
+            <button class="btn-acao" title="Compartilhar" onclick="abrirModalCompartilhar()">
+                <i data-lucide="share-2"></i>
+            </button>
+            <button class="btn-acao" title="Excluir" onclick="abrirModalExcluir()">
+                <i data-lucide="trash-2"></i>
+            </button>
+            <button class="btn-acao" title="Configurações" onclick="abrirModalGerenciamento()">
+                <i data-lucide="settings"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- Modal de Perfil (importado) -->
+    <div th:replace="~{sidebar :: modalPerfil}"></div>
+
+    <!-- Modal para criar/renomear área -->
+    <div id="modalArea" class="overlay-modal" style="display: none;" onclick="fecharModalArea()">
+        <div class="modal-nova-area" onclick="event.stopPropagation()">
+            <h2 class="titulo-modal" id="tituloModalArea">Nova Área de Trabalho</h2>
+
+            <form class="formulario-nova-area" onsubmit="salvarArea(event)">
+                <input type="hidden" id="areaIdEdicao">
+                <div class="campo-modal">
+                    <label>Nome da área:*</label>
+                    <input type="text" id="inputNomeArea" placeholder="Ex: Projetos Pessoais" autofocus required />
+                </div>
+
+                <div class="botoes-modal">
+                    <button type="submit" class="btn-criar">Criar</button>
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalArea()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Compartilhamento -->
+    <div id="modalCompartilhar" class="overlay-modal" style="display: none;" onclick="fecharModalCompartilhar()">
+        <div class="modal-compartilhar" onclick="event.stopPropagation()">
+            <h2 class="titulo-modal">Compartilhar Área de Trabalho</h2>
+
+            <!-- Lista de áreas para selecionar -->
+            <div class="lista-areas-compartilhar">
+                <!-- As áreas serão geradas pelo JS -->
+            </div>
+
+            <!-- Métodos de compartilhamento -->
+            <div class="secao-metodos-compartilhamento">
+                <h3>Compartilhar via:</h3>
+
+                <div class="metodos-compartilhamento">
+                    <button class="btn-metodo-compartilhar" id="btnGoogle" onclick="abrirModalEmail()" disabled>
+                        <i data-lucide="mail"></i>
+                        Google
+                    </button>
+
+                    <button class="btn-metodo-compartilhar" id="btnMicrosoft" onclick="compartilharVia('microsoft')" disabled>
+                        <i data-lucide="briefcase"></i>
+                        Microsoft
+                    </button>
+
+                    <button class="btn-metodo-compartilhar" id="btnGithub" onclick="compartilharVia('github')" disabled>
+                        <i data-lucide="github"></i>
+                        GitHub
+                    </button>
+
+                    <button class="btn-link-compartilhar" id="btnLink" onclick="gerarLinkCompartilhamento()" disabled>
+                        <i data-lucide="link"></i>
+                        Copiar Link
+                    </button>
+                </div>
+
+                <div class="botoes-modal">
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalCompartilhar()">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="ModalCompartilhamentoOverlay" style="display: none">
+        <div class="login-container">
+            <h4>Insira o email do usuário <br> para compartilhar area de trabalho</h4>
+
+            <p id="msgFeedback" style="text-align:center; display:none;"></p>
+
+            <form id="emailForm" onsubmit="return false;">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" required>
+
+                <button type="button" class="btn" onclick="enviarViaAjax()">CONFIRMAR</button>
+                <button type="button" class="btn secundario" onclick="fecharModalEmail()">VOLTAR</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Exclusão -->
+    <div id="modalExcluir" class="overlay-modal" style="display: none;" onclick="fecharModalExcluir()">
+        <div class="modal-excluir" onclick="event.stopPropagation()">
+            <h2 class="titulo-modal">Excluir Áreas de Trabalho</h2>
+
+            <!-- Lista de áreas para excluir -->
+            <div class="lista-areas-excluir" id="listaAreasExcluir">
+                <!-- As áreas serão inseridas dinamicamente via JS -->
+            </div>
+
+            <div class="botoes-modal">
+                <button type="button" class="btn-excluir-areas" id="btnConfirmarExclusao" onclick="confirmarExclusao()" disabled>
+                    <i data-lucide="trash-2"></i>
+                    Excluir Selecionadas
+                </button>
+                <button type="button" class="btn-cancelar-modal" onclick="fecharModalExcluir()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu de contexto (botão direito) -->
+    <div id="menuContexto" class="menu-contexto" style="display: none;">
+        <button class="item-menu-contexto" onclick="renomearAreaContexto()">
+            <i data-lucide="edit-3"></i>
+            Renomear
+        </button>
+    </div>
+
+    <!-- Modal de Gerenciamento -->
+    <div id="modalGerenciamento" class="overlay-modal" style="display: none;" onclick="fecharModalGerenciamento()">
+        <div class="modal-gerenciamento" onclick="event.stopPropagation()">
+            <!-- Etapa 1: Seleção de área -->
+            <div id="etapaSelecaoArea" style="display: block;">
+                <h2 class="titulo-modal">Gerenciar Áreas de Trabalho</h2>
+
+                <div class="lista-areas-gerenciar">
+                    <!-- JS vai preencher as áreas aqui -->
+                </div>
+
+                <div class="botoes-modal">
+                    <button type="button" class="btn-avancar-gerenciar" id="btnAvancarGerenciar" onclick="avancarParaDetalhes()" disabled>
+                        Avançar
+                        <i data-lucide="arrow-right"></i>
+                    </button>
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalGerenciamento()">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- Etapa 2: Detalhes da área -->
+            <div id="etapaDetalhesArea" style="display: none;">
+                <div class="detalhes-area-header">
+                    <button class="btn-voltar-gerenciar" onclick="voltarParaSelecao()">
+                        <i data-lucide="arrow-left"></i>
+                    </button>
+                    <h3 id="tituloAreaDetalhes">Área de Trabalho</h3>
+                </div>
+
+                <div class="menu-detalhes-area">
+                    <button class="item-menu-detalhes" onclick="abrirMembros()">
+                        <div class="info-item">
+                            <i data-lucide="users"></i>
+                            <div class="texto-item">
+                                <span class="titulo-item">Membros</span>
+                                <span class="subtitulo-item">Gerencie quem tem acesso</span>
+                            </div>
+                        </div>
+                    </button>
+
+                    <button class="item-menu-detalhes" onclick="abrirSolicitacoes()">
+                        <div class="info-item">
+                            <i data-lucide="mail"></i>
+                            <div class="texto-item">
+                                <span class="titulo-item">Solicitações</span>
+                                <span class="subtitulo-item">Pedidos de acesso pendentes</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="botoes-modal">
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalGerenciamento()">Fechar</button>
+                </div>
+            </div>
+
+            <!-- Etapa 3: Lista de membros -->
+            <div id="etapaMembros" style="display: none;">
+                <div class="detalhes-area-header">
+                    <button class="btn-voltar-gerenciar" onclick="voltarParaDetalhes()">
+                        <i data-lucide="arrow-left"></i>
+                    </button>
+                    <h3>Membros</h3>
+                </div>
+
+                <div class="lista-membros" id="listaMembros">
+                    <!-- JS vai preencher as áreas aqui -->
+                </div>
+
+                <div class="botoes-modal">
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalGerenciamento()">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Alteração de Permissão -->
+    <div id="modalPermissao" class="overlay-modal" style="display: none;" onclick="fecharModalPermissao()">
+        <div class="modal-permissao" onclick="event.stopPropagation()">
+            <h2 class="titulo-modal" id="tituloModalPermissao">Alterar Permissão</h2>
+            <p style="color: #b0b0b0; font-size: 14px; margin-bottom: 25px;" id="descModalPermissao">
+                Selecione o nível de permissão para este membro
+            </p>
+
+            <div class="opcoes-permissao">
+                <div class="opcao-permissao" onclick="selecionarPermissao('editar')">
+                    <input type="radio" name="permissaoMembro" id="perm-editar" value="editar">
+                    <label for="perm-editar">
+                        <span class="titulo-permissao">Pode editar</span>
+                        <span class="desc-permissao">Pode visualizar, criar e editar tarefas</span>
+                    </label>
+                </div>
+
+                <div class="opcao-permissao" onclick="selecionarPermissao('visualizar')">
+                    <input type="radio" name="permissaoMembro" id="perm-visualizar" value="visualizar">
+                    <label for="perm-visualizar">
+                        <span class="titulo-permissao">Pode visualizar</span>
+                        <span class="desc-permissao">Apenas visualizar tarefas, sem editar</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="botoes-modal">
+                <button type="button" class="btn-criar" id="btnSalvarPermissao" onclick="salvarPermissao()">Salvar</button>
+                <button type="button" class="btn-cancelar-modal" onclick="fecharModalPermissao()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Importa o Botão de Acessibilidade -->
+<div th:replace="~{acessibilidade :: acessibilidade}"></div>
+
+<!-- Importa o Script de Acessibilidade -->
+<div th:replace="~{acessibilidade :: acessibilidade-script}"></div>
+
+<!-- Importa os Modais do fragment -->
+<div th:replace="~{sidebar :: modais}"></div>
+
+<!-- Importa os Scripts do fragment -->
+<div th:replace="~{sidebar :: scripts}"></div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="/js/areasTrabalho.js"></script>
+<script>
+    // Verifica se a variável existe para evitar erros
+    if (typeof areaSelecionadaCompartilhar !== 'undefined') {
+        // Encontra o input pelo ID e joga o valor da variável dentro dele
+        document.getElementById('inputAreaId').value = areaSelecionadaCompartilhar;
+    }
+</script>
+</body>
+</html>

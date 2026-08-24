@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDaily - Recuperação de Senha</title>
+    <link rel="stylesheet" href="/css/login.css"> </head>
+<body>
+<div class="logo">
+    <img src="/img/logo.png" alt="ToDaily logo" />
+</div>
+
+<div class="login-container">
+    <h4>Insira o seu email para<br>recuperar sua senha</h4>
+    <p th:if="${mensagem != null}" th:text="${mensagem}" style="color: lightgreen; text-align:center;"></p>
+    <p th:if="${erro != null}" th:text="${erro}" style="color: red; text-align:center;"></p>
+    <form id="emailForm" method="post" action="/recuperar-senha">
+
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" required>
+        <button type="submit" class="btn">CONFIRMAR</button>
+        <button type="button" class="btn secundario" onclick="window.location.href='/login'">Voltar</button>
+    </form>
+</div>
+
+</body>
+</html>

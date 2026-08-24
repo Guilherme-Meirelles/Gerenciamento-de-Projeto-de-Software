@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToDaily - Cadastro</title>
+    <link rel="stylesheet" href="/css/cadastro.css" />
+</head>
+<body>
+<div class="logo">
+    <img src="/img/logo.png" alt="ToDaily logo" />
+
+</div>
+
+<div class="cadastro-container">
+    <h2>Cadastro</h2>
+
+    <p th:text="${mensagem}"></p>
+
+    <form id="cadastroForm" action="/cadastro" method="post" onsubmit="return validarFormulario()">
+
+        <label for="nome">Nome*:</label>
+        <input type="text" id="nome" name="nome" placeholder="Maria Silva" required />
+
+        <label for="email">E-mail*:</label>
+        <input type="email" id="email" name="email" placeholder="maria.silva@exemplo.com" required />
+
+        <label for="dataNasc">Data de Nascimento*:</label>
+        <input type="date" id="dataNasc" name="dataNascimento" required />
+
+        <label for="senha">Senha*:</label>
+        <input type="password" id="senha" name="senha" placeholder="8+ caracteres" minlength="8" required />
+
+        <label for="confirmar">Confirmar Senha*:</label>
+        <input type="password" id="confirmar" name="confirmarSenha" placeholder="Repita a senha" minlength="8" required />
+
+        <div class="botoes">
+            <a href="/login" class="voltar" title="Voltar para Login">&larr;</a>
+            <button type="submit" class="btn">Cadastrar-se</button>
+        </div>
+    </form>
+
+    <p id="erro"></p>
+</div>
+
+<script>
+    function validarFormulario() {
+        // Removida a validação de formato de data, pois o input type="date" faz isso.
+        const senha = document.getElementById("senha").value.trim();
+        const confirmar = document.getElementById("confirmar").value.trim();
+        const erro = document.getElementById("erro");
+
+        // Limpa mensagens anteriores
+        erro.textContent = "";
+
+        // Validação de senha mínima
+        if (senha.length < 8) {
+            erro.textContent = "A senha deve ter pelo menos 8 caracteres.";
+            return false;
+        }
+
+        // Validação de confirmação de senha
+        if (senha !== confirmar) {
+            erro.textContent = "As senhas não coincidem.";
+            return false;
+        }
+
+        // Tudo certo — envia o formulário
+        return true;
+    }
+</script>
+</body>
+</html>

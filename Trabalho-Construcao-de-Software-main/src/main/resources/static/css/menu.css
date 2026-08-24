@@ -1,0 +1,1567 @@
+/* ===== Reset & Base Styles ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", Arial, sans-serif;
+}
+
+body {
+    background-color: #121212;
+    color: #fff;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+i {
+    width: 18px;
+    height: 18px;
+}
+
+.app-container {
+    display: flex;
+    width: 100%;
+}
+
+/* ===== Sidebar & Navegação Principal ===== */
+.sidebar {
+    background-color: #1e1e1e;
+    width: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 15px;
+    border-right: 2px solid #000;
+}
+
+.app-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* --- Perfil (no Sidebar) --- */
+.perfil {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    cursor: pointer;
+}
+
+.avatar {
+    background-color: #333;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.info {
+    margin-left: 10px;
+}
+
+.nome {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.email {
+    font-size: 12px;
+    color: #bbb;
+}
+
+/* --- Menu de Filtros --- */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.menu-item {
+    background: none;
+    border: none;
+    color: #ccc;
+    text-align: left;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.menu-item:hover,
+.menu-item.active {
+    background-color: #2a2a2a;
+    color: #fff;
+}
+
+/* --- Busca --- */
+.busca {
+    margin-top: 20px;
+}
+
+.busca input {
+    width: 100%;
+    background-color: #2a2a2a;
+    border: none;
+    border-radius: 10px;
+    padding: 6px 10px;
+    color: #fff;
+    outline: none;
+}
+
+/* --- Listas do Usuário --- */
+.listas {
+    margin-top: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+}
+
+.lista {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: none;
+    color: #ccc;
+    padding: 8px;
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
+    width: 100%;
+}
+
+.lista:hover,
+.lista.active {
+    color: #fff;
+    background-color: #2a2a2a;
+}
+
+/* --- Botão Nova Lista --- */
+.nova-lista {
+    background-color: #111;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+    margin-top: auto;
+}
+
+.nova-lista:hover {
+    background-color: #222;
+}
+
+/* ===== Conteúdo Principal (Main) ===== */
+.conteudo {
+    flex-grow: 1;
+    background-color: #121212;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-y: auto;
+}
+
+.titulo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 70%;
+    max-width: 500px;
+}
+
+.titulo-info {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.titulo h2 {
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.titulo span {
+    color: #bbb;
+    font-size: 16px;
+}
+
+/* --- Ações do Título (Filtro e Ordenação) --- */
+.titulo-acoes {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.btn-filtro,
+.btn-ordenar {
+    width: 45px;
+    height: 45px;
+    background-color: #2a2a2a;
+    border: none;
+    color: #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    padding: 0;
+}
+
+.btn-filtro:hover,
+.btn-ordenar:hover {
+    background-color: #3a3a3a;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.btn-filtro i,
+.btn-ordenar i {
+    width: 20px;
+    height: 20px;
+}
+
+/* --- Menu de Filtro e Ordenação --- */
+.menu-filtro {
+    position: fixed;
+    z-index: 10000;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    padding: 8px;
+    min-width: 220px;
+}
+
+.campo-filtro {
+    padding: 8px 12px 12px 12px;
+}
+
+.campo-filtro input {
+    width: 100%;
+    background-color: #3a3a3a;
+    border: 1px solid #4a4a4a;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.campo-filtro input::placeholder {
+    color: #888;
+}
+
+.campo-filtro input:focus {
+    background-color: #4a4a4a;
+    border-color: #555;
+}
+
+.menu-filtro-titulo {
+    font-size: 13px;
+    color: #888;
+    padding: 8px 12px 4px 12px;
+    margin-bottom: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.menu-filtro-item {
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.menu-filtro-item:hover {
+    background-color: #3a3a3a;
+    color: #fff;
+}
+
+.menu-filtro-item.active {
+    background-color: #3a3a3a;
+    color: #4caf50;
+}
+
+.menu-filtro-item.active i {
+    color: #4caf50;
+}
+
+.menu-filtro-item i {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* --- Adicionar Tarefa --- */
+.add-tarefa {
+    background-color: #2a2a2a;
+    border-radius: 25px;
+    margin-top: 30px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 70%;
+    max-width: 500px;
+    cursor: pointer;
+    transition: background 0.2s;
+    align-self: flex-start;
+}
+
+.add-tarefa:hover {
+    background-color: #383838;
+}
+
+/* --- Container de Tarefas --- */
+.container-tarefas {
+    margin-top: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tarefa-item {
+    background-color: #2a2a2a;
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.tarefa-item:hover {
+    background-color: #333;
+}
+
+/* Barra colorida do checklist */
+.tarefa-checklist-barra {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+}
+
+.tarefa-checkbox {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.2s;
+}
+
+.tarefa-checkbox:checked {
+    background-color: #4caf50;
+    border-color: #4caf50;
+}
+
+.tarefa-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.tarefa-conteudo {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.tarefa-titulo {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.tarefa-titulo.concluida {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.tarefa-descricao {
+    font-size: 14px;
+    color: #bbb;
+    line-height: 1.4;
+}
+
+.tarefa-info {
+    display: flex;
+    gap: 15px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.tarefa-data,
+.tarefa-responsavel {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #999;
+}
+
+.tarefa-data i,
+.tarefa-responsavel i {
+    width: 14px;
+    height: 14px;
+}
+
+.tarefa-btn-excluir {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.tarefa-btn-excluir:hover {
+    color: #ff5555;
+}
+
+.tarefa-btn-excluir i {
+    width: 18px;
+    height: 18px;
+}
+
+.tarefa-btn-editar {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.tarefa-btn-editar:hover {
+    color: #4caf50;
+}
+
+.tarefa-btn-editar i {
+    width: 18px;
+    height: 18px;
+}
+
+/* Indicador de checklist na tarefa */
+.tarefa-checklist-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #fff;
+    border-left: 3px solid;
+}
+
+.tarefa-checklist-badge i {
+    width: 14px;
+    height: 14px;
+}
+
+/* --- Botões Flutuantes --- */
+.botoes-flutuantes {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.botoes-flutuantes button {
+    background-color: #2a2a2a;
+    border: none;
+    color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.botoes-flutuantes button:hover {
+    background-color: #3a3a3a;
+}
+
+/* ===== Estilos de Overlay/Modal (Base) ===== */
+.overlay-perfil,
+.confirma-acao,
+.overlay-tarefa {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== Modal Adicionar Tarefa ===== */
+.modal-tarefa {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 30px 35px;
+    width: 90%;
+    max-width: 480px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.titulo-modal-tarefa {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #ffffff;
+}
+
+.form-tarefa {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.campo-tarefa {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campo-tarefa label {
+    font-size: 14px;
+    color: #d0d0d0;
+    font-weight: 400;
+}
+
+.campo-tarefa input,
+.campo-tarefa textarea,
+.campo-tarefa select {
+    background-color: #4a4a4a;
+    border: 1px solid #555;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: background-color 0.2s;
+    resize: none;
+}
+
+.campo-tarefa input:focus,
+.campo-tarefa textarea:focus,
+.campo-tarefa select:focus {
+    background-color: #555;
+    border-color: #777;
+}
+
+.campo-tarefa input::placeholder,
+.campo-tarefa textarea::placeholder {
+    color: #888;
+}
+
+.campo-tarefa select {
+    cursor: pointer;
+    padding-right: 35px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+.campo-tarefa input[type="date"] {
+    color-scheme: dark;
+    position: relative;
+}
+
+.campo-tarefa input[type="date"]::-webkit-calendar-picker-indicator {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3e%3c/rect%3e%3cline x1='16' y1='2' x2='16' y2='6'%3e%3c/line%3e%3cline x1='8' y1='2' x2='8' y2='6'%3e%3c/line%3e%3cline x1='3' y1='10' x2='21' y2='10'%3e%3c/line%3e%3c/svg%3e");
+    background-size: 18px;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    opacity: 1;
+}
+
+/* --- Linha com múltiplos campos --- */
+.campo-tarefa-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.campo-tarefa-checkbox {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+}
+
+.campo-tarefa-checkbox label {
+    font-size: 13px;
+    color: #d0d0d0;
+}
+
+.btn-checklist,
+.btn-anexo {
+    background-color: #4a4a4a;
+    border: 1px solid #555;
+    color: #e0e0e0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-checklist:hover,
+.btn-anexo:hover {
+    background-color: #555;
+}
+
+.btn-checklist i,
+.btn-anexo i {
+    width: 18px;
+    height: 18px;
+}
+
+/* Toggle Switch para Notificações */
+.toggle-switch {
+    appearance: none;
+    width: 44px;
+    height: 24px;
+    background-color: #4a4a4a;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s;
+}
+
+.toggle-switch:checked {
+    background-color: #4caf50;
+}
+
+.toggle-switch::before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: #fff;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.3s;
+}
+
+.toggle-switch:checked::before {
+    transform: translateX(20px);
+}
+
+/* --- Botões de Ação --- */
+.botoes-acao-tarefa {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+    justify-content: flex-end;
+}
+
+.btn-ok-tarefa,
+.btn-cancelar-tarefa {
+    padding: 11px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+.btn-ok-tarefa:hover,
+.btn-cancelar-tarefa:hover {
+    background-color: #252525;
+}
+
+/* ===== Modal de Perfil (modalPerfil) ===== */
+.perfil-modal {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 40px;
+    width: 90%;
+    max-width: 520px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.titulo-modal {
+    font-size: 32px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 30px;
+    color: #ffffff;
+}
+
+/* --- Foto de perfil --- */
+.foto-perfil {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 25px;
+}
+
+.avatar-grande {
+    width: 110px;
+    height: 110px;
+    background-color: #2a2a2a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-grande i {
+    width: 55px;
+    height: 55px;
+    color: #888;
+}
+
+.btn-alterar-foto {
+    background-color: #4a4a4a;
+    color: #e0e0e0;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.btn-alterar-foto:hover {
+    background-color: #555;
+}
+
+/* --- Informações do Usuário --- */
+.info-usuario {
+    background-color: #2a2a2a;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.campo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.campo-info label {
+    font-size: 14px;
+    color: #ccc;
+    font-weight: 400;
+}
+
+.campo-info p {
+    font-size: 15px;
+    color: #fff;
+    background-color: #3a3a3a;
+    padding: 8px 10px;
+    border-radius: 8px;
+    word-break: break-word;
+}
+
+/* --- Ações do Perfil --- */
+.formulario-perfil {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn-salvar,
+.btn-excluir {
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-salvar {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+.btn-salvar:hover {
+    background-color: #252525;
+}
+
+.btn-excluir {
+    background-color: #d32f2f;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.btn-excluir:hover {
+    background-color: #c62828;
+}
+
+/* ===== Modal de Verificação (modalVerificacao) ===== */
+.verificacao {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 30px;
+    width: 90%;
+    max-width: 480px;
+    color: #fff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mensagem-verificacao {
+    font-size: 20px;
+    font-weight: 400;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.mensagem-erro {
+    color: #ff5b5b;
+    text-align: center;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* --- Campo de senha --- */
+.campo-senha {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+}
+
+.campo-senha label {
+    font-size: 14px;
+    color: #ddd;
+}
+
+.campo-senha input {
+    background-color: #4a4a4a;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    width: 80%;
+    margin: 0 auto;
+    transition: background-color 0.2s;
+}
+
+.campo-senha input:focus {
+    background-color: #555;
+}
+
+/* --- Botões de Verificação --- */
+.botoes-verificacao {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 10px;
+}
+
+.btn-confirmar-V,
+.btn-cancelar-V {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex: 1;
+    max-width: 150px;
+}
+
+.btn-confirmar-V {
+    background-color: #2e2e2e;
+    color: #fff;
+}
+
+.btn-confirmar-V:hover {
+    background-color: #252525;
+}
+
+.btn-cancelar-V {
+    background-color: #2e2e2e;
+    color: #fff;
+}
+
+.btn-cancelar-V:hover {
+    background-color: #252525;
+}
+
+/* ===== Modal 'Adicionar/Editar Lista' (modalAddLista, modalEditLista) ===== */
+.modal-lista {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 25px 30px;
+    width: 90%;
+    max-width: 450px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.titulo-modal-lista {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+.form-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.campo-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campo-lista label {
+    font-size: 14px;
+    color: #d0d0d0;
+    font-weight: 400;
+}
+
+.campo-lista input,
+.campo-lista textarea {
+    background-color: #4a4a4a;
+    border: 1px solid #555;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: background-color 0.2s;
+    resize: none;
+}
+
+.campo-lista input:focus,
+.campo-lista textarea:focus {
+    background-color: #555;
+    border-color: #777;
+}
+
+.campo-lista input::placeholder {
+    color: #888;
+}
+
+.aviso-obrigatorio {
+    font-size: 12px;
+    color: #bbb;
+    margin-top: -5px;
+}
+
+.botoes-acao-lista {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+    justify-content: flex-end;
+}
+
+.btn-ok,
+.btn-cancelar-lista {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+.btn-ok:hover,
+.btn-cancelar-lista:hover {
+    background-color: #252525;
+}
+
+/* ===== Menu de Contexto (menuContextoLista) ===== */
+.context-menu {
+    position: absolute;
+    z-index: 10000;
+    background-color: #2a2a2a;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    display: none;
+    padding: 4px;
+    width: 160px;
+}
+
+.context-menu-item {
+    background: none;
+    border: none;
+    color: #e0e0e0;
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.context-menu-item:hover {
+    background-color: #3a3a3a;
+    color: #fff;
+}
+
+/* ===== Modal 'Remover Lista' (modalRemoveLista) ===== */
+.modal-remover {
+    background-color: #3a3a3a;
+    border-radius: 12px;
+    padding: 28px 35px;
+    width: 90%;
+    max-width: 400px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.modal-remover-mensagem {
+    font-size: 18px;
+    font-weight: 400;
+    margin-bottom: 25px;
+}
+
+.modal-remover-botoes {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-remover-sim,
+.btn-remover-nao {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+.btn-remover-sim:hover,
+.btn-remover-nao:hover {
+    background-color: #252525;
+}
+
+/* ===== Modal de Checklists ===== */
+.modal-checklist {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 30px;
+    width: 90%;
+    max-width: 520px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.titulo-modal-checklist {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #ffffff;
+}
+
+.lista-checklists {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+.checklist-item {
+    background-color: #2a2a2a;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.checklist-item:hover {
+    background-color: #333;
+}
+
+.checklist-cor {
+    width: 8px;
+    height: 40px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.checklist-info {
+    flex-grow: 1;
+}
+
+.checklist-nome {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.checklist-acoes {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-editar-checklist,
+.btn-excluir-checklist {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-editar-checklist:hover {
+    background-color: #3a3a3a;
+    color: #4caf50;
+}
+
+.btn-excluir-checklist:hover {
+    background-color: #3a3a3a;
+    color: #ff5555;
+}
+
+.btn-editar-checklist i,
+.btn-excluir-checklist i {
+    width: 16px;
+    height: 16px;
+}
+
+.botoes-acao-checklist {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.btn-novo-checklist {
+    flex: 1;
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-novo-checklist:hover {
+    background-color: #45a049;
+}
+
+.btn-novo-checklist i {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-fechar-checklist {
+    background-color: #2e2e2e;
+    color: #ffffff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-fechar-checklist:hover {
+    background-color: #252525;
+}
+
+/* ===== Modal Formulário Checklist ===== */
+.modal-checklist-form {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 30px;
+    width: 90%;
+    max-width: 420px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.form-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.campo-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campo-checklist label {
+    font-size: 14px;
+    color: #d0d0d0;
+    font-weight: 400;
+}
+
+.campo-checklist input {
+    background-color: #4a4a4a;
+    border: 1px solid #555;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.campo-checklist input:focus {
+    background-color: #555;
+    border-color: #777;
+}
+
+.campo-checklist input::placeholder {
+    color: #888;
+}
+
+/* Seletor de Cor */
+.seletor-cor {
+    position: relative;
+}
+
+.btn-cor-selecionada {
+    background-color: #4a4a4a;
+    border: 1px solid #555;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.btn-cor-selecionada:hover {
+    background-color: #555;
+}
+
+.cor-preview {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid #666;
+}
+
+.paleta-cores {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background-color: #2a2a2a;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    z-index: 1000;
+    width: 100%;
+}
+
+.cor-opcao {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cor-opcao:hover {
+    transform: scale(1.1);
+    border-color: #fff;
+}
+
+.cor-opcao.selecionada {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px #4a4a4a;
+}
+
+.botoes-acao-checklist-form {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    justify-content: flex-end;
+}
+
+.btn-salvar-checklist,
+.btn-cancelar-checklist {
+    padding: 11px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-salvar-checklist {
+    background-color: #4caf50;
+    color: #ffffff;
+}
+
+.btn-salvar-checklist:hover {
+    background-color: #45a049;
+}
+
+.btn-cancelar-checklist {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+.btn-cancelar-checklist:hover {
+    background-color: #252525;
+}
+
+/* Estado vazio */
+.lista-checklists-vazia {
+    text-align: center;
+    padding: 40px 20px;
+    color: #888;
+}
+
+.lista-checklists-vazia i {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.lista-checklists-vazia p {
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.lista-checklists-vazia span {
+    font-size: 14px;
+    color: #666;
+}
+
+/* ===== Responsividade Geral ===== */
+@media (max-width: 600px) {
+    .titulo-acoes {
+        margin-left: auto;
+    }
+
+    .btn-filtro,
+    .btn-ordenar {
+        width: 40px;
+        height: 40px;
+    }
+
+    .btn-filtro i,
+    .btn-ordenar i {
+        width: 16px;
+        height: 16px;
+    }
+
+    .perfil-modal {
+        padding: 28px;
+        width: 95%;
+    }
+
+    .titulo-modal {
+        font-size: 28px;
+    }
+
+    /* Modal de Verificação */
+    .verificacao {
+        width: 95%;
+        padding: 24px;
+    }
+
+    .campo-senha input {
+        width: 100%;
+    }
+
+    .modal-remover {
+        padding: 20px 25px;
+    }
+
+    /* Modal Adicionar Tarefa */
+    .modal-tarefa {
+        width: 95%;
+        padding: 25px;
+    }
+
+    .campo-tarefa-row {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+
+    .campo-tarefa-checkbox {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Tarefas */
+    .tarefa-item {
+        padding: 14px 16px;
+    }
+
+    .tarefa-titulo {
+        font-size: 15px;
+    }
+
+    .tarefa-descricao {
+        font-size: 13px;
+    }
+
+    .tarefa-info {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* Modais de Checklist */
+    .modal-checklist,
+    .modal-checklist-form {
+        width: 95%;
+        padding: 25px;
+    }
+
+    .paleta-cores {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Regras para Truncar o Subtítulo da Lista (Descrição Longa) */
+#subtitulo-principal {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    max-width: 300px;
+
+    display: block;
+
+    font-size: 14px;
+    color: #b0b0b0;
+    margin-left: 10px;
+    margin-right: 15px;
+}
+
+.titulo-info {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+/* Ajuste para o Título Principal: Permite que o título ocupe apenas o espaço necessário e não seja truncado. */
+#titulo-principal {
+    flex-shrink: 0;
+}

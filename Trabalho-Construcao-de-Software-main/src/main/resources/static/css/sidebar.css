@@ -1,0 +1,694 @@
+/* ===== Reset básico ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", Arial, sans-serif;
+}
+
+/* ===== Layout principal ===== */
+body {
+    background-color: #121212;
+    color: #fff;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    width: 100%;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+    background-color: #1e1e1e;
+    width: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 15px;
+    border-right: 2px solid #000;
+}
+
+/* ===== Header da Sidebar ===== */
+.header-sidebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0 15px 5px;
+    border-bottom: 1px solid #333;
+}
+
+.app-title {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.btn-config {
+    background: none;
+    border: none;
+    color: #ccc;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-config:hover {
+    background-color: #2a2a2a;
+    color: #fff;
+}
+
+.btn-config i {
+    width: 20px;
+    height: 20px;
+}
+
+/* ===== Perfil ===== */
+.perfil {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.perfil:hover {
+    background-color: #252525;
+}
+
+.avatar {
+    background-color: #333;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.avatar i {
+    width: 24px;
+    height: 24px;
+}
+
+.info {
+    margin-left: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.nome {
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.email {
+    font-size: 12px;
+    color: #bbb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ===== Menu ===== */
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.menu-item {
+    background: none;
+    border: none;
+    color: #ccc;
+    text-align: left;
+    padding: 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.menu-item:hover,
+.menu-item.active {
+    background-color: #2a2a2a;
+    color: #fff;
+}
+
+.menu-item i {
+    width: 18px;
+    height: 18px;
+}
+
+/* ===== Busca ===== */
+.busca {
+    margin-top: 20px;
+}
+
+.busca input {
+    width: 100%;
+    background-color: #2a2a2a;
+    border: none;
+    border-radius: 10px;
+    padding: 6px 10px;
+    color: #fff;
+    outline: none;
+}
+
+.busca input::placeholder {
+    color: #666;
+}
+
+/* ===== Listas ===== */
+.listas {
+    margin-top: 15px;
+    flex-grow: 1;
+}
+
+.lista {
+    display: block;
+    background: none;
+    border: none;
+    color: #ccc;
+    padding: 6px 0;
+    text-align: left;
+    cursor: pointer;
+    width: 100%;
+}
+
+.lista:hover {
+    color: #fff;
+}
+
+/* ===== Nova Lista ===== */
+.nova-lista {
+    background-color: #111;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.nova-lista:hover {
+    background-color: #222;
+}
+
+.nova-lista i {
+    width: 18px;
+    height: 18px;
+}
+
+/* ===== Modal de Perfil ===== */
+.overlay-perfil {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.perfil-modal {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 40px;
+    width: 90%;
+    max-width: 520px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.titulo-modal {
+    font-size: 32px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 30px;
+    color: #ffffff;
+}
+
+/* Foto de perfil */
+.foto-perfil {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.avatar-grande {
+    width: 110px;
+    height: 110px;
+    background-color: #2a2a2a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-grande i {
+    width: 55px;
+    height: 55px;
+    color: #888;
+}
+
+.btn-alterar-foto {
+    background-color: #4a4a4a;
+    color: #e0e0e0;
+    border: none;
+    padding: 10px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.btn-alterar-foto:hover {
+    background-color: #555;
+}
+
+/* Formulário */
+.formulario-perfil {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.campo-perfil {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campo-perfil label {
+    font-size: 14px;
+    color: #d0d0d0;
+    font-weight: 400;
+}
+
+.campo-perfil input {
+    background-color: #4a4a4a;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.campo-perfil input:focus {
+    background-color: #555;
+}
+
+.campo-perfil input::placeholder {
+    color: #888;
+}
+
+/* Campos inline (email e senha) */
+.campos-inline {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #ffffff;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    transition: opacity 0.2s;
+}
+
+.btn-link:hover {
+    opacity: 0.7;
+}
+
+/* Botões de ação */
+.botoes-acao {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.btn-salvar,
+.btn-cancelar {
+    flex: 1;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-salvar {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+.btn-salvar:hover {
+    background-color: #252525;
+}
+
+.btn-cancelar {
+    background-color: #2e2e2e;
+    color: #ffffff;
+}
+
+.btn-cancelar:hover {
+    background-color: #252525;
+}
+
+/* Botão excluir conta */
+.btn-excluir {
+    background-color: #d32f2f;
+    color: #ffffff;
+    border: none;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 15px;
+    transition: background-color 0.2s;
+}
+
+.btn-excluir:hover {
+    background-color: #c62828;
+}
+
+/* Responsividade */
+@media (max-width: 600px) {
+    .perfil-modal {
+        padding: 28px;
+        width: 95%;
+    }
+
+    .titulo-modal {
+        font-size: 28px;
+    }
+
+    .campos-inline {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .botoes-acao {
+        flex-direction: column;
+    }
+}
+
+/* ===== Modal Configurações ===== */
+.overlay-config {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-config {
+    background: linear-gradient(145deg, #2a2a2a 0%, #1e1e1e 100%);
+    border-radius: 20px;
+    padding: 0;
+    width: 90%;
+    max-width: 580px;
+    max-height: 90vh;
+    color: #ffffff;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    animation: slideUp 0.3s ease;
+    overflow-y: auto;   /* deixa rolar */
+    overflow-x: hidden;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Header do modal */
+.modal-config-header {
+    background: linear-gradient(135deg, #333 0%, #1a1a1a 100%);
+    padding: 30px 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-config-header h2 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.modal-config-header p {
+    font-size: 14px;
+    color: #999;
+}
+
+/* Conteúdo */
+.modal-config-content {
+    padding: 30px 40px;
+}
+
+/* Seção de perfil */
+.config-perfil {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    background-color: #252525;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    transition: all 0.3s;
+}
+
+.config-perfil:hover {
+    background-color: #2a2a2a;
+    transform: translateX(4px);
+}
+
+.config-avatar {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #444 0%, #333 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.config-avatar i {
+    width: 35px;
+    height: 35px;
+    color: #888;
+}
+
+.config-info {
+    flex: 1;
+}
+
+.config-info h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.config-info p {
+    font-size: 13px;
+    color: #999;
+}
+
+/* Botões de ação principal */
+.config-acoes-principais {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.btn-config-acao {
+    background-color: #2a2a2a;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 20px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.btn-config-acao:hover {
+    background-color: #333;
+    border-color: #444;
+    transform: translateY(-2px);
+}
+
+.btn-config-acao.red {
+    background-color: #2a1a1a;
+    border-color: #441a1a;
+}
+
+.btn-config-acao.red:hover {
+    background-color: #3a1a1a;
+    border-color: #661a1a;
+}
+
+.btn-config-acao i {
+    width: 24px;
+    height: 24px;
+}
+
+.btn-config-acao span {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* Outras opções */
+.config-opcoes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.config-opcao-item {
+    background-color: #252525;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 18px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.config-opcao-item:hover {
+    background-color: #2a2a2a;
+    border-color: #444;
+}
+
+.config-opcao-item i {
+    width: 22px;
+    height: 22px;
+    color: #aaa;
+    flex-shrink: 0;
+}
+
+.config-opcao-item span {
+    flex: 1;
+    font-size: 15px;
+}
+
+.config-opcao-item .arrow {
+    width: 18px;
+    height: 18px;
+    color: #666;
+}
+
+/* Botão cancelar */
+.modal-config-footer {
+    padding: 20px 40px 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-cancelar-config {
+    background: none;
+    border: 1px solid #444;
+    color: #ccc;
+    padding: 14px 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all 0.3s;
+}
+
+.btn-cancelar-config:hover {
+    background-color: #2a2a2a;
+    color: #fff;
+    border-color: #555;
+}
+
+/* Responsividade Modal Config */
+@media (max-width: 600px) {
+    .modal-config {
+        width: 95%;
+    }
+
+    .modal-config-header,
+    .modal-config-content,
+    .modal-config-footer {
+        padding: 20px 24px;
+    }
+
+    .modal-config-header h2 {
+        font-size: 24px;
+    }
+
+    .config-acoes-principais {
+        grid-template-columns: 1fr;
+    }
+
+    .config-perfil {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+
+#modalConfirmarLogout {
+    z-index: 10000; /* Maior que o modalConfig que tem z-index: 9999 */
+}

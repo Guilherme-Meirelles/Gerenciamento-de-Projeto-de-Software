@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<!-- Fragment do Botão de Calendário -->
+<div th:fragment="calendario">
+    <!-- Botão Principal de Calendário -->
+    <div class="botao-calendario-container">
+        <button class="btn-calendario" id="btnCalendario" title="Calendário">
+            <i data-lucide="calendar-days"></i>
+        </button>
+    </div>
+
+    <!-- Modal do Calendário -->
+    <div class="overlay-calendario" id="modalCalendario" style="display: none;">
+        <div class="modal-calendario">
+            <div class="calendario-header">
+                <button class="btn-nav-mes" id="btnMesAnterior">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+                <h3 class="calendario-titulo" id="calendarioTitulo">Novembro 2024</h3>
+                <button class="btn-nav-mes" id="btnMesProximo">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+            </div>
+
+            <div class="calendario-corpo">
+                <div class="calendario-dias-semana">
+                    <div class="dia-semana">Dom</div>
+                    <div class="dia-semana">Seg</div>
+                    <div class="dia-semana">Ter</div>
+                    <div class="dia-semana">Qua</div>
+                    <div class="dia-semana">Qui</div>
+                    <div class="dia-semana">Sex</div>
+                    <div class="dia-semana">Sáb</div>
+                </div>
+                <div class="calendario-grid" id="calendarioGrid">
+                    <!-- Os dias serão gerados dinamicamente -->
+                </div>
+            </div>
+
+            <div class="calendario-footer">
+                <button class="btn-hoje" id="btnHoje">Hoje</button>
+                <button class="btn-fechar-calendario" id="btnFecharCalendario">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script do Calendário -->
+<div th:fragment="calendario-script">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnCalendario = document.getElementById('btnCalendario');
+            const modalCalendario = document.getElementById('modalCalendario');
+            const btnFecharCalendario = document.getElementById('btnFecharCalendario');
+            const calendarioGrid = document.getElementById('calendarioGrid');
+            const calendarioTitulo = document.getElementById('calendarioTitulo');
+            const btnMesAnterior = document.getElementById('btnMesAnterior');
+            const btnMesProximo = document.getElementById('btnMesProximo');
+            const btnHoje = document.getElementById('btnHoje');
+
+            let dataAtual = new Date();
+            let mesAtual = dataAtual.getMonth();
+            let anoAtual = dataAtual.getFullYear();
+            let diaSelecionado = null;
+
+            const meses = [
+                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+            ];
+
+            // Abrir modal do calendário
+            btnCalendario.addEventListener('click', function() {
+                modalCalendario.style.display = 'flex';
+                renderizarCalendario();
+                lucide.createIcons();
+            });
+
+            // Fechar modal
+            btnFecharCalendario.addEventListener('click', function() {
+                modalCalendario.style.display = 'none';
+            });
+
+            // Fechar ao clicar no overlay
+            modalCalendario.addEventListener('click', function(e) {
+                if (e.target === modalCalendario) {
+                    modalCalendario.style.display = 'none';
+                }
+            });
+
+            // Navegar para mês anterior
+            btnMesAnterior.addEventListener('click', function() {
+                mesAtual--;
+                if (mesAtual < 0) {
+                    mesAtual = 11;
+                    anoAtual--;
+                }
+                renderizarCalendario();
+                lucide.createIcons();
+            });
+
+            // Navegar para próximo mês
+            btnMesProximo.addEventListener('click', function() {
+                mesAtual++;
+                if (mesAtual > 11) {
+                    mesAtual = 0;
+                    anoAtual++;
+                }
+                renderizarCalendario();
+                lucide.createIcons();
+            });
+
+            // Voltar para hoje
+            btnHoje.addEventListener('click', function() {
+                const hoje = new Date();
+                mesAtual = hoje.getMonth();
+                anoAtual = hoje.getFullYear();
+                renderizarCalendario();
+                lucide.createIcons();
+            });
+
+            // Função para renderizar o calendário
+            function renderizarCalendario() {
+                calendarioGrid.innerHTML = '';
+                calendarioTitulo.textContent = `${meses[mesAtual]} ${anoAtual}`;
+
+                const primeiroDia = new Date(anoAtual, mesAtual, 1).getDay();
+                const diasNoMes = new Date(anoAtual, mesAtual + 1, 0).getDate();
+                const hoje = new Date();
+                const diaHoje = hoje.getDate();
+                const mesHoje = hoje.getMonth();
+                const anoHoje = hoje.getFullYear();
+
+                // Adicionar células vazias antes do primeiro dia
+                for (let i = 0; i < primeiroDia; i++) {
+                    const celula = document.createElement('div');
+                    celula.className = 'calendario-dia vazio';
+                    calendarioGrid.appendChild(celula);
+                }
+
+                // Adicionar os dias do mês
+                for (let dia = 1; dia <= diasNoMes; dia++) {
+                    const celula = document.createElement('div');
+                    celula.className = 'calendario-dia';
+                    celula.textContent = dia;
+
+                    // Destacar o dia de hoje
+                    if (dia === diaHoje && mesAtual === mesHoje && anoAtual === anoHoje) {
+                        celula.classList.add('hoje');
+                    }
+
+                    // Adicionar evento de clique
+                    celula.addEventListener('click', function() {
+                        // Remover seleção anterior
+                        document.querySelectorAll('.calendario-dia').forEach(d => {
+                            d.classList.remove('selecionado');
+                        });
+
+                        // Adicionar seleção
+                        celula.classList.add('selecionado');
+                        diaSelecionado = dia;
+
+                        console.log(`Data selecionada: ${dia}/${mesAtual + 1}/${anoAtual}`);
+
+                        // Aqui você pode adicionar lógica para filtrar tarefas por data
+                        // Por exemplo: filtrarTarefasPorData(dia, mesAtual, anoAtual);
+                    });
+
+                    calendarioGrid.appendChild(celula);
+                }
+            }
+
+            // Renderizar calendário inicial
+            renderizarCalendario();
+        });
+    </script>
+</div>
+
+</body>
+</html>

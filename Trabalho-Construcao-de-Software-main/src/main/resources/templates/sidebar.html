@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToDaily</title>
+    <link rel="stylesheet" href="/css/sidebar.css" />
+    <link rel="stylesheet" href="/css/menu.css" />
+</head>
+<body>
+
+<!-- ========== FRAGMENT: SIDEBAR ========== -->
+<aside class="sidebar" th:fragment="sidebar">
+    <div class="header-sidebar">
+        <h1 class="app-title" onclick="navegarPara(this, '/menu')" style="cursor: pointer;" title="Menu Principal">ToDaily</h1>
+        <button class="btn-config" onclick="abrirModalConfig()" title="Configurações">
+            <i data-lucide="settings"></i>
+        </button>
+    </div>
+
+    <!-- Perfil -->
+    <div class="perfil" onclick="abrirModalPerfil('modalPerfil')" style="cursor: pointer;" title="Ver perfil">
+        <div class="avatar">
+            <i data-lucide="user"></i>
+        </div>
+        <div class="info">
+            <p class="nome" th:text="${nome}">Generic User</p>
+            <p class="email" th:text="${email}">genericemail@gmail.com</p>
+        </div>
+    </div>
+
+    <!-- Menu de Navegação -->
+    <nav class="menu">
+        <button class="menu-item active">
+            <i data-lucide="sun"></i> Para Hoje
+        </button>
+        <button class="menu-item">
+            <i data-lucide="calendar"></i> Agendadas
+        </button>
+        <button class="menu-item">
+            <i data-lucide="list-checks"></i> Todas as Tarefas
+        </button>
+        <button class="menu-item" onclick="navegarPara(this, '/areasTrabalho')">
+            <i data-lucide="briefcase"></i> Áreas de Trabalho
+        </button>
+    </nav>
+
+    <div class="busca" th:if="${not (isMenu ?: false)}">
+        <input type="text" placeholder="Buscar" />
+    </div>
+
+    <!-- Listas do Usuário -->
+    <div class="listas" th:if="${not (isMenu ?: false)}" id="listasContainer">
+        <button class="lista"
+                th:each="lista : ${listas}"
+                th:data-id="${lista.id}"
+                th:data-desc="${lista.descricao}"
+                oncontextmenu="mostrarMenuContexto(event, 'menuContextoLista', this)">
+            <i data-lucide="list"></i>
+            <span th:text="${lista.nome}"></span>
+        </button>
+    </div>
+
+    <!-- Botão Nova Lista -->
+    <button class="nova-lista" onclick="abrirModalPerfil('modalAddLista')" th:if="${not (isMenu ?: false)}">
+        <i data-lucide="plus"></i> Nova Lista
+    </button>
+</aside>
+
+
+<!-- ========== FRAGMENT: MODAIS ========== -->
+<div th:fragment="modais">
+
+    <!-- Modal: Perfil do Usuário -->
+    <div id="modalPerfil" class="overlay-perfil" th:fragment="modalPerfil" style="display: none;" onclick="fecharModalPerfil('modalPerfil')">
+        <div class="perfil-modal" onclick="event.stopPropagation()">
+            <h2 class="titulo-modal">Perfil</h2>
+
+            <!-- Foto de perfil -->
+            <div class="foto-perfil">
+                <div class="avatar-grande">
+                    <i data-lucide="user"></i>
+                </div>
+                <button class="btn-alterar-foto">Alterar ou remover foto</button>
+            </div>
+
+            <!-- Informações do usuário -->
+            <div class="info-usuario">
+                <div class="campo-info">
+                    <label>Nome:</label>
+                    <p th:text="${nome}">Generic User</p>
+                </div>
+                <div class="campo-info">
+                    <label>E-mail:</label>
+                    <p th:text="${email}">genericemail@gmail.com</p>
+                </div>
+                <div class="campo-info">
+                    <label>Data de Nascimento:</label>
+                    <p th:text="${dataNascimento}">01/01/2000</p>
+                </div>
+            </div>
+
+            <!-- Ações do perfil -->
+            <div class="formulario-perfil">
+                <button type="button" class="btn-salvar" onclick="abrirModalAcao('editar')">Editar Conta</button>
+                <button type="button" class="btn-excluir" onclick="abrirModalAcao('remover')">Excluir Conta</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Verificação (Confirmar Ação) -->
+    <div id="modalVerificacao" class="confirma-acao" th:style="${abrirModal} == 'verificacao' ? 'display:flex;' : 'display:none;'" onclick="fecharModalPerfil('modalVerificacao')">
+        <div class="verificacao" onclick="event.stopPropagation()">
+            <h3 class="mensagem-verificacao" id="mensagemVerificacao">
+                Deseja realmente executar esta ação?
+            </h3>
+
+            <!-- Formulário enviado ao backend -->
+            <form id="formConfirmacao" method="post">
+                <p th:if="${erro}" class="mensagem-erro" th:text="${erro}"></p>
+                <div class="campo-senha">
+                    <label for="senhaConfirmacao">Digite sua senha para confirmar:</label>
+                    <input type="password" id="senhaConfirmacao" name="senha" placeholder="Sua senha" required />
+                </div>
+
+                <div class="botoes-verificacao">
+                    <button type="submit" class="btn-confirmar-V">Confirmar</button>
+                    <button type="button" class="btn-cancelar-V" onclick="fecharModalPerfil('modalVerificacao')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Adicionar Lista -->
+    <div id="modalAddLista" class="overlay-perfil" style="display: none;" onclick="fecharModalPerfil('modalAddLista')">
+        <div class="modal-lista" onclick="event.stopPropagation()">
+            <h3 class="titulo-modal-lista">Adicionar Lista</h3>
+            <form class="form-lista">
+                <div class="campo-lista">
+                    <label for="nome-lista">Nome da Lista*</label>
+                    <input type="text" id="nome-lista" placeholder="Nova Lista" />
+                </div>
+                <div class="campo-lista">
+                    <label for="descricao-lista">Descrição:</label>
+                    <textarea id="descricao-lista" rows="4" placeholder="Adicione uma descrição (opcional)"></textarea>
+                </div>
+                <div class="botoes-acao-lista">
+                    <button type="button" class="btn-ok" onclick="confirmarCriacaoLista()">OK</button>
+                    <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalAddLista')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Editar Lista -->
+    <div id="modalEditLista" class="overlay-perfil" style="display: none;" onclick="fecharModalPerfil('modalEditLista')">
+        <div class="modal-lista" onclick="event.stopPropagation()">
+            <h3 class="titulo-modal-lista">Editar Lista</h3>
+            <form class="form-lista">
+                <div class="campo-lista">
+                    <label for="nome-lista-edit">Nome da Lista*</label>
+                    <input type="text" id="nome-lista-edit" value="RENOMEADA" />
+                </div>
+                <div class="campo-lista">
+                    <label for="descricao-lista-edit">Descrição:</label>
+                    <textarea id="descricao-lista-edit" rows="4" placeholder="Adicione uma descrição (opcional)"></textarea>
+                </div>
+                <div class="botoes-acao-lista">
+                    <button type="button" class="btn-ok" onclick="confirmarEdicaoLista()">OK</button>
+                    <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalEditLista')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Remover Lista -->
+    <div id="modalRemoveLista" class="confirma-acao" style="display: none;" onclick="fecharModalPerfil('modalRemoveLista')">
+        <div class="modal-remover" onclick="event.stopPropagation()">
+            <h3 class="modal-remover-mensagem">Deseja realmente remover esta lista?</h3>
+            <div class="modal-remover-botoes">
+                <button class="btn-remover-nao" onclick="fecharModalPerfil('modalRemoveLista')">Não</button>
+                <button class="btn-remover-sim" onclick="confirmarRemocaoLista()">Sim</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu de Contexto (Clique direito nas listas) -->
+    <div id="menuContextoLista" class="context-menu" style="display: none;">
+        <button class="context-menu-item" onclick="abrirModalEditarLista()">Editar Lista</button>
+        <button class="context-menu-item" onclick="abrirModalRemoverLista()">Remover Lista</button>
+    </div>
+
+    <!-- Modal: Confirmação de Logout -->
+    <div id="modalConfirmarLogout" class="confirma-acao" style="display: none;" onclick="fecharModalPerfil('modalConfirmarLogout')">
+        <div class="modal-remover" onclick="event.stopPropagation()">
+            <h3 class="modal-remover-mensagem">Deseja realmente sair da sua conta?</h3>
+            <div class="modal-remover-botoes">
+                <button class="btn-remover-nao" onclick="fecharModalPerfil('modalConfirmarLogout')">Não</button>
+                <button class="btn-remover-sim" onclick="confirmarLogout()">Sim</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Configurações -->
+    <div id="modalConfig" class="overlay-config" style="display: none;" onclick="fecharModalConfig()">
+        <div class="modal-config" onclick="event.stopPropagation()">
+            <!-- Header -->
+            <div class="modal-config-header">
+                <h2>Configurações</h2>
+                <p>Gerencie sua conta e preferências</p>
+            </div>
+
+            <!-- Conteúdo -->
+            <div class="modal-config-content">
+
+                <!-- Perfil -->
+                <div class="config-perfil">
+                    <div class="config-avatar">
+                        <i data-lucide="user"></i>
+                    </div>
+                    <div class="config-info">
+                        <h3 th:text="${nome}">Generic User</h3>
+                        <p th:text="${email}">genericemail@gmail.com</p>
+                    </div>
+                </div>
+
+                <!-- Ações principais -->
+                <div class="config-acoes-principais">
+                    <button class="btn-config-acao" onclick="abrirModalPerfil('modalPerfil'); fecharModalConfig();">
+                        <i data-lucide="user-cog"></i>
+                        <span>Gerenciar Contas</span>
+                    </button>
+                    <button class="btn-config-acao red" onclick="abrirModalLogout()">
+                        <i data-lucide="log-out"></i>
+                        <span>Sair</span>
+                    </button>
+                </div>
+
+                <!-- Outras opções -->
+                <div class="config-opcoes">
+                    <button class="config-opcao-item" onclick="alert('Notificações')">
+                        <i data-lucide="bell"></i>
+                        <span>Notificações</span>
+                        <i class="arrow" data-lucide="chevron-right"></i>
+                    </button>
+
+                    <button class="config-opcao-item" onclick="alert('Privacidade')">
+                        <i data-lucide="shield"></i>
+                        <span>Privacidade</span>
+                        <i class="arrow" data-lucide="chevron-right"></i>
+                    </button>
+
+                    <button class="config-opcao-item" onclick="alert('Ajuda')">
+                        <i data-lucide="help-circle"></i>
+                        <span>Ajuda</span>
+                        <i class="arrow" data-lucide="chevron-right"></i>
+                    </button>
+
+                    <button class="config-opcao-item" onclick="alert('Termos de Uso')">
+                        <i data-lucide="file-text"></i>
+                        <span>Termos de Uso</span>
+                        <i class="arrow" data-lucide="chevron-right"></i>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-config-footer">
+                <button class="btn-cancelar-config" onclick="fecharModalConfig()">
+                    Cancelar
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="daata"
+        th:data-listas="${listas}">
+    </div>
+
+</div>
+
+
+<!-- ========== FRAGMENT: SCRIPTS ========== -->
+<div th:fragment="scripts">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="/js/sidebar.js"></script>
+    <script th:inline="javascript">
+        window.areaAtualId = /*[[${areaId}]]*/ 0;
+    </script>
+</div>
+
+</body>
+</html>

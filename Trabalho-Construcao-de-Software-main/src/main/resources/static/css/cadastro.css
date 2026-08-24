@@ -1,0 +1,203 @@
+/* ===== Reset ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", Arial, sans-serif;
+}
+
+/* ===== Corpo ===== */
+body {
+    background-color: #0d0d0d;
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    transition: background-color 0.3s;
+}
+
+/* ===== Logo ===== */
+.logo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.9;
+}
+
+.logo img {
+    width: 100px;
+    height: 100px;
+    border-radius: 4px;
+}
+
+
+
+/* ===== Caixa de cadastro ===== */
+.cadastro-container {
+    background-color: #1a1a1a;
+    padding: 40px;
+    border-radius: 10px;
+
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1);
+
+    min-width: 360px;
+    display: flex;
+    flex-direction: column;
+}
+
+.cadastro-container h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+/* ===== Mensagem de sucesso */
+.cadastro-container p[th\\:text] {
+    padding: 5px 10px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: rgba(0, 200, 83, 0.1);
+    color: #00c853 !important;
+    border-left: 3px solid #00c853;
+}
+
+/* ===== Mensagem de erro (Corrigido para só aparecer quando houver texto) */
+#erro:not(:empty) {
+    padding: 5px 10px;
+    margin-top: 15px !important;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: rgba(255, 0, 0, 0.1);
+    color: #ff4d4d !important;
+    border-left: 3px solid #ff4d4d;
+    font-weight: 500;
+}
+
+#erro:empty {
+    margin: 0;
+    padding: 0;
+}
+
+
+/* ===== Formulário ===== */
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    /* Estilo de label do login */
+    margin-top: 15px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #b0b0b0;
+    font-weight: 500;
+}
+
+input {
+    /* Estilo de input do login */
+    background-color: #252525;
+    border: 1px solid #333;
+    border-radius: 6px;
+    height: 40px;
+    color: #fff;
+    padding: 0 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input::placeholder {
+    color: #777;
+}
+
+input:focus {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+    background-color: #1e1e1e;
+}
+
+/* ===== ESTILOS ESPECÍFICOS PARA INPUT TIPO DATE ===== */
+input[type="date"] {
+    text-transform: uppercase;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1); /* Inverte a cor do ícone de calendário */
+    opacity: 0.8;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+input[type="date"]:invalid {
+    color: #777;
+}
+/* =================================================== */
+
+
+/* ===== Informações ===== */
+.info {
+    font-size: 13px;
+    color: #999;
+    margin-top: 8px;
+    text-align: left;
+}
+
+/* ===== Botões - Div de organização ===== */
+.botoes {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 25px;
+}
+
+/* ===== Botão Principal (Cadastrar-se)===== */
+.btn {
+    background-color: #ffffff;
+    color: #1a1a1a;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    width: 70%;
+}
+
+.btn:hover {
+    background-color: #e0e0e0;
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.15);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+
+/* ===== Botão voltar (Secundário) ===== */
+.voltar {
+    color: #ccc;
+    text-decoration: none;
+    font-size: 20px;
+    background-color: #333333;
+    padding: 10px 15px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    line-height: 1;
+    border: 1px solid #444;
+}
+
+.voltar:hover {
+    background-color: #444444;
+    color: #fff;
+    border-color: #555;
+}
