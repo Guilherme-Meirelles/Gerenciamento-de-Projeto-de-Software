@@ -49,7 +49,7 @@ public class LoginCadastroControle {
 
         if (result.hasErrors()) {
             model.addAttribute("mensagem", "Erro ao cadastrar!");
-            return "redirect:/cadastro";
+            return "cadastro";
         }
 
         if (usuario.getSenha().length() < 8) {

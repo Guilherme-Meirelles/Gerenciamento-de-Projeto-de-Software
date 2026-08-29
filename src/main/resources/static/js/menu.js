@@ -863,10 +863,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tarefa) {
             tarefa.concluida = !tarefa.concluida;
 
-            titulo = tarefa.titulo
-            listaId = tarefa.listaId
-            concluida = tarefa.concluida
-            responsavelId = tarefa.responsavel
+            const titulo = tarefa.titulo
+            const listaId = tarefa.listaId
+            const concluida = tarefa.concluida
+            const responsavelId = tarefa.responsavel
 
             const corpo = {
                 titulo,

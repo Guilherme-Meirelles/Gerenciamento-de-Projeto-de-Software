@@ -24,6 +24,9 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String remetente;
 
+    @Value("${app.base-url}")
+    private String baseUrl;
+
     public void enviarEmailDeTeste(String destinatario) {
         SimpleMailMessage mensagem = new SimpleMailMessage();
         mensagem.setTo(destinatario);
@@ -45,6 +48,7 @@ public class EmailService {
             String template = carregaTemplateEmail("templates/email_template.html");
 
             // Garante que o replace só acontece se tiver o nome (evita erro de Null)
+            template = template.replace("{baseUrl}", baseUrl);
             template = template.replace("{token}", token);
             if (destinatarioNome != null) {
                 template = template.replace("{nome}", destinatarioNome);
@@ -78,6 +82,7 @@ public class EmailService {
 
 
 
+            template = template.replace("{baseUrl}", baseUrl);
             template = template.replace("{nome}", destinatario.getNome());
             template = template.replace("{token}", token);
             template = template.replace("{usuario}", nomeUsuario);
@@ -110,6 +115,7 @@ public class EmailService {
 
             String template = carregaTemplateEmail("templates/verificacaoEmail.html");
 
+            template = template.replace("{baseUrl}", baseUrl);
             template = template.replace("{token}", token);
             if (destinatarioNome != null) {
                 template = template.replace("{nome}", destinatarioNome);

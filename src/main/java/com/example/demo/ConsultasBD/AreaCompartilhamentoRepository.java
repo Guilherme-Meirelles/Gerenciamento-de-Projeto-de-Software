@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AreaCompartilhamentoRepository extends JpaRepository<AreaCompartilhamento, Long> {
 
-    AreaCompartilhamentoRepository findAreaCompartilhamentoById(Long id);
+    AreaCompartilhamento findAreaCompartilhamentoById(Long id);
 }
