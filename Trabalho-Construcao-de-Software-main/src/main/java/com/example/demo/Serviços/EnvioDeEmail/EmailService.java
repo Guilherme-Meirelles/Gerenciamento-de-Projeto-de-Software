@@ -3,6 +3,7 @@ package com.example.demo.Serviços.EnvioDeEmail;
 import com.example.demo.Entidades.AreaTrabalho;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -18,6 +19,11 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    // O Gmail rejeita/reescreve o "From" quando ele não é a própria conta autenticada,
+    // então o remetente precisa ser o mesmo usuário configurado em spring.mail.username.
+    @Value("${spring.mail.username}")
+    private String remetente;
+
     public void enviarEmailDeTeste(String destinatario) {
         SimpleMailMessage mensagem = new SimpleMailMessage();
         mensagem.setTo(destinatario);
@@ -32,7 +38,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8"); // UTF-8 e Multipart ativados
 
-            helper.setFrom("noreply@todaily.com");
+            helper.setFrom(remetente);
             helper.setSubject("Redefinição de senha ToDaily");
             helper.setTo(destinatarioEmail);
 
@@ -62,7 +68,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8"); // UTF-8 e Multipart ativados
 
-            helper.setFrom("noreply@todaily.com");
+            helper.setFrom(remetente);
             helper.setSubject("Compartilhamento de Área de Trabalho ToDaily");
             helper.setTo(destinatario.getEmail());
 
@@ -89,6 +95,33 @@ public class EmailService {
             // ISSO É O IMPORTANTE: Imprime o erro real no console
             e.printStackTrace();
             // Joga o erro para o Controller, para o Front saber que falhou
+            throw new RuntimeException("Erro ao enviar email: " + e.getMessage());
+        }
+    }
+
+    public void enviarEmailVerificacao(String destinatarioEmail, String destinatarioNome, String token) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(remetente);
+            helper.setSubject("Confirme seu e-mail - ToDaily");
+            helper.setTo(destinatarioEmail);
+
+            String template = carregaTemplateEmail("templates/verificacaoEmail.html");
+
+            template = template.replace("{token}", token);
+            if (destinatarioNome != null) {
+                template = template.replace("{nome}", destinatarioNome);
+            }
+
+            helper.setText(template, true);
+
+            mailSender.send(message);
+            System.out.println("Email enviado com sucesso!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Erro ao enviar email: " + e.getMessage());
         }
     }

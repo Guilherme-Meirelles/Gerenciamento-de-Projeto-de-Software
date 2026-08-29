@@ -2,9 +2,10 @@ package com.example.demo.Controles;
 
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Entidades.Usuario;
-import com.example.demo.Serviços.CookieService;
+import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -20,10 +21,13 @@ public class edicaoUsuario {
     @Autowired
     private UsuarioRepository ur;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @GetMapping("/edicaoUsuario")
     public String carregarEdicaoUsuario(HttpServletRequest request, Model model) {
 
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
 
         if (usuarioId != null) {
             Usuario usuario = ur.findUsuarioById(Long.parseLong(usuarioId));
@@ -41,6 +45,8 @@ public class edicaoUsuario {
     @PostMapping("/edicaoUsuario")
     public String edicaoUsuario(@ModelAttribute Usuario usuarioEditado, HttpServletRequest request, BindingResult result, Model model) {
 
+        boolean vaiTrocarSenha = usuarioEditado.getSenha() != null && !usuarioEditado.getSenha().isBlank();
+
         if (result.hasErrors()) {
             model.addAttribute("mensagem", "Erro na edição de usuário!");
             return "edicaoUsuario";
@@ -50,12 +56,12 @@ public class edicaoUsuario {
             return "cadastro";
         }
 
-        else if (usuarioEditado.getSenha().length() < 8) {
+        else if (vaiTrocarSenha && usuarioEditado.getSenha().length() < 8) {
             model.addAttribute("mensagem", "A senha deve ter pelo menos 8 caracteres!");
             return "edicaoUsuario";
         } else {
 
-            String usuarioId = CookieService.getCookie(request, "usuarioId");
+            String usuarioId = SessaoUtil.getUsuarioId(request);
 
             if (usuarioId != null) {
                 Long id = Long.parseLong(usuarioId);
@@ -67,8 +73,8 @@ public class edicaoUsuario {
                     usuarioExistente.setEmail(usuarioEditado.getEmail());
                     usuarioExistente.setDataNascimento(usuarioEditado.getDataNascimento());
 
-                    if (usuarioEditado.getSenha() != null && !usuarioEditado.getSenha().isBlank()) {
-                        usuarioExistente.setSenha(usuarioEditado.getSenha());
+                    if (vaiTrocarSenha) {
+                        usuarioExistente.setSenha(passwordEncoder.encode(usuarioEditado.getSenha()));
                     }
 
                     ur.save(usuarioExistente);

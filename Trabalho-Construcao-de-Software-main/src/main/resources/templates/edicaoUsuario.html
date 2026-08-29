@@ -26,13 +26,13 @@
         <input type="email" id="email" name="email" th:value="*{email}" required />
 
         <label for="dataNasc">Data de Nascimento*:</label>
-        <input type="date" id="dataNasc" name="dataNascimento" required />
+        <input type="date" id="dataNasc" name="dataNascimento" th:value="*{dataNascimento}" required />
 
-        <label for="senha">Senha*:</label>
-        <input type="password" id="senha" name="senha" th:value="*{senha}" minlength="8" required />
+        <label for="senha">Nova Senha:</label>
+        <input type="password" id="senha" name="senha" minlength="8" placeholder="Deixe em branco para manter a senha atual" />
 
-        <label for="confirmar">Confirmar Senha*:</label>
-        <input type="password" id="confirmar" name="confirmarSenha" th:value="*{senha}" minlength="8" required />
+        <label for="confirmar">Confirmar Nova Senha:</label>
+        <input type="password" id="confirmar" name="confirmarSenha" minlength="8" placeholder="Deixe em branco para manter a senha atual" />
 
         <p class="info">(*) São campos obrigatórios</p>
 
@@ -59,16 +59,17 @@
         // Validação de data no formato dd/mm/aaaa
 
 
-        // Validação de senha mínima
-        if (senha.length < 8) {
-            erro.textContent = "A senha deve ter pelo menos 8 caracteres.";
-            return false;
-        }
+        // Só valida a senha se o usuário decidiu trocá-la
+        if (senha.length > 0 || confirmar.length > 0) {
+            if (senha.length < 8) {
+                erro.textContent = "A senha deve ter pelo menos 8 caracteres.";
+                return false;
+            }
 
-        // Validação de confirmação de senha
-        if (senha !== confirmar) {
-            erro.textContent = "As senhas não coincidem.";
-            return false;
+            if (senha !== confirmar) {
+                erro.textContent = "As senhas não coincidem.";
+                return false;
+            }
         }
 
         // Tudo certo — envia o formulário

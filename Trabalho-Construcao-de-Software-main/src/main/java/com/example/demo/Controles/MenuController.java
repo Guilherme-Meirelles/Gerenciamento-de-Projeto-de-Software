@@ -2,10 +2,10 @@ package com.example.demo.Controles;
 
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Entidades.Usuario;
-import com.example.demo.Serviços.CookieService;
+import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,22 +20,28 @@ public class MenuController {
     @Autowired
     private UsuarioRepository ur;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @GetMapping("/menu")
     public String Menu(Model model, HttpServletRequest request) {
-        String nome = CookieService.getCookie(request, "nomeUsuario");
-        String email = CookieService.getCookie(request, "emailUsuario");
-        String dataNascimento = CookieService.getCookie(request, "dataNascimento");
-
-        // Segurança: se não houver cookies, redireciona
-        if (nome == null || email == null) {
+        String usuarioId = SessaoUtil.getUsuarioId(request);
+        if (usuarioId == null) {
             return "redirect:/login";
         }
+
+        Usuario usuario = ur.findUsuarioById(Long.parseLong(usuarioId));
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+
+        String dataNascimento = usuario.getDataNascimento();
         String ano = dataNascimento.substring(0, 4);
         String mes = dataNascimento.substring(5, 7);
         String dia = dataNascimento.substring(8, 10);
         dataNascimento = dia + "/" + mes + "/" + ano;
-        model.addAttribute("nome", nome);
-        model.addAttribute("email", email);
+        model.addAttribute("nome", usuario.getNome());
+        model.addAttribute("email", usuario.getEmail());
         model.addAttribute("dataNascimento", dataNascimento);
         model.addAttribute("isMenu", true);
 
@@ -57,42 +63,40 @@ public class MenuController {
     public String exclusaoDeConta(
             @ModelAttribute Usuario usuarioSenha,
             HttpServletRequest request,
-            HttpServletResponse response,
             Model model) {
 
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
 
-        if (usuarioId != null) {
-            Usuario usuario = this.ur.findUsuarioById(Long.parseLong(usuarioId));
-
-            if (usuario != null && usuarioSenha.getSenha().equals(usuario.getSenha())) {
-                this.ur.delete(usuario);
-
-                CookieService.deleteCookie(response, "usuarioId");
-                CookieService.deleteCookie(response, "nomeUsuario");
-                CookieService.deleteCookie(response, "emailUsuario");
-                CookieService.deleteCookie(response, "dataNascimento");
-
-                model.addAttribute("remocao", "Usuário removido com sucesso!");
-                return "login";
-            } else {
-                model.addAttribute("erro", "Senha incorreta. Tente novamente.");
-                model.addAttribute("abrirModal", "verificacao");
-                model.addAttribute("nome", usuario.getNome());
-                model.addAttribute("email", usuario.getEmail());
-                model.addAttribute("dataNascimento", usuario.getDataNascimento());
-                model.addAttribute("isMenu", true);
-
-                model.addAttribute("areaId", "");
-                model.addAttribute("areaName", "");
-                model.addAttribute("area", "");
-                model.addAttribute("listas", "");
-
-                return "menu"; // sem redirect
-            }
-        } else {
+        if (usuarioId == null) {
             model.addAttribute("erro", "Nenhum usuário logado.");
             return "redirect:/login";
+        }
+
+        Usuario usuario = this.ur.findUsuarioById(Long.parseLong(usuarioId));
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+
+        if (passwordEncoder.matches(usuarioSenha.getSenha(), usuario.getSenha())) {
+            this.ur.delete(usuario);
+            SessaoUtil.encerrar(request);
+
+            model.addAttribute("remocao", "Usuário removido com sucesso!");
+            return "login";
+        } else {
+            model.addAttribute("erro", "Senha incorreta. Tente novamente.");
+            model.addAttribute("abrirModal", "verificacao");
+            model.addAttribute("nome", usuario.getNome());
+            model.addAttribute("email", usuario.getEmail());
+            model.addAttribute("dataNascimento", usuario.getDataNascimento());
+            model.addAttribute("isMenu", true);
+
+            model.addAttribute("areaId", "");
+            model.addAttribute("areaName", "");
+            model.addAttribute("area", "");
+            model.addAttribute("listas", "");
+
+            return "menu"; // sem redirect
         }
     }
 
@@ -100,36 +104,37 @@ public class MenuController {
     public String edicaodeConta(
             @ModelAttribute Usuario usuarioSenha,
             HttpServletRequest request,
-            HttpServletResponse response,
             Model model) {
 
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
 
-        if (usuarioId != null) {
-            Usuario usuario = this.ur.findUsuarioById(Long.parseLong(usuarioId));
-
-            if (usuario != null && usuarioSenha.getSenha().equals(usuario.getSenha())) {
-
-                return "redirect:/edicaoUsuario";
-            } else {
-                model.addAttribute("erro", "Senha incorreta. Tente novamente.");
-                model.addAttribute("abrirModal", "verificacao");
-
-                model.addAttribute("nome", usuario.getNome());
-                model.addAttribute("email", usuario.getEmail());
-                model.addAttribute("dataNascimento", usuario.getDataNascimento());
-                model.addAttribute("isMenu", true);
-                
-                model.addAttribute("areaId", "");
-                model.addAttribute("areaName", "");
-                model.addAttribute("area", "");
-                model.addAttribute("listas", "");
-                
-                return "menu"; // sem redirect
-            }
-        } else {
+        if (usuarioId == null) {
             model.addAttribute("erro", "Nenhum usuário logado.");
             return "redirect:/login";
+        }
+
+        Usuario usuario = this.ur.findUsuarioById(Long.parseLong(usuarioId));
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+
+        if (passwordEncoder.matches(usuarioSenha.getSenha(), usuario.getSenha())) {
+            return "redirect:/edicaoUsuario";
+        } else {
+            model.addAttribute("erro", "Senha incorreta. Tente novamente.");
+            model.addAttribute("abrirModal", "verificacao");
+
+            model.addAttribute("nome", usuario.getNome());
+            model.addAttribute("email", usuario.getEmail());
+            model.addAttribute("dataNascimento", usuario.getDataNascimento());
+            model.addAttribute("isMenu", true);
+
+            model.addAttribute("areaId", "");
+            model.addAttribute("areaName", "");
+            model.addAttribute("area", "");
+            model.addAttribute("listas", "");
+
+            return "menu"; // sem redirect
         }
     }
 

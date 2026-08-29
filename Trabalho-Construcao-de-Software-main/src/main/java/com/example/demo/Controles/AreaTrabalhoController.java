@@ -2,7 +2,7 @@ package com.example.demo.Controles;
 
 import com.example.demo.ConsultasBD.*;
 import com.example.demo.Entidades.*;
-import com.example.demo.Serviços.CookieService;
+import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.ListaService;
 import com.example.demo.Serviços.TarefaService;
 
@@ -49,7 +49,7 @@ public class AreaTrabalhoController {
     @GetMapping("/areasTrabalho")
     public String areasTrabalho(Model model, HttpServletRequest request) {
 
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
 
         if (usuarioId == null) {
             return "redirect:/login";
@@ -78,7 +78,7 @@ public class AreaTrabalhoController {
     @GetMapping("/areasTrabalho/{id}/{name}")
     public String areasTrabalhoId(@PathVariable Long id, @PathVariable String name, Model model, HttpServletRequest request) {
 
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
 
         if (usuarioId == null) {
             return "redirect:/login";
@@ -111,7 +111,7 @@ public class AreaTrabalhoController {
     @ResponseBody
     public String criarArea(@RequestParam String nome, HttpServletRequest request) {
 
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) {
             return "NOT_LOGGED";
         }
@@ -148,7 +148,7 @@ public class AreaTrabalhoController {
             return ResponseEntity.badRequest().body("INVALID_NAME");
         }
 
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(403).body("NOT_LOGGED");
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
@@ -168,7 +168,7 @@ public class AreaTrabalhoController {
 
     @DeleteMapping("/areasTrabalho/excluir")
     public ResponseEntity<?> excluirAreas(@RequestBody Map<String, List<Long>> body, HttpServletRequest request) {
-        String usuarioIdString = CookieService.getCookie(request, "usuarioId");
+        String usuarioIdString = SessaoUtil.getUsuarioId(request);
         if (usuarioIdString == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long usuarioId = Long.parseLong(usuarioIdString);
         Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
@@ -179,7 +179,10 @@ public class AreaTrabalhoController {
             AreaTrabalho area = areaTrabalhoRepository.findById(id).orElse(null);
             if (area != null){
                 List<ParticipacaoArea> participacoes = participacaoAreaRepository.findByArea(area);
-                ParticipacaoArea participacaoArea = participacoes.stream().filter(e -> e.getUsuario().getId() == usuarioId).findFirst().orElse(null);
+                ParticipacaoArea participacaoArea = participacoes.stream().filter(e -> e.getUsuario().getId().equals(usuarioId)).findFirst().orElse(null);
+                if (participacaoArea == null) {
+                    continue; // usuário não participa dessa área, ignora
+                }
                 if (participacaoArea.getPermissao().equals(PermissaoArea.ADMIN)) {
                     areaTrabalhoRepository.delete(area);
                     for (ParticipacaoArea p : participacoes) {
@@ -200,7 +203,7 @@ public class AreaTrabalhoController {
     @ResponseBody
     public ResponseEntity<?> compartilharArea(@RequestBody Map<String, String> body, HttpServletRequest request) {
 
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Usuário não logado"));
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
@@ -237,7 +240,7 @@ public class AreaTrabalhoController {
     @ResponseBody
     public ResponseEntity<?> gerarLink(@PathVariable Long id, HttpServletRequest request) {
 
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Usuário não logado"));
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
@@ -257,7 +260,7 @@ public class AreaTrabalhoController {
     @GetMapping("/areasTrabalho/{id}/membros")
     @ResponseBody
     public ResponseEntity<?> listarMembros(@PathVariable Long id, HttpServletRequest request) {
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
@@ -278,7 +281,7 @@ public class AreaTrabalhoController {
                 mapa.put("id", p.getUsuario().getId());
                 mapa.put("nome", p.getUsuario().getNome());
                 mapa.put("email", p.getUsuario().getEmail());
-                mapa.put("permissao", p.getPermissao() == PermissaoArea.ADMIN ? "editar" : "visualizar");
+                mapa.put("permissao", p.getPermissao() != PermissaoArea.OBSERVADOR ? "editar" : "visualizar");
                 return mapa;
             })
             .collect(Collectors.toList());
@@ -291,7 +294,7 @@ public class AreaTrabalhoController {
     @ResponseBody
     public ResponseEntity<?> listarListas(@PathVariable Long id, HttpServletRequest request) {
         // Verifica se o usuário está logado
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
@@ -327,7 +330,7 @@ public class AreaTrabalhoController {
     @ResponseBody
     public ResponseEntity<?> listarTarefasPorArea(@PathVariable Long areaId, HttpServletRequest request) {
         // Verifica se o usuário está logado
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
@@ -380,7 +383,7 @@ public class AreaTrabalhoController {
     public ResponseEntity<?> listarTarefasPorUser(HttpServletRequest request) {
         
         // Verifica se o usuário está logado
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
 
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
 
@@ -428,7 +431,7 @@ public class AreaTrabalhoController {
     public ResponseEntity<?> listarListasPorUser(HttpServletRequest request) {
         
         // Verifica se o usuário está logado
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
 
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
 
@@ -459,7 +462,7 @@ public class AreaTrabalhoController {
     @GetMapping("/user/membros")
     @ResponseBody
     public ResponseEntity<?> listarUserMembros(HttpServletRequest request) {
-        String usuarioId = CookieService.getCookie(request, "usuarioId");
+        String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
@@ -479,7 +482,7 @@ public class AreaTrabalhoController {
                 mapa.put("id", p.getUsuario().getId());
                 mapa.put("nome", p.getUsuario().getNome());
                 mapa.put("email", p.getUsuario().getEmail());
-                mapa.put("permissao", p.getPermissao() == PermissaoArea.ADMIN ? "editar" : "visualizar");
+                mapa.put("permissao", p.getPermissao() != PermissaoArea.OBSERVADOR ? "editar" : "visualizar");
                 return mapa;
             })
             .collect(Collectors.toList());

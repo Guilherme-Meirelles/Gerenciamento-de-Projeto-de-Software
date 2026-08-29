@@ -1,5 +1,6 @@
 package com.example.demo.Entidades;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -24,11 +25,15 @@ public class AreaTrabalho {
     private Usuario dono;
 
     // Participantes com permissões
+    // @JsonIgnore evita o ciclo AreaTrabalho -> participacoes -> ParticipacaoArea -> area -> ...
+    @JsonIgnore
     @OneToMany(mappedBy = "area", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ParticipacaoArea> participacoes = new HashSet<>();
 
     // areaTrabalho(1)-(n)Lista
     // Area de trabalho é dona da relação
+    // @JsonIgnore evita o ciclo AreaTrabalho -> listas -> Lista -> area -> ...
+    @JsonIgnore
     @OneToMany(mappedBy = "area", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Lista> listas = new ArrayList<>();
 

@@ -1,19 +1,23 @@
 package com.example.demo.Controles;
 
+import com.example.demo.Entidades.Token;
 import com.example.demo.Entidades.Usuario;
+import com.example.demo.ConsultasBD.TokenRepository;
 import com.example.demo.ConsultasBD.UsuarioRepository;
-import com.example.demo.Serviços.CookieService;
+import com.example.demo.Serviços.Autentificador.SessaoUtil;
+import com.example.demo.Serviços.EnvioDeEmail.EmailService;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.time.Year;
+import java.util.UUID;
 
 @Controller
 public class LoginCadastroControle {
@@ -21,14 +25,17 @@ public class LoginCadastroControle {
     @Autowired
     private UsuarioRepository ur;
 
+    @Autowired
+    private TokenRepository tokenRepository;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @GetMapping("/login")
-    public String login(HttpServletResponse response) {
-        /*
-        CookieService.deleteCookie(response, "usuarioId");
-        CookieService.deleteCookie(response, "nomeUsuario");
-        CookieService.deleteCookie(response, "emailUsuario");
-        CookieService.deleteCookie(response, "dataNascimento");
-        */
+    public String login() {
         return "login";
     }
 
@@ -56,21 +63,77 @@ public class LoginCadastroControle {
 
         }
 
+        if (ur.findByEmail(usuario.getEmail()) != null) {
+            model.addAttribute("mensagem", "Este e-mail já está cadastrado!");
+            return "cadastro";
+        }
 
-        ur.save(usuario); // ✅ salva no banco
-        model.addAttribute("mensagem", "Usuário cadastrado com sucesso!");
+        usuario.setEmailVerificado(false);
+        usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
+        ur.save(usuario); // salva no banco
+
+        try {
+            String tokenString = UUID.randomUUID().toString();
+
+            Token token = new Token();
+            token.setToken(tokenString);
+            token.setEmail(usuario.getEmail());
+            token.setExpiraEm(LocalDateTime.now().plusMinutes(30));
+            token.setUsado(false);
+            tokenRepository.save(token);
+
+            emailService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), tokenString);
+
+            model.addAttribute("mensagem", "Cadastro realizado! Verifique seu e-mail para confirmar a conta.");
+        } catch (Exception e) {
+            model.addAttribute("mensagem", "Cadastro realizado, mas houve um erro ao enviar o e-mail de confirmação.");
+        }
+
         return "login"; // redireciona para tela de login
     }
 
-    @PostMapping("/login")
-    public String loginUsuario(Usuario usuario, Model model, HttpServletResponse response) {
-        Usuario usuarioLogado = this.ur.findByEmailAndSenha(usuario.getEmail(), usuario.getSenha());
+    // Página acessada via link do email de confirmação de cadastro
+    @GetMapping("/verificarEmail")
+    public String verificarEmail(@RequestParam("token") String token, Model model) {
 
-        if (usuarioLogado != null) {
-            CookieService.setCookie(response, "usuarioId", String.valueOf(usuarioLogado.getId()), 10000);
-            CookieService.setCookie(response, "nomeUsuario", usuarioLogado.getNome(), 10000);
-            CookieService.setCookie(response, "emailUsuario", usuarioLogado.getEmail(), 10000);
-            CookieService.setCookie(response, "dataNascimento", usuarioLogado.getDataNascimento(), 10000);
+        Token t = tokenRepository.findByToken(token);
+
+        if (t == null || t.isUsado() || t.getExpiraEm().isBefore(LocalDateTime.now())) {
+            model.addAttribute("erro", "Link de confirmação expirado ou inválido");
+            return "login";
+        }
+
+        Usuario usuario = ur.findByEmail(t.getEmail());
+        if (usuario == null) {
+            model.addAttribute("erro", "Usuário não encontrado");
+            return "login";
+        }
+
+        usuario.setEmailVerificado(true);
+        ur.save(usuario);
+
+        t.setUsado(true);
+        tokenRepository.save(t);
+
+        model.addAttribute("mensagem", "E-mail confirmado com sucesso! Faça login para continuar.");
+        return "login";
+    }
+
+    @PostMapping("/login")
+    public String loginUsuario(Usuario usuario, Model model, HttpServletRequest request) {
+        Usuario usuarioLogado = this.ur.findByEmail(usuario.getEmail());
+        boolean senhaValida = usuarioLogado != null
+                && usuarioLogado.getSenha() != null
+                && usuarioLogado.getSenha().startsWith("$2")
+                && passwordEncoder.matches(usuario.getSenha(), usuarioLogado.getSenha());
+
+        if (senhaValida) {
+            if (!usuarioLogado.isEmailVerificado()) {
+                model.addAttribute("erro", "Confirme seu e-mail antes de fazer login. Verifique sua caixa de entrada.");
+                return "login";
+            }
+
+            SessaoUtil.autenticar(request, usuarioLogado.getId());
             return "redirect:/menu"; // ✅ Agora redireciona corretamente
         }
 
@@ -80,24 +143,8 @@ public class LoginCadastroControle {
     }
 
     @GetMapping("/logout")
-    public String logout(HttpServletRequest request, HttpServletResponse response) {
-
-        // Lista de todos os cookies que você usa
-        String[] cookies = {
-            "usuarioId",
-            "nomeUsuario",
-            "emailUsuario",
-            "dataNascimento"
-        };
-
-        // Apaga cada cookie
-        for (String nome : cookies) {
-            Cookie cookie = new Cookie(nome, "");
-            cookie.setMaxAge(0); // apaga
-            cookie.setPath("/"); // importante!!
-            response.addCookie(cookie);
-        }
-
+    public String logout(HttpServletRequest request) {
+        SessaoUtil.encerrar(request);
         return "redirect:/login"; // volta para a página de login
     }
 }

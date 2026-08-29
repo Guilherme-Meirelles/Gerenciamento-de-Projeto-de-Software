@@ -24,7 +24,8 @@ public class LoginInterceptorConfig implements WebMvcConfigurer {
                         "/recuperarSenhaEmail",
                         "/recuperar-senha",
                         "/redefinicaoSenha",
-                        "/redefinirSenha"
+                        "/redefinirSenha",
+                        "/verificarEmail"
                 );
 
     }

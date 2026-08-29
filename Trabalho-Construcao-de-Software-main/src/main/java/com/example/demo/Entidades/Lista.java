@@ -1,5 +1,6 @@
 package com.example.demo.Entidades;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,6 +34,8 @@ public class Lista {
 
     // lista(1)-(n)tarefa
     // lista é dona da relação
+    // @JsonIgnore evita o ciclo Lista -> tarefas -> Tarefa -> listaOrigem -> ...
+    @JsonIgnore
     @OneToMany(mappedBy="listaOrigem", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Tarefa> tarefas = new HashSet<>();
     

@@ -2,7 +2,7 @@ package com.example.demo.Controles;
 
 import com.example.demo.ConsultasBD.*;
 import com.example.demo.Entidades.*;
-import com.example.demo.Serviços.CookieService;
+import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.EnvioDeEmail.EmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -104,7 +104,10 @@ public class CompartilharAreadeTrabalho {
 
                 tokenRepository.save(token);
 
-                String nomeUsuario = CookieService.getCookie(request, "nomeUsuario");
+                String remetenteId = SessaoUtil.getUsuarioId(request);
+                Usuario remetente = remetenteId != null ? usuarioRepository.findById(Long.parseLong(remetenteId)).orElse(null) : null;
+                String nomeUsuario = remetente != null ? remetente.getNome() : "";
+
                 // Enviar email com token
                 emailService.enviarEmailCompartilharAreaTrabalho(destinatario, nomeUsuario, area ,tokenString);
 

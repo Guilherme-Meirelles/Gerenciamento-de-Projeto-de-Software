@@ -3,11 +3,13 @@ package com.example.demo.Controles;
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Entidades.Token;
 import com.example.demo.Entidades.Usuario;
-import com.example.demo.Serviços.CookieService;
+import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.ConsultasBD.TokenRepository;
 import com.example.demo.Serviços.EnvioDeEmail.EmailService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +30,9 @@ public class RecuperarSenhaController {
 
     @Autowired
     private TokenRepository tokenRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // Abre página que solicita o email
     @GetMapping("/recuperarSenhaEmail")
@@ -88,7 +93,7 @@ public class RecuperarSenhaController {
     @PostMapping("/redefinirSenha")
     public String redefinirSenha(@RequestParam("senha") String senha,
                                  @RequestParam("token") String token,
-                                 Model model,HttpServletResponse response) {
+                                 Model model, HttpServletRequest request) {
 
         try {
             Token t = tokenRepository.findByToken(token);
@@ -99,17 +104,14 @@ public class RecuperarSenhaController {
             }
 
             Usuario usuario = this.ur.findByEmail(t.getEmail());
-            usuario.setSenha(senha);
+            usuario.setSenha(passwordEncoder.encode(senha));
             ur.save(usuario);
 
             // invalidar token
             t.setUsado(true);
             tokenRepository.save(t);
 
-            CookieService.deleteCookie(response, "usuarioId");
-            CookieService.deleteCookie(response, "nomeUsuario");
-            CookieService.deleteCookie(response, "emailUsuario");
-            CookieService.deleteCookie(response, "dataNascimento");
+            SessaoUtil.encerrar(request);
 
             model.addAttribute("mensagem", "Senha redefinida com sucesso!");
             return "login";
