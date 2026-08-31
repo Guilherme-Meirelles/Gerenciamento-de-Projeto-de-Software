@@ -20,6 +20,9 @@ public class Token {
     private LocalDateTime expiraEm;
     private boolean usado;
 
+    // Preenchido só nos tokens de convite de área de trabalho (null nos outros usos do Token)
+    private Long areaId;
+
     // getters e setters
     public Token() {}
     public Token(String token, String email, LocalDateTime expiraEm, boolean usado) {
@@ -59,5 +62,11 @@ public class Token {
     }
     public boolean isUsado() {
         return usado;
+    }
+    public void setAreaId(Long areaId) {
+        this.areaId = areaId;
+    }
+    public Long getAreaId() {
+        return areaId;
     }
 }

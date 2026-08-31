@@ -69,8 +69,19 @@ public class edicaoUsuario {
                 Usuario usuarioExistente = ur.findUsuarioById(id);
 
                 if (usuarioExistente != null) {
+                    String emailNovo = usuarioEditado.getEmail();
+
+                    if (!emailNovo.equals(usuarioExistente.getEmail())) {
+                        if (ur.findByEmail(emailNovo) != null) {
+                            model.addAttribute("mensagem", "Este e-mail já está em uso por outra conta!");
+                            return "edicaoUsuario";
+                        }
+                        // Muda o email: precisa confirmar de novo antes de logar
+                        usuarioExistente.setEmailVerificado(false);
+                    }
+
                     usuarioExistente.setNome(usuarioEditado.getNome());
-                    usuarioExistente.setEmail(usuarioEditado.getEmail());
+                    usuarioExistente.setEmail(emailNovo);
                     usuarioExistente.setDataNascimento(usuarioEditado.getDataNascimento());
 
                     if (vaiTrocarSenha) {
