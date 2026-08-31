@@ -83,6 +83,15 @@ public class CompartilharAreadeTrabalho {
             Long idArea = Long.parseLong(idAreaStr);
 
 
+            String remetenteId = SessaoUtil.getUsuarioId(request);
+            if (remetenteId == null) {
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Não autenticado"));
+            }
+            Usuario remetente = usuarioRepository.findById(Long.parseLong(remetenteId)).orElse(null);
+            if (remetente == null) {
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Não autenticado"));
+            }
+
             AreaTrabalho area = areaTrabalhoRepository.findById(idArea).get();
             Usuario destinatario = usuarioRepository.findByEmail(email);
             if (area == null) {
@@ -93,20 +102,26 @@ public class CompartilharAreadeTrabalho {
                 System.out.println("Erro 3");
             } else {
 
+                // Só quem já participa da área pode convidar gente pra ela
+                boolean remetenteParticipa = area.getParticipacoes().stream()
+                        .anyMatch(p -> p.getUsuario().getId().equals(remetente.getId()));
+                if (!remetenteParticipa) {
+                    return ResponseEntity.status(403).body(Map.of("success", false, "message", "Você não participa desta área de trabalho"));
+                }
+
                 // -------- GERAR TOKEN --------
                 String tokenString = UUID.randomUUID().toString();
 
                 Token token = new Token();
                 token.setToken(tokenString);
                 token.setEmail(destinatario.getEmail());
+                token.setAreaId(idArea);
                 token.setExpiraEm(LocalDateTime.now().plusMinutes(1440)); //1 dia
                 token.setUsado(false);
 
                 tokenRepository.save(token);
 
-                String remetenteId = SessaoUtil.getUsuarioId(request);
-                Usuario remetente = remetenteId != null ? usuarioRepository.findById(Long.parseLong(remetenteId)).orElse(null) : null;
-                String nomeUsuario = remetente != null ? remetente.getNome() : "";
+                String nomeUsuario = remetente.getNome();
 
                 // Enviar email com token
                 emailService.enviarEmailCompartilharAreaTrabalho(destinatario, nomeUsuario, area ,tokenString);
@@ -144,6 +159,11 @@ public class CompartilharAreadeTrabalho {
             }
             else if (destinatario == null || area == null) {
                 model.addAttribute("erro", "Destinatario e area não encontrados");
+                return "login";
+            }
+            else if (!areaID.equals(token.getAreaId()) || !destinatario.getEmail().equalsIgnoreCase(token.getEmail())) {
+                // Token válido, mas pra outra área/destinatário — impede reaproveitar um convite legítimo trocando os IDs na URL
+                model.addAttribute("erro", "Link expirado ou inválido");
                 return "login";
             }
             else{

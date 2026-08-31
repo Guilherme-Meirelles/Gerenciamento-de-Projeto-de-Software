@@ -119,6 +119,43 @@ public class LoginCadastroControle {
         return "login";
     }
 
+    // Reenvia o e-mail de confirmação sem pedir o email de novo (usado a partir da tela de login,
+    // depois de uma tentativa de login que falhou por falta de confirmação)
+    @PostMapping("/reenviarVerificacao")
+    public String reenviarVerificacao(@RequestParam("email") String email, Model model) {
+        try {
+            Usuario usuario = ur.findByEmail(email);
+
+            if (usuario == null) {
+                model.addAttribute("erro", "Este e-mail não está cadastrado");
+                return "login";
+            }
+
+            if (usuario.isEmailVerificado()) {
+                model.addAttribute("mensagem", "Este e-mail já está verificado. Faça login.");
+                return "login";
+            }
+
+            String tokenString = UUID.randomUUID().toString();
+
+            Token token = new Token();
+            token.setToken(tokenString);
+            token.setEmail(usuario.getEmail());
+            token.setExpiraEm(LocalDateTime.now().plusMinutes(30));
+            token.setUsado(false);
+            tokenRepository.save(token);
+
+            emailService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), tokenString);
+
+            model.addAttribute("mensagem", "Novo e-mail de confirmação enviado! Verifique sua caixa de entrada.");
+
+        } catch (Exception e) {
+            model.addAttribute("erro", "Erro ao enviar e-mail! " + e.getMessage());
+        }
+
+        return "login";
+    }
+
     @PostMapping("/login")
     public String loginUsuario(Usuario usuario, Model model, HttpServletRequest request) {
         Usuario usuarioLogado = this.ur.findByEmail(usuario.getEmail());
@@ -130,6 +167,7 @@ public class LoginCadastroControle {
         if (senhaValida) {
             if (!usuarioLogado.isEmailVerificado()) {
                 model.addAttribute("erro", "Confirme seu e-mail antes de fazer login. Verifique sua caixa de entrada.");
+                model.addAttribute("emailNaoVerificado", usuarioLogado.getEmail());
                 return "login";
             }
 

@@ -93,6 +93,12 @@ public class AreaTrabalhoController {
         AreaTrabalho area = areaTrabalhoRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Área não encontrada"));
 
+        boolean temAcesso = area.getParticipacoes().stream()
+                .anyMatch(p -> p.getUsuario().getId().equals(usuario.getId()));
+        if (!temAcesso) {
+            return "redirect:/areasTrabalho";
+        }
+
         List<Lista> listas = listaService.listarPorArea(id);
 
         model.addAttribute("nome", usuario.getNome());
@@ -492,8 +498,14 @@ public class AreaTrabalhoController {
     @PostMapping("/remover-membro") // Certifique-se que a classe não tem @RequestMapping("/api")
     @ResponseBody
     @Transactional // Necessário para operações de delete funcionarem corretamente
-    public ResponseEntity<?> removerMembro(@RequestBody Map<String, Object> map) {
+    public ResponseEntity<?> removerMembro(@RequestBody Map<String, Object> map, HttpServletRequest request) {
         try {
+            // 0. Só quem está logado pode remover membro
+            String solicitanteId = SessaoUtil.getUsuarioId(request);
+            if (solicitanteId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Não autenticado."));
+            }
+
             // 1. Validação de segurança na entrada de dados
             if (map.get("usuarioId") == null || map.get("areaId") == null) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "IDs não fornecidos."));
@@ -502,6 +514,7 @@ public class AreaTrabalhoController {
             // 2. Conversão segura (trata tanto se vier como String quanto Integer/Long do JSON)
             Long idUsuario = Long.parseLong(map.get("usuarioId").toString());
             Long idArea = Long.parseLong(map.get("areaId").toString());
+            Long idSolicitante = Long.parseLong(solicitanteId);
 
             Usuario usuario = usuarioRepository.findById(idUsuario).orElse(null);
             AreaTrabalho area = areaTrabalhoRepository.findById(idArea).orElse(null);
@@ -515,13 +528,23 @@ public class AreaTrabalhoController {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Usuário não encontrado."));
             }
 
+            List<ParticipacaoArea> todosMembros = participacaoAreaRepository.findByArea(area);
+
+            // 3.5 Só ADMIN da área pode remover membro
+            ParticipacaoArea participacaoSolicitante = todosMembros.stream()
+                    .filter(p -> p.getUsuario().getId().equals(idSolicitante))
+                    .findFirst().orElse(null);
+
+            if (participacaoSolicitante == null || participacaoSolicitante.getPermissao() != PermissaoArea.ADMIN) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Apenas administradores podem remover membros."));
+            }
+
             // 4. Remoção Otimizada
             // Em vez de trazer TODOS e fazer loop, tentamos achar a participação exata
             // Se você tiver um método findByAreaAndUsuario no repository, use-o.
             // Caso contrário, mantive sua lógica de loop mas com break para otimizar.
 
             boolean removeu = false;
-            List<ParticipacaoArea> todosMembros = participacaoAreaRepository.findByArea(area);
 
             for (ParticipacaoArea participacao : todosMembros) {
                 // Comparação segura de Longs usa .equals

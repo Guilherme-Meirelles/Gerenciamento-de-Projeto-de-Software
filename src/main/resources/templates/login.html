@@ -17,6 +17,10 @@
     <p th:if="${mensagem != null}" th:text="${mensagem}" style="color: lightgreen; text-align:center;"></p>
     <p th:if="${erro != null}" th:text="${erro}" style="color: red; text-align:center;"></p>
     <p th:if="${remocao != null}" th:text="${remocao}"  style="color: orange; text-align:center;"></p>
+    <form th:if="${emailNaoVerificado != null}" action="/reenviarVerificacao" method="post" style="text-align:center; margin-bottom: 15px;">
+        <input type="hidden" name="email" th:value="${emailNaoVerificado}" />
+        <button type="submit" class="btn secundario">Reenviar e-mail de confirmação</button>
+    </form>
     <form action = "/login" method="post">
         <label for="login">Login:</label>
         <input type="text" id="login" name="email" required />
