@@ -13,9 +13,6 @@
 <aside class="sidebar" th:fragment="sidebar">
     <div class="header-sidebar">
         <h1 class="app-title" onclick="navegarPara(this, '/menu')" style="cursor: pointer;" title="Menu Principal">ToDaily</h1>
-        <button class="btn-config" onclick="abrirModalConfig()" title="Configurações">
-            <i data-lucide="settings"></i>
-        </button>
     </div>
 
     <!-- Perfil -->
@@ -40,30 +37,42 @@
         <button class="menu-item">
             <i data-lucide="list-checks"></i> Todas as Tarefas
         </button>
+        <button class="menu-item" id="btnCalendario" title="Calendário">
+            <i data-lucide="calendar-days"></i> Calendário
+        </button>
         <button class="menu-item" onclick="navegarPara(this, '/areasTrabalho')">
             <i data-lucide="briefcase"></i> Áreas de Trabalho
         </button>
     </nav>
 
-    <div class="busca" th:if="${not (isMenu ?: false)}">
-        <input type="text" placeholder="Buscar" />
-    </div>
+    <!-- Área de Trabalho atual, com suas listas indentadas embaixo -->
+    <div class="secao-area" th:if="${not (isMenu ?: false)}">
+        <div class="area-atual">
+            <i data-lucide="briefcase"></i>
+            <span th:text="${areaName}"></span>
+        </div>
 
-    <!-- Listas do Usuário -->
-    <div class="listas" th:if="${not (isMenu ?: false)}" id="listasContainer">
-        <button class="lista"
-                th:each="lista : ${listas}"
-                th:data-id="${lista.id}"
-                th:data-desc="${lista.descricao}"
-                oncontextmenu="mostrarMenuContexto(event, 'menuContextoLista', this)">
-            <i data-lucide="list"></i>
-            <span th:text="${lista.nome}"></span>
+        <!-- Botão Nova Lista -->
+        <button class="nova-lista" onclick="abrirModalPerfil('modalAddLista')">
+            <i data-lucide="plus"></i> Nova Lista
         </button>
+
+        <!-- Listas da Área de Trabalho -->
+        <div class="listas" id="listasContainer">
+            <button class="lista"
+                    th:each="lista : ${listas}"
+                    th:data-id="${lista.id}"
+                    th:data-desc="${lista.descricao}"
+                    oncontextmenu="mostrarMenuContexto(event, 'menuContextoLista', this)">
+                <i data-lucide="list"></i>
+                <span th:text="${lista.nome}"></span>
+            </button>
+        </div>
     </div>
 
-    <!-- Botão Nova Lista -->
-    <button class="nova-lista" onclick="abrirModalPerfil('modalAddLista')" th:if="${not (isMenu ?: false)}">
-        <i data-lucide="plus"></i> Nova Lista
+    <!-- Botão Sair -->
+    <button class="btn-sair-sidebar" onclick="abrirModalLogout()" title="Sair">
+        <i data-lucide="log-out"></i> Sair
     </button>
 </aside>
 
@@ -198,80 +207,6 @@
                 <button class="btn-remover-nao" onclick="fecharModalPerfil('modalConfirmarLogout')">Não</button>
                 <button class="btn-remover-sim" onclick="confirmarLogout()">Sim</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Modal: Configurações -->
-    <div id="modalConfig" class="overlay-config" style="display: none;" onclick="fecharModalConfig()">
-        <div class="modal-config" onclick="event.stopPropagation()">
-            <!-- Header -->
-            <div class="modal-config-header">
-                <h2>Configurações</h2>
-                <p>Gerencie sua conta e preferências</p>
-            </div>
-
-            <!-- Conteúdo -->
-            <div class="modal-config-content">
-
-                <!-- Perfil -->
-                <div class="config-perfil">
-                    <div class="config-avatar">
-                        <i data-lucide="user"></i>
-                    </div>
-                    <div class="config-info">
-                        <h3 th:text="${nome}">Generic User</h3>
-                        <p th:text="${email}">genericemail@gmail.com</p>
-                    </div>
-                </div>
-
-                <!-- Ações principais -->
-                <div class="config-acoes-principais">
-                    <button class="btn-config-acao" onclick="abrirModalPerfil('modalPerfil'); fecharModalConfig();">
-                        <i data-lucide="user-cog"></i>
-                        <span>Gerenciar Contas</span>
-                    </button>
-                    <button class="btn-config-acao red" onclick="abrirModalLogout()">
-                        <i data-lucide="log-out"></i>
-                        <span>Sair</span>
-                    </button>
-                </div>
-
-                <!-- Outras opções -->
-                <div class="config-opcoes">
-                    <button class="config-opcao-item" onclick="alert('Notificações')">
-                        <i data-lucide="bell"></i>
-                        <span>Notificações</span>
-                        <i class="arrow" data-lucide="chevron-right"></i>
-                    </button>
-
-                    <button class="config-opcao-item" onclick="alert('Privacidade')">
-                        <i data-lucide="shield"></i>
-                        <span>Privacidade</span>
-                        <i class="arrow" data-lucide="chevron-right"></i>
-                    </button>
-
-                    <button class="config-opcao-item" onclick="alert('Ajuda')">
-                        <i data-lucide="help-circle"></i>
-                        <span>Ajuda</span>
-                        <i class="arrow" data-lucide="chevron-right"></i>
-                    </button>
-
-                    <button class="config-opcao-item" onclick="alert('Termos de Uso')">
-                        <i data-lucide="file-text"></i>
-                        <span>Termos de Uso</span>
-                        <i class="arrow" data-lucide="chevron-right"></i>
-                    </button>
-                </div>
-
-            </div>
-
-            <!-- Footer -->
-            <div class="modal-config-footer">
-                <button class="btn-cancelar-config" onclick="fecharModalConfig()">
-                    Cancelar
-                </button>
-            </div>
-
         </div>
     </div>
 

@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.Entidades.Categoria;
+import com.example.demo.Entidades.ItemChecklist;
 import com.example.demo.Entidades.Lista;
 import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
@@ -80,22 +82,12 @@ public class TarefaController {
         String dataFim = (String) body.get("dataFim"); // parse para LocalDate
         Long responsavel = body.get("responsavelId") != null ? Long.valueOf(body.get("responsavelId").toString()) : null;
         Boolean notificacoes = body.get("notificacoes") != null ? Boolean.valueOf(body.get("notificacoes").toString()) : null;
-        Long checklistId = body.get("checklistId") != null ? Long.valueOf(body.get("checklistId").toString()) : null;
+        List<Long> categoriaIds = extrairCategoriaIds(body);
 
         // Chama o service
-        Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsavel, notificacoes, checklistId);
+        Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsavel, notificacoes, categoriaIds);
 
-        Map<String, Object> tarefaJson = new HashMap<>();
-        tarefaJson.put("id", tarefa.getId());
-        tarefaJson.put("titulo", tarefa.getTitulo());
-        tarefaJson.put("descricao", tarefa.getDescricao());
-        tarefaJson.put("cor", tarefa.getCor());
-        tarefaJson.put("dataFim", tarefa.getDataFim() != null ? tarefa.getDataFim().toString() : null);
-        tarefaJson.put("listaId", tarefa.getListaOrigem() != null ? tarefa.getListaOrigem().getId() : null);
-        tarefaJson.put("responsavelId", responsavel);
-        tarefaJson.put("notificacoes", tarefa.getNotificacoes());
-
-        return ResponseEntity.ok(tarefaJson);
+        return ResponseEntity.ok(tarefaParaJson(tarefa, responsavel));
     }
 
     // EDITAR TAREFA
@@ -122,21 +114,11 @@ public class TarefaController {
         String dataFim = (String) body.get("dataFim"); // parse para LocalDate
         Long responsavelId = body.get("responsavelId") != null ? Long.valueOf(body.get("responsavelId").toString()) : null;
         Boolean notificacoes = body.get("notificacoes") != null ? Boolean.valueOf(body.get("notificacoes").toString()) : null;
-        Long checklistId = body.get("checklistId") != null ? Long.valueOf(body.get("checklistId").toString()) : null;
+        List<Long> categoriaIds = extrairCategoriaIds(body);
 
-        Tarefa tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsavelId, notificacoes, checklistId);
+        Tarefa tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsavelId, notificacoes, categoriaIds);
 
-        Map<String, Object> tarefaJson = new HashMap<>();
-        tarefaJson.put("id", tarefa.getId());
-        tarefaJson.put("titulo", tarefa.getTitulo());
-        tarefaJson.put("descricao", tarefa.getDescricao());
-        tarefaJson.put("cor", tarefa.getCor());
-        tarefaJson.put("dataFim", tarefa.getDataFim() != null ? tarefa.getDataFim().toString() : null);
-        tarefaJson.put("listaId", tarefa.getListaOrigem() != null ? tarefa.getListaOrigem().getId() : null);
-        tarefaJson.put("responsavelId", responsavelId);
-        tarefaJson.put("notificacoes", tarefa.getNotificacoes());
-
-        return ResponseEntity.ok(tarefaJson);
+        return ResponseEntity.ok(tarefaParaJson(tarefa, responsavelId));
     }
 
     @PutMapping("/{id}/toggle")
@@ -155,15 +137,7 @@ public class TarefaController {
 
         Tarefa tarefa = tarefaService.toggleTarefa(id, concluida);
 
-        Map<String, Object> tarefaJson = new HashMap<>();
-        tarefaJson.put("id", tarefa.getId());
-        tarefaJson.put("titulo", tarefa.getTitulo());
-        tarefaJson.put("descricao", tarefa.getDescricao());
-        tarefaJson.put("cor", tarefa.getCor());
-        tarefaJson.put("dataFim", tarefa.getDataFim() != null ? tarefa.getDataFim().toString() : null);
-        tarefaJson.put("listaId", tarefa.getListaOrigem() != null ? tarefa.getListaOrigem().getId() : null);
-        tarefaJson.put("responsavelId", responsavelId);
-        tarefaJson.put("notificacoes", tarefa.getNotificacoes());
+        Map<String, Object> tarefaJson = tarefaParaJson(tarefa, responsavelId);
         tarefaJson.put("concluida", tarefa.getStatus());
 
         return ResponseEntity.ok(tarefaJson);
@@ -186,5 +160,38 @@ public class TarefaController {
         }
         tarefaService.remover(id);
         return ResponseEntity.ok().build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Long> extrairCategoriaIds(Map<String, Object> body) {
+        Object bruto = body.get("categoriaIds");
+        if (!(bruto instanceof List)) return null;
+        return ((List<Object>) bruto).stream()
+                .map(o -> Long.valueOf(o.toString()))
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, Object> tarefaParaJson(Tarefa tarefa, Long responsavelId) {
+        Map<String, Object> tarefaJson = new HashMap<>();
+        tarefaJson.put("id", tarefa.getId());
+        tarefaJson.put("titulo", tarefa.getTitulo());
+        tarefaJson.put("descricao", tarefa.getDescricao());
+        tarefaJson.put("cor", tarefa.getCor());
+        tarefaJson.put("dataFim", tarefa.getDataFim() != null ? tarefa.getDataFim().toString() : null);
+        tarefaJson.put("listaId", tarefa.getListaOrigem() != null ? tarefa.getListaOrigem().getId() : null);
+        tarefaJson.put("responsavelId", responsavelId);
+        tarefaJson.put("notificacoes", tarefa.getNotificacoes());
+        if (tarefa.getChecklist() != null) {
+            tarefaJson.put("checklistId", tarefa.getChecklist().getId());
+            tarefaJson.put("checklistTotal", tarefa.getChecklist().getItens().size());
+            tarefaJson.put("checklistConcluidos", tarefa.getChecklist().getItens().stream()
+                    .filter(ItemChecklist::getConcluido).count());
+        } else {
+            tarefaJson.put("checklistId", null);
+            tarefaJson.put("checklistTotal", 0);
+            tarefaJson.put("checklistConcluidos", 0);
+        }
+        tarefaJson.put("categoriaIds", tarefa.getCategorias().stream().map(Categoria::getId).collect(Collectors.toList()));
+        return tarefaJson;
     }
 }

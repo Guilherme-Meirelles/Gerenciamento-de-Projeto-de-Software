@@ -10,4 +10,6 @@ import com.example.demo.Entidades.Tarefa;
 @Repository
 public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     List<Tarefa> findByListaOrigemId(Long listaId);
+    List<Tarefa> findByChecklistId(Long checklistId);
+    List<Tarefa> findByCategoriasId(Long categoriaId);
 }
