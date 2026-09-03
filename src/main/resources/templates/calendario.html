@@ -5,15 +5,8 @@
 </head>
 <body>
 
-<!-- Fragment do Botão de Calendário -->
+<!-- Fragment do Modal de Calendário (o botão que o abre fica na sidebar) -->
 <div th:fragment="calendario">
-    <!-- Botão Principal de Calendário -->
-    <div class="botao-calendario-container">
-        <button class="btn-calendario" id="btnCalendario" title="Calendário">
-            <i data-lucide="calendar-days"></i>
-        </button>
-    </div>
-
     <!-- Modal do Calendário -->
     <div class="overlay-calendario" id="modalCalendario" style="display: none;">
         <div class="modal-calendario">

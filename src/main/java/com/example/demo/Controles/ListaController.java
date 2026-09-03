@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.ConsultasBD.ListaRepository;
 import com.example.demo.ConsultasBD.ParticipacaoAreaRepository;
+import com.example.demo.Entidades.Categoria;
+import com.example.demo.Entidades.ItemChecklist;
 import com.example.demo.Entidades.Lista;
 import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
@@ -104,6 +106,17 @@ public class ListaController {
                 mapa.put("responsavelNome", null);
             }
             mapa.put("notificacoes", t.getNotificacoes());
+            if (t.getChecklist() != null) {
+                mapa.put("checklistId", t.getChecklist().getId());
+                mapa.put("checklistTotal", t.getChecklist().getItens().size());
+                mapa.put("checklistConcluidos", t.getChecklist().getItens().stream()
+                        .filter(ItemChecklist::getConcluido).count());
+            } else {
+                mapa.put("checklistId", null);
+                mapa.put("checklistTotal", 0);
+                mapa.put("checklistConcluidos", 0);
+            }
+            mapa.put("categoriaIds", t.getCategorias().stream().map(Categoria::getId).collect(Collectors.toList()));
             return mapa;
         }).collect(Collectors.toList());
 

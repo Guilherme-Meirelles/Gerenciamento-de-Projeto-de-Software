@@ -6,7 +6,6 @@
     <title>ToDaily</title>
     <link rel="stylesheet" href="/css/sidebar.css" />
     <link rel="stylesheet" href="/css/menu.css" />
-    <link rel="stylesheet" href="/css/acessibilidade.css" />
     <link rel="stylesheet" href="/css/calendario.css" />
 </head>
 <body>
@@ -95,10 +94,7 @@
 
 </div>
 
-<!-- Importa o Botão de Acessibilidade -->
-<div th:replace="~{acessibilidade :: acessibilidade}"></div>
-
-<!-- Importa o Botão de Calendário -->
+<!-- Importa o Modal do Calendário (botão fica na sidebar) -->
 <div th:replace="~{calendario :: calendario}"></div>
 
 <!-- Modal de Confirmação de Remoção -->
@@ -157,6 +153,13 @@
                 </div>
 
                 <div class="campo-tarefa-checkbox">
+                    <label>Categorias:</label>
+                    <button type="button" class="btn-checklist" id="btnCategoria">
+                        <i data-lucide="tag"></i>
+                    </button>
+                </div>
+
+                <div class="campo-tarefa-checkbox">
                     <label>Notificações:</label>
                     <input type="checkbox" id="tarefaNotificacoes" class="toggle-switch" />
                 </div>
@@ -178,19 +181,24 @@
 </div>
 
 
-<!-- Modal: Gerenciar Checklists -->
+<!-- Modal: Checklist da Tarefa (subatividades marcáveis) -->
 <div class="overlay-tarefa" id="modalGerenciarChecklist" style="display: none;">
     <div class="modal-checklist">
-        <h3 class="titulo-modal-checklist">Gerenciar Checklists</h3>
+        <h3 class="titulo-modal-checklist">Checklist da Tarefa</h3>
+        <div class="checklist-progresso" id="checklistProgresso"></div>
 
-        <div class="lista-checklists" id="listaChecklists">
-            <!-- Checklists serão renderizados aqui -->
+        <div class="lista-checklists" id="listaChecklistItens">
+            <!-- Itens serão renderizados aqui -->
+        </div>
+
+        <div class="campo-checklist campo-novo-item-checklist">
+            <input type="text" id="novoItemChecklistInput" placeholder="Nova subatividade" />
+            <button type="button" class="btn-novo-checklist" id="btnAdicionarItemChecklist">
+                <i data-lucide="plus"></i>
+            </button>
         </div>
 
         <div class="botoes-acao-checklist">
-            <button type="button" class="btn-novo-checklist" id="btnNovoChecklist">
-                <i data-lucide="plus"></i> Novo Checklist
-            </button>
             <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciar">
                 Fechar
             </button>
@@ -198,26 +206,57 @@
     </div>
 </div>
 
-<!-- Modal: Adicionar/Editar Checklist -->
-<div class="overlay-tarefa" id="modalAddChecklist" style="display: none;">
+<!-- Modal: Remover Item da Checklist -->
+<div class="overlay-tarefa" id="modalRemoverChecklist" style="display: none;">
+    <div class="modal-remover">
+        <p class="modal-remover-mensagem">Deseja realmente remover este item?</p>
+        <div class="modal-remover-botoes">
+            <button class="btn-remover-nao" id="btnCancelarRemoverChecklist">Não</button>
+            <button class="btn-remover-sim" id="btnConfirmarRemoverChecklist">Sim</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Gerenciar Categorias -->
+<div class="overlay-tarefa" id="modalGerenciarCategoria" style="display: none;">
+    <div class="modal-checklist">
+        <h3 class="titulo-modal-checklist">Categorias da Tarefa</h3>
+
+        <div class="lista-checklists" id="listaCategorias">
+            <!-- Categorias serão renderizadas aqui -->
+        </div>
+
+        <div class="botoes-acao-checklist">
+            <button type="button" class="btn-novo-checklist" id="btnNovaCategoria">
+                <i data-lucide="plus"></i> Nova Categoria
+            </button>
+            <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciarCategoria">
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Adicionar/Editar Categoria -->
+<div class="overlay-tarefa" id="modalAddCategoria" style="display: none;">
     <div class="modal-checklist-form">
-        <h3 class="titulo-modal-checklist" id="tituloModalChecklist">Novo Checklist</h3>
+        <h3 class="titulo-modal-checklist" id="tituloModalCategoria">Nova Categoria</h3>
 
         <form class="form-checklist">
             <div class="campo-checklist">
-                <label>Nome do Checklist*:</label>
-                <input type="text" id="checklistNome" placeholder="Digite o nome do checklist" />
+                <label>Nome da Categoria*:</label>
+                <input type="text" id="categoriaNome" placeholder="Digite o nome da categoria" />
             </div>
 
             <div class="campo-checklist">
                 <label>Cor:</label>
                 <div class="seletor-cor">
-                    <button type="button" class="btn-cor-selecionada" id="btnAbrirPaleta">
-                        <div class="cor-preview" id="corPreview" style="background-color: #4caf50;"></div>
+                    <button type="button" class="btn-cor-selecionada" id="btnAbrirPaletaCategoria">
+                        <div class="cor-preview" id="corPreviewCategoria" style="background-color: #4caf50;"></div>
                         <span>Escolher cor</span>
                     </button>
 
-                    <div class="paleta-cores" id="paletaCores" style="display: none;">
+                    <div class="paleta-cores" id="paletaCoresCategoria" style="display: none;">
                         <button type="button" class="cor-opcao" data-cor="#4caf50" style="background-color: #4caf50;"></button>
                         <button type="button" class="cor-opcao" data-cor="#2196f3" style="background-color: #2196f3;"></button>
                         <button type="button" class="cor-opcao" data-cor="#ff9800" style="background-color: #ff9800;"></button>
@@ -233,20 +272,20 @@
             </div>
 
             <div class="botoes-acao-checklist-form">
-                <button type="button" class="btn-cancelar-checklist" id="btnCancelarChecklist">Cancelar</button>
-                <button type="button" class="btn-salvar-checklist" id="btnSalvarChecklist">Salvar</button>
+                <button type="button" class="btn-cancelar-checklist" id="btnCancelarCategoria">Cancelar</button>
+                <button type="button" class="btn-salvar-checklist" id="btnSalvarCategoria">Salvar</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal: Remover Checklist -->
-<div class="overlay-tarefa" id="modalRemoverChecklist" style="display: none;">
+<!-- Modal: Remover Categoria -->
+<div class="overlay-tarefa" id="modalRemoverCategoria" style="display: none;">
     <div class="modal-remover">
-        <p class="modal-remover-mensagem">Deseja realmente remover este checklist?</p>
+        <p class="modal-remover-mensagem">Deseja realmente remover esta categoria?</p>
         <div class="modal-remover-botoes">
-            <button class="btn-remover-nao" id="btnCancelarRemoverChecklist">Não</button>
-            <button class="btn-remover-sim" id="btnConfirmarRemoverChecklist">Sim</button>
+            <button class="btn-remover-nao" id="btnCancelarRemoverCategoria">Não</button>
+            <button class="btn-remover-sim" id="btnConfirmarRemoverCategoria">Sim</button>
         </div>
     </div>
 </div>
@@ -256,9 +295,6 @@
 
 <!-- Importa os Scripts do fragment -->
 <div th:replace="~{sidebar :: scripts}"></div>
-
-<!-- Importa o Script de Acessibilidade -->
-<div th:replace="~{acessibilidade :: acessibilidade-script}"></div>
 
 <!-- Importa o Script de Calendário -->
 <div th:replace="~{calendario :: calendario-script}"></div>

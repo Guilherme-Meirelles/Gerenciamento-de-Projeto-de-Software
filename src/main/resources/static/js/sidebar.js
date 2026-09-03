@@ -19,16 +19,6 @@ window.abrirModalPerfil = function (nomeModal) {
     }, 10);
 }
 
-function fazerLogout() {
-    // Fecha modal se estiver aberto
-    if (typeof fecharModalConfig === "function") {
-        fecharModalConfig();
-    }
-
-    // Redireciona para a rota de logout
-    window.location.href = "/logout";
-}
-
 /**
  * Fecha um modal pelo ID
  */
@@ -57,23 +47,6 @@ window.fecharModalPerfil = function (nomeModal) {
     if (inputSenha) {
         inputSenha.value = '';
     }
-}
-
-/**
- * Abre o modal de configurações
- */
-window.abrirModalConfig = function () {
-    document.getElementById('modalConfig').style.display = 'flex';
-    setTimeout(() => {
-        lucide.createIcons();
-    }, 10);
-}
-
-/**
- * Fecha o modal de configurações
- */
-window.fecharModalConfig = function () {
-    document.getElementById('modalConfig').style.display = 'none';
 }
 
 /**
@@ -120,7 +93,6 @@ window.addEventListener('scroll', () => {
  */
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-        fecharModalConfig();
         fecharModalPerfil('modalPerfil');
         fecharModalPerfil('modalVerificacao');
         fecharModalPerfil('modalAddLista');
@@ -188,7 +160,7 @@ window.marcarItemAtivoSidebar = function () {
         const btnTodasTarefas = document.querySelectorAll('.menu-item')[2];
         if (btnTodasTarefas) btnTodasTarefas.classList.add('active');
     } else if (path.startsWith('/areasTrabalho')) {
-        const btnAreasTrabalho = document.querySelectorAll('.menu-item')[3];
+        const btnAreasTrabalho = document.querySelectorAll('.menu-item')[4];
         if (btnAreasTrabalho) btnAreasTrabalho.classList.add('active');
     }
 }
@@ -382,9 +354,4 @@ window.abrirModalLogout = function () {
 // Confirma o logout e redireciona
 window.confirmarLogout = function () {
     window.location.href = "/logout";
-}
-
-// Função de logout (antiga - não será mais usada diretamente)
-function fazerLogout() {
-    abrirModalLogout();
 }

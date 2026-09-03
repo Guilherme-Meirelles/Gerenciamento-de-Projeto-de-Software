@@ -46,6 +46,9 @@ public class AreaTrabalhoController {
     @Autowired
     private TarefaService tarefaService;
 
+    @Autowired
+    private CategoriaRepository categoriaRepository;
+
     @GetMapping("/areasTrabalho")
     public String areasTrabalho(Model model, HttpServletRequest request) {
 
@@ -332,6 +335,37 @@ public class AreaTrabalhoController {
         return ResponseEntity.ok(listasJson);
     }
 
+    @GetMapping("/areasTrabalho/{id}/categorias")
+    @ResponseBody
+    public ResponseEntity<?> listarCategorias(@PathVariable Long id, HttpServletRequest request) {
+        String usuarioId = SessaoUtil.getUsuarioId(request);
+        if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
+
+        Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
+        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_FOUND");
+
+        AreaTrabalho area = areaTrabalhoRepository.findById(id).orElse(null);
+        if (area == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("AREA_NOT_FOUND");
+
+        boolean temAcesso = area.getParticipacoes().stream()
+                .anyMatch(p -> p.getUsuario().getId().equals(usuario.getId()));
+        if (!temAcesso) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("NO_ACCESS");
+
+        List<Categoria> categorias = categoriaRepository.findByAreaId(id);
+
+        List<Map<String, Object>> categoriasJson = categorias.stream()
+                .map(c -> {
+                    Map<String, Object> mapa = new HashMap<>();
+                    mapa.put("id", c.getId());
+                    mapa.put("nome", c.getNome());
+                    mapa.put("cor", c.getCor());
+                    return mapa;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(categoriasJson);
+    }
+
     @GetMapping("/areasTrabalho/{areaId}/tarefas")
     @ResponseBody
     public ResponseEntity<?> listarTarefasPorArea(@PathVariable Long areaId, HttpServletRequest request) {
@@ -369,6 +403,8 @@ public class AreaTrabalhoController {
             mapa.put("cor", t.getCor());
             mapa.put("dataFim", t.getDataFim() != null ? t.getDataFim().toString() : null);
             mapa.put("listaId", t.getListaOrigem().getId());
+            mapa.put("listaNome", t.getListaOrigem().getNome());
+            mapa.put("areaNome", t.getListaOrigem().getArea().getNome());
             mapa.put("concluida", t.getStatus());
             if (!t.getResponsaveis().isEmpty()) {
                 mapa.put("responsavel", t.getResponsaveis().iterator().next().getId());
@@ -378,6 +414,17 @@ public class AreaTrabalhoController {
                 mapa.put("responsavelNome", null);
             }
             mapa.put("notificacoes", t.getNotificacoes());
+            if (t.getChecklist() != null) {
+                mapa.put("checklistId", t.getChecklist().getId());
+                mapa.put("checklistTotal", t.getChecklist().getItens().size());
+                mapa.put("checklistConcluidos", t.getChecklist().getItens().stream()
+                        .filter(ItemChecklist::getConcluido).count());
+            } else {
+                mapa.put("checklistId", null);
+                mapa.put("checklistTotal", 0);
+                mapa.put("checklistConcluidos", 0);
+            }
+            mapa.put("categoriaIds", t.getCategorias().stream().map(Categoria::getId).collect(Collectors.toList()));
             return mapa;
         }).collect(Collectors.toList());
 
@@ -396,7 +443,9 @@ public class AreaTrabalhoController {
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_FOUND");
 
-        List<AreaTrabalho> areas = areaTrabalhoRepository.findByDono(usuario);
+        List<AreaTrabalho> areas = participacaoAreaRepository.findByUsuario(usuario).stream()
+                .map(ParticipacaoArea::getArea)
+                .collect(Collectors.toList());
 
         
         List<Lista> todasListas = new ArrayList<>();
@@ -417,6 +466,8 @@ public class AreaTrabalhoController {
             mapa.put("cor", t.getCor());
             mapa.put("dataFim", t.getDataFim() != null ? t.getDataFim().toString() : null);
             mapa.put("listaId", t.getListaOrigem().getId());
+            mapa.put("listaNome", t.getListaOrigem().getNome());
+            mapa.put("areaNome", t.getListaOrigem().getArea().getNome());
             mapa.put("concluida", t.getStatus());
             if (!t.getResponsaveis().isEmpty()) {
                 mapa.put("responsavel", t.getResponsaveis().iterator().next().getId());
@@ -426,6 +477,17 @@ public class AreaTrabalhoController {
                 mapa.put("responsavelNome", null);
             }
             mapa.put("notificacoes", t.getNotificacoes());
+            if (t.getChecklist() != null) {
+                mapa.put("checklistId", t.getChecklist().getId());
+                mapa.put("checklistTotal", t.getChecklist().getItens().size());
+                mapa.put("checklistConcluidos", t.getChecklist().getItens().stream()
+                        .filter(ItemChecklist::getConcluido).count());
+            } else {
+                mapa.put("checklistId", null);
+                mapa.put("checklistTotal", 0);
+                mapa.put("checklistConcluidos", 0);
+            }
+            mapa.put("categoriaIds", t.getCategorias().stream().map(Categoria::getId).collect(Collectors.toList()));
             return mapa;
         }).collect(Collectors.toList());
 
@@ -444,7 +506,9 @@ public class AreaTrabalhoController {
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_FOUND");
 
-        List<AreaTrabalho> areas = areaTrabalhoRepository.findByDono(usuario);
+        List<AreaTrabalho> areas = participacaoAreaRepository.findByUsuario(usuario).stream()
+                .map(ParticipacaoArea::getArea)
+                .collect(Collectors.toList());
         
         List<Lista> todasListas = new ArrayList<>();
         for (AreaTrabalho area : areas) {
@@ -474,7 +538,9 @@ public class AreaTrabalhoController {
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_FOUND");
 
-        List<AreaTrabalho> areas = areaTrabalhoRepository.findByDono(usuario);
+        List<AreaTrabalho> areas = participacaoAreaRepository.findByUsuario(usuario).stream()
+                .map(ParticipacaoArea::getArea)
+                .collect(Collectors.toList());
         
         List<ParticipacaoArea> todosMembros = new ArrayList<>();
         for (AreaTrabalho area : areas) {

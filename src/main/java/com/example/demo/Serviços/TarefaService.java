@@ -1,14 +1,18 @@
 package com.example.demo.Serviços;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.ConsultasBD.CategoriaRepository;
 import com.example.demo.ConsultasBD.ListaRepository;
 import com.example.demo.ConsultasBD.TarefaRepository;
 import com.example.demo.ConsultasBD.UsuarioRepository;
+import com.example.demo.Entidades.Categoria;
 import com.example.demo.Entidades.Lista;
 import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Entidades.Usuario;
@@ -25,12 +29,15 @@ public class TarefaService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private CategoriaRepository categoriaRepository;
+
     // ------------------------
     // CRIAR
     // ------------------------
     public Tarefa criarTarefa(Long listaId, String titulo, String descricao, Integer cor,
                               String dataFim, Long responsavelId, Boolean notificacoes,
-                              Long checklistId) {
+                              List<Long> categoriaIds) {
 
         Lista lista = listaRepository.findById(listaId)
                 .orElseThrow(() -> new RuntimeException("Lista não encontrada"));
@@ -41,7 +48,6 @@ public class TarefaService {
         tarefa.setDescricao(descricao);
         tarefa.setCor(cor);
         tarefa.setNotificacoes(notificacoes != null ? notificacoes : false);
-        //tarefa.setChecklistId(checklistId);
         tarefa.setStatus(false);
 
         if (dataFim != null && !dataFim.isBlank()) {
@@ -54,6 +60,8 @@ public class TarefaService {
             tarefa.setResponsaveis(u);
         }
 
+        aplicarCategorias(tarefa, categoriaIds);
+
         return tarefaRepository.save(tarefa);
     }
 
@@ -62,7 +70,7 @@ public class TarefaService {
     // ------------------------
     public Tarefa editarTarefa(Long id, Long listaId, String titulo, String descricao, Integer cor,
                                String dataFim, Long responsavelId, Boolean notificacoes,
-                               Long checklistId) {
+                               List<Long> categoriaIds) {
 
         Tarefa tarefa = tarefaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
@@ -74,7 +82,6 @@ public class TarefaService {
         tarefa.setTitulo(titulo);
         tarefa.setDescricao(descricao);
         tarefa.setCor(cor);
-        //tarefa.setChecklistId(checklistId);
         tarefa.setNotificacoes(notificacoes != null ? notificacoes : false);
 
         if (dataFim != null && !dataFim.isBlank()) {
@@ -91,7 +98,22 @@ public class TarefaService {
             tarefa.getResponsaveis().add(u);
         }
 
+        aplicarCategorias(tarefa, categoriaIds);
+
         return tarefaRepository.save(tarefa);
+    }
+
+    private void aplicarCategorias(Tarefa tarefa, List<Long> categoriaIds) {
+        if (categoriaIds == null) {
+            return; // nenhuma alteração solicitada nas categorias
+        }
+        Set<Categoria> categorias = new HashSet<>();
+        for (Long categoriaId : categoriaIds) {
+            Categoria categoria = categoriaRepository.findById(categoriaId)
+                    .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+            categorias.add(categoria);
+        }
+        tarefa.setCategorias(categorias);
     }
 
     public Tarefa toggleTarefa(Long id, Boolean concluida) {

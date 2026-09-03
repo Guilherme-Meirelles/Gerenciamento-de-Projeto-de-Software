@@ -1,5 +1,6 @@
 package com.example.demo.Entidades;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ public class Tarefa {
      * <Anexos> : String
      * status : Boolean
      * REL: listaOrigem : Set<Lista>
+     * REL: checklist : Checklist
      * REL: categorias : Set<Categoria>
      * REL: responsaveis : Set<Usuario>
      */
@@ -42,8 +44,15 @@ public class Tarefa {
     @JoinColumn(name = "lista_id")
     private Lista listaOrigem;
 
-    // tarefa(n)-(n)categoria 
+    // tarefa(1)-(1)checklist
+    // cada tarefa tem no máximo 1 checklist, criado sob demanda quando o primeiro item é adicionado.
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "checklist_id")
+    private Checklist checklist;
+
+    // tarefa(n)-(n)categoria
     // criar uma nova tabela
+    @JsonIgnore
     @ManyToMany
     @JoinTable(
         name = "categorias_tarefa",
@@ -93,8 +102,13 @@ public class Tarefa {
     public Lista getListaOrigem() { return listaOrigem; }
     public void setListaOrigem(Lista list) {this.listaOrigem = list;}
 
+    // checklist
+    public Checklist getChecklist() { return checklist; }
+    public void setChecklist(Checklist checklist) { this.checklist = checklist; }
+
     // categorias
     public Set<Categoria> getCategorias() { return categorias; }
+    public void setCategorias(Set<Categoria> categorias) { this.categorias = categorias; }
 
     // responsaveis
     public Set<Usuario> getResponsaveis() { return responsaveis; }

@@ -7,8 +7,7 @@
     <link rel="stylesheet" href="/css/sidebar.css" />
     <link rel="stylesheet" href="/css/areasTrabalho.css" />
     <link rel="stylesheet" href="/css/menu.css" />
-    <link rel="stylesheet" href="/css/acessibilidade.css" />
-
+    <link rel="stylesheet" href="/css/calendario.css" />
 </head>
 <body>
 <div class="app-container">
@@ -274,11 +273,11 @@
     </div>
 </div>
 
-<!-- Importa o Botão de Acessibilidade -->
-<div th:replace="~{acessibilidade :: acessibilidade}"></div>
+<!-- Importa o Modal do Calendário (botão fica na sidebar) -->
+<div th:replace="~{calendario :: calendario}"></div>
 
-<!-- Importa o Script de Acessibilidade -->
-<div th:replace="~{acessibilidade :: acessibilidade-script}"></div>
+<!-- Importa o Script de Calendário -->
+<div th:replace="~{calendario :: calendario-script}"></div>
 
 <!-- Importa os Modais do fragment -->
 <div th:replace="~{sidebar :: modais}"></div>

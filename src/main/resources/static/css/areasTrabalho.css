@@ -971,19 +971,6 @@
     }
 }
 
-/* ===== Ajuste do botão de acessibilidade para esta página ===== */
-.conteudo-areas ~ .botao-acessibilidade-container {
-    right: 15px !important;
-    bottom: 15px !important;
-}
-
-@media (max-width: 768px) {
-    .conteudo-areas ~ .botao-acessibilidade-container {
-        right: 25px !important;
-        bottom: 25px !important;
-    }
-}
-
 @media (max-width: 480px) {
     .modal-nova-area {
         padding: 28px 32px;
