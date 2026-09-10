@@ -4,6 +4,7 @@ import com.example.demo.ConsultasBD.*;
 import com.example.demo.Entidades.*;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.EnvioDeEmail.EmailService;
+import com.example.demo.Serviços.PermissaoAreaService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,9 @@ public class CompartilharAreadeTrabalho {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private PermissaoAreaService permissaoAreaService;
 
 
 
@@ -102,11 +106,9 @@ public class CompartilharAreadeTrabalho {
                 System.out.println("Erro 3");
             } else {
 
-                // Só quem já participa da área pode convidar gente pra ela
-                boolean remetenteParticipa = area.getParticipacoes().stream()
-                        .anyMatch(p -> p.getUsuario().getId().equals(remetente.getId()));
-                if (!remetenteParticipa) {
-                    return ResponseEntity.status(403).body(Map.of("success", false, "message", "Você não participa desta área de trabalho"));
+                // Só Editor/Admin da área pode convidar gente pra ela; Observador é read-only.
+                if (!permissaoAreaService.podeEditar(remetente.getId(), idArea)) {
+                    return ResponseEntity.status(403).body(Map.of("success", false, "message", "Você não tem permissão para convidar pessoas nesta área"));
                 }
 
                 // -------- GERAR TOKEN --------

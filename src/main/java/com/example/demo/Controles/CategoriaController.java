@@ -19,6 +19,7 @@ import com.example.demo.ConsultasBD.ParticipacaoAreaRepository;
 import com.example.demo.Entidades.Categoria;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.CategoriaService;
+import com.example.demo.Serviços.PermissaoAreaService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -35,21 +36,27 @@ public class CategoriaController {
     @Autowired
     private ParticipacaoAreaRepository participacaoAreaRepository;
 
+    @Autowired
+    private PermissaoAreaService permissaoAreaService;
+
     // Confere se o usuário autenticado participa da área informada.
-    private Long usuarioComAcessoAArea(Long areaId, HttpServletRequest request) {
+    // exigeEdicao=true barra Observador (só Editor/Admin podem alterar dados).
+    private Long usuarioComAcessoAArea(Long areaId, HttpServletRequest request, boolean exigeEdicao) {
         String usuarioIdStr = SessaoUtil.getUsuarioId(request);
         if (usuarioIdStr == null) return null;
         Long usuarioId = Long.parseLong(usuarioIdStr);
 
-        boolean temAcesso = participacaoAreaRepository.existsByUsuarioIdAndAreaId(usuarioId, areaId);
+        boolean temAcesso = exigeEdicao
+                ? permissaoAreaService.podeEditar(usuarioId, areaId)
+                : permissaoAreaService.podeVisualizar(usuarioId, areaId);
         return temAcesso ? usuarioId : null;
     }
 
     // Confere se o usuário autenticado participa da área dona da categoria informada.
-    private Long usuarioComAcessoACategoria(Long categoriaId, HttpServletRequest request) {
+    private Long usuarioComAcessoACategoria(Long categoriaId, HttpServletRequest request, boolean exigeEdicao) {
         Categoria categoria = categoriaRepository.findById(categoriaId).orElse(null);
         if (categoria == null) return null;
-        return usuarioComAcessoAArea(categoria.getArea().getId(), request);
+        return usuarioComAcessoAArea(categoria.getArea().getId(), request, exigeEdicao);
     }
 
     @PostMapping
@@ -59,7 +66,7 @@ public class CategoriaController {
             @RequestParam String cor,
             HttpServletRequest request
     ) {
-        if (usuarioComAcessoAArea(areaId, request) == null) {
+        if (usuarioComAcessoAArea(areaId, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -74,7 +81,7 @@ public class CategoriaController {
             @RequestParam String cor,
             HttpServletRequest request
     ) {
-        if (usuarioComAcessoACategoria(id, request) == null) {
+        if (usuarioComAcessoACategoria(id, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -84,7 +91,7 @@ public class CategoriaController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> removerCategoria(@PathVariable Long id, HttpServletRequest request) {
-        if (usuarioComAcessoACategoria(id, request) == null) {
+        if (usuarioComAcessoACategoria(id, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -94,7 +101,7 @@ public class CategoriaController {
 
     @GetMapping("/area/{areaId}")
     public ResponseEntity<?> listarPorArea(@PathVariable Long areaId, HttpServletRequest request) {
-        if (usuarioComAcessoAArea(areaId, request) == null) {
+        if (usuarioComAcessoAArea(areaId, request, false) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

@@ -24,6 +24,7 @@ import com.example.demo.Entidades.Lista;
 import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.ChecklistService;
+import com.example.demo.Serviços.PermissaoAreaService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -45,8 +46,12 @@ public class ChecklistController {
     @Autowired
     private ParticipacaoAreaRepository participacaoAreaRepository;
 
+    @Autowired
+    private PermissaoAreaService permissaoAreaService;
+
     // Confere se o usuário autenticado participa da área dona da lista informada.
-    private Long usuarioComAcessoALista(Long listaId, HttpServletRequest request) {
+    // exigeEdicao=true barra Observador (só Editor/Admin podem alterar dados).
+    private Long usuarioComAcessoALista(Long listaId, HttpServletRequest request, boolean exigeEdicao) {
         String usuarioIdStr = SessaoUtil.getUsuarioId(request);
         if (usuarioIdStr == null) return null;
         Long usuarioId = Long.parseLong(usuarioIdStr);
@@ -54,33 +59,36 @@ public class ChecklistController {
         Lista lista = listaRepository.findById(listaId).orElse(null);
         if (lista == null) return null;
 
-        boolean temAcesso = participacaoAreaRepository.existsByUsuarioIdAndAreaId(usuarioId, lista.getArea().getId());
+        Long areaId = lista.getArea().getId();
+        boolean temAcesso = exigeEdicao
+                ? permissaoAreaService.podeEditar(usuarioId, areaId)
+                : permissaoAreaService.podeVisualizar(usuarioId, areaId);
         return temAcesso ? usuarioId : null;
     }
 
     // Confere se o usuário autenticado participa da área dona da tarefa informada.
-    private Long usuarioComAcessoATarefa(Long tarefaId, HttpServletRequest request) {
+    private Long usuarioComAcessoATarefa(Long tarefaId, HttpServletRequest request, boolean exigeEdicao) {
         Tarefa tarefa = tarefaRepository.findById(tarefaId).orElse(null);
         if (tarefa == null) return null;
-        return usuarioComAcessoALista(tarefa.getListaOrigem().getId(), request);
+        return usuarioComAcessoALista(tarefa.getListaOrigem().getId(), request, exigeEdicao);
     }
 
     // Confere se o usuário autenticado participa da área dona da tarefa do item informado.
-    private Long usuarioComAcessoAoItem(Long itemId, HttpServletRequest request) {
+    private Long usuarioComAcessoAoItem(Long itemId, HttpServletRequest request, boolean exigeEdicao) {
         ItemChecklist item = itemChecklistRepository.findById(itemId).orElse(null);
         if (item == null) return null;
 
         Tarefa tarefa = item.getChecklist().getTarefa();
         if (tarefa == null) return null;
 
-        return usuarioComAcessoATarefa(tarefa.getId(), request);
+        return usuarioComAcessoATarefa(tarefa.getId(), request, exigeEdicao);
     }
 
     // ITENS DA CHECKLIST DE UMA TAREFA
 
     @GetMapping("/tarefas/{tarefaId}/checklist")
     public ResponseEntity<?> getChecklist(@PathVariable Long tarefaId, HttpServletRequest request) {
-        if (usuarioComAcessoATarefa(tarefaId, request) == null) {
+        if (usuarioComAcessoATarefa(tarefaId, request, false) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -94,7 +102,7 @@ public class ChecklistController {
             @RequestBody Map<String, Object> body,
             HttpServletRequest request
     ) {
-        if (usuarioComAcessoATarefa(tarefaId, request) == null) {
+        if (usuarioComAcessoATarefa(tarefaId, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -109,7 +117,7 @@ public class ChecklistController {
             @RequestBody Map<String, Object> body,
             HttpServletRequest request
     ) {
-        if (usuarioComAcessoAoItem(itemId, request) == null) {
+        if (usuarioComAcessoAoItem(itemId, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -122,7 +130,7 @@ public class ChecklistController {
 
     @DeleteMapping("/checklists/itens/{itemId}")
     public ResponseEntity<Void> removerItem(@PathVariable Long itemId, HttpServletRequest request) {
-        if (usuarioComAcessoAoItem(itemId, request) == null) {
+        if (usuarioComAcessoAoItem(itemId, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

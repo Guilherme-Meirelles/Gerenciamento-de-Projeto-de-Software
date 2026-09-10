@@ -5,6 +5,7 @@ import com.example.demo.Entidades.*;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.ConviteAreaService;
 import com.example.demo.Serviços.ListaService;
+import com.example.demo.Serviços.PermissaoAreaService;
 import com.example.demo.Serviços.TarefaService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,6 +57,9 @@ public class AreaTrabalhoController {
 
     @Autowired
     private ConviteAreaService conviteAreaService;
+
+    @Autowired
+    private PermissaoAreaService permissaoAreaService;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -238,14 +242,20 @@ public class AreaTrabalhoController {
         AreaTrabalho area = areaTrabalhoRepository.findById(id).orElse(null);
         if (area == null) return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Área não encontrada"));
 
-        boolean participa = area.getParticipacoes().stream()
-                .anyMatch(p -> p.getUsuario().getId().equals(usuario.getId()));
-        if (!participa) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Você não participa desta área"));
+        // Observador não pode gerar convite (mesmo que fosse pra um nível menor que o dele).
+        if (!permissaoAreaService.podeEditar(usuario.getId(), id)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Você não tem permissão para convidar pessoas nesta área"));
+        }
 
         PermissaoArea nivel;
         try {
             nivel = PermissaoArea.valueOf(permissao.toUpperCase());
         } catch (IllegalArgumentException e) {
+            nivel = PermissaoArea.EDITOR;
+        }
+
+        // Só Admin pode gerar um link que concede nível Admin; Editor gerando link cai pra Editor.
+        if (nivel == PermissaoArea.ADMIN && !permissaoAreaService.podeAdministrar(usuario.getId(), id)) {
             nivel = PermissaoArea.EDITOR;
         }
 
