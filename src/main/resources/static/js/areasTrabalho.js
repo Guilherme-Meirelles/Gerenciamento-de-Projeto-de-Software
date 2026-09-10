@@ -314,49 +314,15 @@ window.atualizarSelecaoArea = function () {
         radioSelecionado.closest('.area-item-compartilhar').classList.add('selecionada');
 
         // Habilita os botões de compartilhamento
-        document.getElementById('btnGoogle').disabled = false;
-        document.getElementById('btnMicrosoft').disabled = false;
-        document.getElementById('btnGithub').disabled = false;
+        document.getElementById('btnEmail').disabled = false;
         document.getElementById('btnLink').disabled = false;
     } else {
         areaSelecionadaCompartilhar = null;
 
         // Desabilita os botões de compartilhamento
-        document.getElementById('btnGoogle').disabled = true;
-        document.getElementById('btnMicrosoft').disabled = true;
-        document.getElementById('btnGithub').disabled = true;
+        document.getElementById('btnEmail').disabled = true;
         document.getElementById('btnLink').disabled = true;
     }
-}
-
-window.compartilharVia = function (metodo) {
-    if (!areaSelecionadaCompartilhar) {
-        alert('Selecione uma área para compartilhar');
-        return;
-    }
-
-    fetch('/areasTrabalho/compartilhar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            areaId: areaSelecionadaCompartilhar,
-            metodo: metodo
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            alert(`Área compartilhada via ${metodo.toUpperCase()}!`);
-            fecharModalCompartilhar();
-        } else {
-            alert('Erro ao compartilhar a área: ' + data.message);
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        alert('Erro ao compartilhar a área. Tente novamente.');
-    });
-
 }
 
 window.gerarLinkCompartilhamento = function () {
@@ -365,7 +331,9 @@ window.gerarLinkCompartilhamento = function () {
         return;
     }
 
-    fetch(`/areasTrabalho/gerar-link/${areaSelecionadaCompartilhar}`)
+    const permissao = document.getElementById('permissaoLink').value;
+
+    fetch(`/areasTrabalho/gerar-link/${areaSelecionadaCompartilhar}?permissao=${permissao}`)
         .then(res => res.json())
         .then(data => {
             if (data.link) {

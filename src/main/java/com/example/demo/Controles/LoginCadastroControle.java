@@ -5,6 +5,7 @@ import com.example.demo.Entidades.Usuario;
 import com.example.demo.ConsultasBD.TokenRepository;
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
+import com.example.demo.Serviços.ConviteAreaService;
 import com.example.demo.Serviços.EnvioDeEmail.EmailService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,6 +34,11 @@ public class LoginCadastroControle {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private ConviteAreaService conviteAreaService;
+
+    private static final String ATRIBUTO_CONVITE_PENDENTE = "conviteAreaPendente";
 
     @GetMapping("/login")
     public String login() {
@@ -172,6 +178,18 @@ public class LoginCadastroControle {
             }
 
             SessaoUtil.autenticar(request, usuarioLogado.getId());
+
+            // Se o login veio de um link de convite de área de trabalho, aceita agora
+            // (guardado na sessão por AreaTrabalhoController.entrarPorLink).
+            Object convitePendente = request.getSession().getAttribute(ATRIBUTO_CONVITE_PENDENTE);
+            if (convitePendente != null) {
+                request.getSession().removeAttribute(ATRIBUTO_CONVITE_PENDENTE);
+                ConviteAreaService.Resultado resultado = conviteAreaService.aceitarLinkGenerico((String) convitePendente, usuarioLogado);
+                if (resultado.sucesso()) {
+                    return "redirect:/areasTrabalho/" + resultado.area().getId() + "/" + resultado.area().getNome();
+                }
+            }
+
             return "redirect:/menu"; // ✅ Agora redireciona corretamente
         }
 

@@ -3,11 +3,13 @@ package com.example.demo.Controles;
 import com.example.demo.ConsultasBD.*;
 import com.example.demo.Entidades.*;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
+import com.example.demo.Serviços.ConviteAreaService;
 import com.example.demo.Serviços.ListaService;
 import com.example.demo.Serviços.TarefaService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
@@ -48,6 +50,17 @@ public class AreaTrabalhoController {
 
     @Autowired
     private CategoriaRepository categoriaRepository;
+
+    @Autowired
+    private TokenRepository tokenRepository;
+
+    @Autowired
+    private ConviteAreaService conviteAreaService;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    private static final String ATRIBUTO_CONVITE_PENDENTE = "conviteAreaPendente";
 
     @GetMapping("/areasTrabalho")
     public String areasTrabalho(Model model, HttpServletRequest request) {
@@ -208,46 +221,13 @@ public class AreaTrabalhoController {
         return ResponseEntity.ok().body(Map.of("status", "success"));
     }
 
-    @PostMapping("/areasTrabalho/compartilhar")
-    @ResponseBody
-    public ResponseEntity<?> compartilharArea(@RequestBody Map<String, String> body, HttpServletRequest request) {
-
-        String usuarioId = SessaoUtil.getUsuarioId(request);
-        if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Usuário não logado"));
-
-        Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
-        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Usuário não encontrado"));
-
-        String areaIdStr = body.get("areaId");
-        String metodo = body.get("metodo");
-
-        if (areaIdStr == null || metodo == null) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Dados incompletos"));
-        }
-
-        Long areaId = Long.parseLong(areaIdStr);
-        AreaTrabalho area = areaTrabalhoRepository.findById(areaId).orElse(null);
-
-        if (area == null) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Área não encontrada"));
-        }
-
-        // Cria participação do usuário nessa área
-        
-        //ParticipacaoArea participacao = new ParticipacaoArea();
-        //participacao.setArea(area);
-        //participacao.setUsuario(usuario);
-        //participacao.setPermissao(PermissaoArea.OBSERVADOR); // ou ADMIN se quiser dar controle
-
-        //area.getParticipacoes().add(participacao);
-        //areaTrabalhoRepository.save(area);
-
-        return ResponseEntity.ok(Map.of("success", true, "message", "Área compartilhada com sucesso!"));
-    }
-
     @GetMapping("/areasTrabalho/gerar-link/{id}")
     @ResponseBody
-    public ResponseEntity<?> gerarLink(@PathVariable Long id, HttpServletRequest request) {
+    public ResponseEntity<?> gerarLink(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "EDITOR") String permissao,
+            HttpServletRequest request
+    ) {
 
         String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Usuário não logado"));
@@ -258,12 +238,59 @@ public class AreaTrabalhoController {
         AreaTrabalho area = areaTrabalhoRepository.findById(id).orElse(null);
         if (area == null) return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Área não encontrada"));
 
-        // Gera token único para compartilhamento
-        String token = java.util.UUID.randomUUID().toString().substring(0, 8);
+        boolean participa = area.getParticipacoes().stream()
+                .anyMatch(p -> p.getUsuario().getId().equals(usuario.getId()));
+        if (!participa) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Você não participa desta área"));
 
-        String link = "https://todaily.app/shared/" + token;
+        PermissaoArea nivel;
+        try {
+            nivel = PermissaoArea.valueOf(permissao.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            nivel = PermissaoArea.EDITOR;
+        }
+
+        // Gera e salva um token de convite real (link genérico: sem e-mail associado,
+        // reutilizável por qualquer um que abrir o link até expirar).
+        String tokenString = UUID.randomUUID().toString();
+
+        Token token = new Token();
+        token.setToken(tokenString);
+        token.setEmail(null);
+        token.setAreaId(id);
+        token.setPermissao(nivel);
+        token.setExpiraEm(LocalDateTime.now().plusDays(7));
+        token.setUsado(false);
+        tokenRepository.save(token);
+
+        String link = baseUrl + "/areasTrabalho/entrar/" + tokenString;
 
         return ResponseEntity.ok(Map.of("success", true, "link", link));
+    }
+
+    // Endpoint que o link de "Copiar Link" abre. Se o usuário não estiver logado,
+    // guarda o convite na sessão e manda pro login — ele é retomado automaticamente
+    // assim que o login (ou cadastro + verificação) for concluído.
+    @GetMapping("/areasTrabalho/entrar/{token}")
+    public String entrarPorLink(@PathVariable String token, HttpServletRequest request, Model model) {
+
+        String usuarioIdStr = SessaoUtil.getUsuarioId(request);
+        if (usuarioIdStr == null) {
+            request.getSession(true).setAttribute(ATRIBUTO_CONVITE_PENDENTE, token);
+            return "redirect:/login";
+        }
+
+        Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioIdStr)).orElse(null);
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+
+        ConviteAreaService.Resultado resultado = conviteAreaService.aceitarLinkGenerico(token, usuario);
+        if (!resultado.sucesso()) {
+            model.addAttribute("erro", resultado.mensagem());
+            return "login";
+        }
+
+        return "redirect:/areasTrabalho/" + resultado.area().getId() + "/" + resultado.area().getNome();
     }
 
     @GetMapping("/areasTrabalho/{id}/membros")

@@ -23,6 +23,10 @@ public class Token {
     // Preenchido só nos tokens de convite de área de trabalho (null nos outros usos do Token)
     private Long areaId;
 
+    // Nível de permissão concedido por este convite (só usado nos tokens de área de trabalho).
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    private PermissaoArea permissao;
+
     // getters e setters
     public Token() {}
     public Token(String token, String email, LocalDateTime expiraEm, boolean usado) {
@@ -68,5 +72,11 @@ public class Token {
     }
     public Long getAreaId() {
         return areaId;
+    }
+    public void setPermissao(PermissaoArea permissao) {
+        this.permissao = permissao;
+    }
+    public PermissaoArea getPermissao() {
+        return permissao;
     }
 }
