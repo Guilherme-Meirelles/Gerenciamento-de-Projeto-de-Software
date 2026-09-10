@@ -425,6 +425,7 @@ public class AreaTrabalhoController {
                 mapa.put("checklistConcluidos", 0);
             }
             mapa.put("categoriaIds", t.getCategorias().stream().map(Categoria::getId).collect(Collectors.toList()));
+            mapa.put("anexoTotal", t.getAnexos().size());
             return mapa;
         }).collect(Collectors.toList());
 
@@ -488,6 +489,7 @@ public class AreaTrabalhoController {
                 mapa.put("checklistConcluidos", 0);
             }
             mapa.put("categoriaIds", t.getCategorias().stream().map(Categoria::getId).collect(Collectors.toList()));
+            mapa.put("anexoTotal", t.getAnexos().size());
             return mapa;
         }).collect(Collectors.toList());
 

@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -71,6 +73,11 @@ public class Tarefa {
     )
     private Set<Usuario> responsaveis = new HashSet<>();
 
+    // tarefa(1)-(n)anexo
+    @JsonIgnore
+    @OneToMany(mappedBy = "tarefa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Anexo> anexos = new ArrayList<>();
+
     // GETTERS E SETTERS
     public Long getId() { return id;}
 
@@ -113,4 +120,7 @@ public class Tarefa {
     // responsaveis
     public Set<Usuario> getResponsaveis() { return responsaveis; }
     public void setResponsaveis(Usuario u) { this.responsaveis = Set.of(u);}
+
+    // anexos
+    public List<Anexo> getAnexos() { return anexos; }
 }

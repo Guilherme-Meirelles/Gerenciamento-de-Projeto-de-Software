@@ -217,6 +217,41 @@
     </div>
 </div>
 
+<!-- Modal: Anexos da Tarefa -->
+<div class="overlay-tarefa" id="modalGerenciarAnexo" style="display: none;">
+    <div class="modal-checklist">
+        <h3 class="titulo-modal-checklist">Anexos da Tarefa</h3>
+
+        <div class="lista-checklists" id="listaAnexos">
+            <!-- Anexos serão renderizados aqui -->
+        </div>
+
+        <div class="campo-checklist campo-novo-item-checklist">
+            <input type="file" id="novoAnexoInput" />
+            <button type="button" class="btn-novo-checklist" id="btnAdicionarAnexo">
+                <i data-lucide="plus"></i>
+            </button>
+        </div>
+
+        <div class="botoes-acao-checklist">
+            <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciarAnexo">
+                Fechar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Remover Anexo -->
+<div class="overlay-tarefa" id="modalRemoverAnexo" style="display: none;">
+    <div class="modal-remover">
+        <p class="modal-remover-mensagem">Deseja realmente remover este anexo?</p>
+        <div class="modal-remover-botoes">
+            <button class="btn-remover-nao" id="btnCancelarRemoverAnexo">Não</button>
+            <button class="btn-remover-sim" id="btnConfirmarRemoverAnexo">Sim</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: Gerenciar Categorias -->
 <div class="overlay-tarefa" id="modalGerenciarCategoria" style="display: none;">
     <div class="modal-checklist">

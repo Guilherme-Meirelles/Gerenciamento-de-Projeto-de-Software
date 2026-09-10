@@ -799,7 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // e listas, então precisa deixar claro de onde cada uma é.
             const mostrarOrigem = typeof listaAtual === 'string' && tarefa.areaNome && tarefa.listaNome;
 
-            if (mostrarOrigem || tarefa.dataFim || tarefa.responsavel || tarefa.checklistTotal || (tarefa.categoriaIds && tarefa.categoriaIds.length)) {
+            if (mostrarOrigem || tarefa.dataFim || tarefa.responsavel || tarefa.checklistTotal || tarefa.anexoTotal || (tarefa.categoriaIds && tarefa.categoriaIds.length)) {
                 const info = document.createElement('div');
                 info.className = 'tarefa-info';
 
@@ -814,6 +814,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const badge = document.createElement('span');
                     badge.className = 'tarefa-checklist-badge';
                     badge.innerHTML = `<i data-lucide="list-checks"></i> ${tarefa.checklistConcluidos}/${tarefa.checklistTotal}`;
+                    info.appendChild(badge);
+                }
+
+                if (tarefa.anexoTotal) {
+                    const badge = document.createElement('span');
+                    badge.className = 'tarefa-anexo-badge';
+                    badge.innerHTML = `<i data-lucide="paperclip"></i> ${tarefa.anexoTotal}`;
                     info.appendChild(badge);
                 }
 
@@ -1251,6 +1258,173 @@ document.addEventListener('DOMContentLoaded', function() {
             linha.appendChild(info);
             linha.appendChild(acoes);
             listaChecklistItensEl.appendChild(linha);
+        });
+
+        setTimeout(() => lucide.createIcons(), 10);
+    }
+
+    // ===== SISTEMA DE ANEXOS =====
+    let anexosAtuais = [];
+    let anexoParaRemover = null;
+
+    // Elementos do DOM
+    const btnAnexo = document.getElementById('btnAnexo');
+    const modalGerenciarAnexo = document.getElementById('modalGerenciarAnexo');
+    const modalRemoverAnexo = document.getElementById('modalRemoverAnexo');
+    const listaAnexosEl = document.getElementById('listaAnexos');
+    const btnFecharGerenciarAnexo = document.getElementById('btnFecharGerenciarAnexo');
+    const novoAnexoInput = document.getElementById('novoAnexoInput');
+    const btnAdicionarAnexo = document.getElementById('btnAdicionarAnexo');
+    const btnCancelarRemoverAnexo = document.getElementById('btnCancelarRemoverAnexo');
+    const btnConfirmarRemoverAnexo = document.getElementById('btnConfirmarRemoverAnexo');
+
+    function formatarTamanhoArquivo(bytes) {
+        if (!bytes && bytes !== 0) return '';
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    // Reflete a contagem de anexos no card da tarefa
+    function atualizarBadgeAnexoTarefa() {
+        if (!tarefaSelecionada) return;
+        const total = anexosAtuais.length;
+        tarefaSelecionada.anexoTotal = total;
+        const tarefaNaLista = tarefas.find(t => t.id === tarefaSelecionada.id);
+        if (tarefaNaLista) {
+            tarefaNaLista.anexoTotal = total;
+        }
+        recarregarListaAtual();
+    }
+
+    // Abrir anexos da tarefa selecionada
+    btnAnexo.addEventListener('click', async function() {
+        if (!tarefaSelecionada) {
+            alert('Salve a tarefa antes de adicionar anexos.');
+            return;
+        }
+
+        const resposta = await fetch(`/tarefas/${tarefaSelecionada.id}/anexos`);
+        anexosAtuais = resposta.ok ? await resposta.json() : [];
+
+        renderizarAnexos();
+        modalGerenciarAnexo.style.display = 'flex';
+        setTimeout(() => lucide.createIcons(), 10);
+    });
+
+    // Fechar modal
+    btnFecharGerenciarAnexo.addEventListener('click', function() {
+        modalGerenciarAnexo.style.display = 'none';
+        novoAnexoInput.value = '';
+    });
+
+    modalGerenciarAnexo.addEventListener('click', function(e) {
+        if (e.target === modalGerenciarAnexo) {
+            modalGerenciarAnexo.style.display = 'none';
+            novoAnexoInput.value = '';
+        }
+    });
+
+    // Adicionar anexo
+    btnAdicionarAnexo.addEventListener('click', async function() {
+        const arquivo = novoAnexoInput.files[0];
+        if (!arquivo || !tarefaSelecionada) return;
+
+        const formData = new FormData();
+        formData.append('arquivo', arquivo);
+
+        const resposta = await fetch(`/tarefas/${tarefaSelecionada.id}/anexos`, {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!resposta.ok) {
+            alert('Erro ao adicionar o anexo.');
+            return;
+        }
+
+        anexosAtuais.push(await resposta.json());
+        novoAnexoInput.value = '';
+        renderizarAnexos();
+        atualizarBadgeAnexoTarefa();
+    });
+
+    // Cancelar remoção de anexo
+    btnCancelarRemoverAnexo.addEventListener('click', function() {
+        modalRemoverAnexo.style.display = 'none';
+        anexoParaRemover = null;
+    });
+
+    modalRemoverAnexo.addEventListener('click', function(e) {
+        if (e.target === modalRemoverAnexo) {
+            modalRemoverAnexo.style.display = 'none';
+            anexoParaRemover = null;
+        }
+    });
+
+    // Confirmar remoção de anexo
+    btnConfirmarRemoverAnexo.addEventListener('click', async function() {
+        if (!anexoParaRemover) return;
+
+        await fetch(`/anexos/${anexoParaRemover.id}`, { method: 'DELETE' });
+        anexosAtuais = anexosAtuais.filter(a => a.id !== anexoParaRemover.id);
+        modalRemoverAnexo.style.display = 'none';
+        anexoParaRemover = null;
+        renderizarAnexos();
+        atualizarBadgeAnexoTarefa();
+    });
+
+    // Renderizar lista de anexos
+    window.renderizarAnexos = function () {
+        listaAnexosEl.innerHTML = '';
+
+        if (anexosAtuais.length === 0) {
+            listaAnexosEl.innerHTML = `
+                <div class="lista-checklists-vazia">
+                    <i data-lucide="paperclip"></i>
+                    <p>Nenhum anexo adicionado</p>
+                    <span>Escolha um arquivo abaixo para anexar</span>
+                </div>
+            `;
+            setTimeout(() => lucide.createIcons(), 10);
+            return;
+        }
+
+        anexosAtuais.forEach(anexo => {
+            const linha = document.createElement('div');
+            linha.className = 'checklist-item';
+
+            const info = document.createElement('div');
+            info.className = 'checklist-info';
+
+            const link = document.createElement('a');
+            link.className = 'checklist-nome';
+            link.href = `/anexos/${anexo.id}/download`;
+            link.target = '_blank';
+            link.rel = 'noopener';
+            link.textContent = anexo.nomeArquivo;
+            info.appendChild(link);
+
+            const tamanho = document.createElement('span');
+            tamanho.className = 'anexo-tamanho';
+            tamanho.textContent = formatarTamanhoArquivo(anexo.tamanho);
+            info.appendChild(tamanho);
+
+            const acoes = document.createElement('div');
+            acoes.className = 'checklist-acoes';
+
+            const btnExcluirAnexo = document.createElement('button');
+            btnExcluirAnexo.className = 'btn-excluir-checklist';
+            btnExcluirAnexo.innerHTML = '<i data-lucide="trash-2"></i>';
+            btnExcluirAnexo.addEventListener('click', function() {
+                anexoParaRemover = anexo;
+                modalRemoverAnexo.style.display = 'flex';
+            });
+            acoes.appendChild(btnExcluirAnexo);
+
+            linha.appendChild(info);
+            linha.appendChild(acoes);
+            listaAnexosEl.appendChild(linha);
         });
 
         setTimeout(() => lucide.createIcons(), 10);
