@@ -114,6 +114,7 @@ public class ListaController {
                 mapa.put("responsavelNome", null);
             }
             mapa.put("notificacoes", t.getNotificacoes());
+            mapa.put("repeticao", t.getRepeticao() != null ? t.getRepeticao().name() : "NENHUMA");
             if (t.getChecklist() != null) {
                 mapa.put("checklistId", t.getChecklist().getId());
                 mapa.put("checklistTotal", t.getChecklist().getItens().size());

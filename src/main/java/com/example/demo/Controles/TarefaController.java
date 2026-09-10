@@ -91,9 +91,10 @@ public class TarefaController {
         Long responsavel = body.get("responsavelId") != null ? Long.valueOf(body.get("responsavelId").toString()) : null;
         Boolean notificacoes = body.get("notificacoes") != null ? Boolean.valueOf(body.get("notificacoes").toString()) : null;
         List<Long> categoriaIds = extrairCategoriaIds(body);
+        String repeticao = (String) body.get("repeticao");
 
         // Chama o service
-        Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsavel, notificacoes, categoriaIds);
+        Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsavel, notificacoes, categoriaIds, repeticao);
 
         return ResponseEntity.ok(tarefaParaJson(tarefa, responsavel));
     }
@@ -123,8 +124,9 @@ public class TarefaController {
         Long responsavelId = body.get("responsavelId") != null ? Long.valueOf(body.get("responsavelId").toString()) : null;
         Boolean notificacoes = body.get("notificacoes") != null ? Boolean.valueOf(body.get("notificacoes").toString()) : null;
         List<Long> categoriaIds = extrairCategoriaIds(body);
+        String repeticao = (String) body.get("repeticao");
 
-        Tarefa tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsavelId, notificacoes, categoriaIds);
+        Tarefa tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsavelId, notificacoes, categoriaIds, repeticao);
 
         return ResponseEntity.ok(tarefaParaJson(tarefa, responsavelId));
     }
@@ -189,6 +191,7 @@ public class TarefaController {
         tarefaJson.put("listaId", tarefa.getListaOrigem() != null ? tarefa.getListaOrigem().getId() : null);
         tarefaJson.put("responsavelId", responsavelId);
         tarefaJson.put("notificacoes", tarefa.getNotificacoes());
+        tarefaJson.put("repeticao", tarefa.getRepeticao() != null ? tarefa.getRepeticao().name() : "NENHUMA");
         if (tarefa.getChecklist() != null) {
             tarefaJson.put("checklistId", tarefa.getChecklist().getId());
             tarefaJson.put("checklistTotal", tarefa.getChecklist().getItens().size());

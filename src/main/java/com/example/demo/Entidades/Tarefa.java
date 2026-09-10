@@ -39,6 +39,11 @@ public class Tarefa {
     private Boolean notificacoes;
     private Boolean lembreteEnviado;
 
+    // Repetição automática (dia/mês/ano): ao concluir uma tarefa repetitiva, o
+    // TarefaService avança a dataFim em vez de deixar a tarefa marcada como concluída.
+    @Enumerated(EnumType.STRING)
+    private Repeticao repeticao;
+
     // RELACIONAMENTOS DE TAREFA
 
     // tarefa(n)-(1)lista
@@ -105,6 +110,10 @@ public class Tarefa {
     // lembreteEnviado: evita mandar o e-mail de lembrete mais de uma vez pra mesma tarefa.
     public Boolean getLembreteEnviado() { return lembreteEnviado; }
     public void setLembreteEnviado(Boolean lembreteEnviado) { this.lembreteEnviado = lembreteEnviado; }
+
+    // repeticao
+    public Repeticao getRepeticao() { return repeticao; }
+    public void setRepeticao(Repeticao repeticao) { this.repeticao = repeticao; }
 
     // Date
     public LocalDate getDataFim() {return dataFim;}

@@ -14,6 +14,7 @@ import com.example.demo.ConsultasBD.TarefaRepository;
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Entidades.Categoria;
 import com.example.demo.Entidades.Lista;
+import com.example.demo.Entidades.Repeticao;
 import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Entidades.Usuario;
 
@@ -37,7 +38,7 @@ public class TarefaService {
     // ------------------------
     public Tarefa criarTarefa(Long listaId, String titulo, String descricao, Integer cor,
                               String dataFim, Long responsavelId, Boolean notificacoes,
-                              List<Long> categoriaIds) {
+                              List<Long> categoriaIds, String repeticao) {
 
         Lista lista = listaRepository.findById(listaId)
                 .orElseThrow(() -> new RuntimeException("Lista não encontrada"));
@@ -50,6 +51,7 @@ public class TarefaService {
         tarefa.setNotificacoes(notificacoes != null ? notificacoes : false);
         tarefa.setStatus(false);
         tarefa.setLembreteEnviado(false);
+        tarefa.setRepeticao(parseRepeticao(repeticao));
 
         if (dataFim != null && !dataFim.isBlank()) {
             tarefa.setDataFim(LocalDate.parse(dataFim)); // LocalDate <---------
@@ -71,7 +73,7 @@ public class TarefaService {
     // ------------------------
     public Tarefa editarTarefa(Long id, Long listaId, String titulo, String descricao, Integer cor,
                                String dataFim, Long responsavelId, Boolean notificacoes,
-                               List<Long> categoriaIds) {
+                               List<Long> categoriaIds, String repeticao) {
 
         Tarefa tarefa = tarefaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
@@ -84,6 +86,7 @@ public class TarefaService {
         tarefa.setDescricao(descricao);
         tarefa.setCor(cor);
         tarefa.setNotificacoes(notificacoes != null ? notificacoes : false);
+        tarefa.setRepeticao(parseRepeticao(repeticao));
 
         LocalDate novaDataFim = (dataFim != null && !dataFim.isBlank()) ? LocalDate.parse(dataFim) : null;
         // Data de vencimento mudou: permite que o job de lembrete dispare de novo pra ela.
@@ -123,9 +126,43 @@ public class TarefaService {
         Tarefa tarefa = tarefaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
 
-        tarefa.setStatus(concluida);
+        boolean deveRepetir = Boolean.TRUE.equals(concluida)
+                && tarefa.getRepeticao() != null
+                && tarefa.getRepeticao() != Repeticao.NENHUMA
+                && tarefa.getDataFim() != null;
+
+        if (deveRepetir) {
+            // Em vez de marcar como concluída, avança a data de vencimento pro próximo
+            // ciclo e mantém a tarefa em aberto — é assim que uma tarefa repetitiva "reinicia".
+            tarefa.setDataFim(proximaDataFim(tarefa.getDataFim(), tarefa.getRepeticao()));
+            tarefa.setStatus(false);
+            tarefa.setLembreteEnviado(false);
+        } else {
+            tarefa.setStatus(concluida);
+        }
 
         return tarefaRepository.save(tarefa);
+    }
+
+    private LocalDate proximaDataFim(LocalDate atual, Repeticao repeticao) {
+        return switch (repeticao) {
+            case DIARIA -> atual.plusDays(1);
+            case SEMANAL -> atual.plusWeeks(1);
+            case MENSAL -> atual.plusMonths(1);
+            case ANUAL -> atual.plusYears(1);
+            case NENHUMA -> atual;
+        };
+    }
+
+    private Repeticao parseRepeticao(String repeticao) {
+        if (repeticao == null || repeticao.isBlank()) {
+            return Repeticao.NENHUMA;
+        }
+        try {
+            return Repeticao.valueOf(repeticao.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Repeticao.NENHUMA;
+        }
     }
 
     // ------------------------
