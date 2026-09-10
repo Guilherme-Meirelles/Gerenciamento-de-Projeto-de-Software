@@ -11,4 +11,5 @@ public interface ParticipacaoAreaRepository extends JpaRepository<ParticipacaoAr
     List<ParticipacaoArea> findByArea(AreaTrabalho area);
     ParticipacaoArea findByUsuarioAndArea(Usuario usuario, AreaTrabalho area);
     boolean existsByUsuarioIdAndAreaId(Long usuarioId, Long areaId);
+    ParticipacaoArea findByUsuarioIdAndAreaId(Long usuarioId, Long areaId);
 }

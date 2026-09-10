@@ -26,6 +26,7 @@ import com.example.demo.Entidades.Lista;
 import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.ListaService;
+import com.example.demo.Serviços.PermissaoAreaService;
 import com.example.demo.Serviços.TarefaService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -46,10 +47,14 @@ public class ListaController {
     @Autowired
     private ParticipacaoAreaRepository participacaoAreaRepository;
 
+    @Autowired
+    private PermissaoAreaService permissaoAreaService;
+
     // Confere se o usuário autenticado participa da área dona da lista.
     // Evita que um usuário logado leia/edite/apague listas e tarefas de
     // áreas de trabalho às quais ele não pertence, só por adivinhar o ID.
-    private Long usuarioAutenticadoComAcesso(Long listaId, HttpServletRequest request) {
+    // exigeEdicao=true barra Observador (só Editor/Admin podem alterar dados).
+    private Long usuarioAutenticadoComAcesso(Long listaId, HttpServletRequest request, boolean exigeEdicao) {
         String usuarioIdStr = SessaoUtil.getUsuarioId(request);
         if (usuarioIdStr == null) return null;
         Long usuarioId = Long.parseLong(usuarioIdStr);
@@ -57,7 +62,10 @@ public class ListaController {
         Lista lista = listaRepository.findById(listaId).orElse(null);
         if (lista == null) return null;
 
-        boolean temAcesso = participacaoAreaRepository.existsByUsuarioIdAndAreaId(usuarioId, lista.getArea().getId());
+        Long areaId = lista.getArea().getId();
+        boolean temAcesso = exigeEdicao
+                ? permissaoAreaService.podeEditar(usuarioId, areaId)
+                : permissaoAreaService.podeVisualizar(usuarioId, areaId);
         return temAcesso ? usuarioId : null;
     }
 
@@ -72,7 +80,7 @@ public class ListaController {
         if (usuarioIdStr == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long usuarioId = Long.parseLong(usuarioIdStr);
 
-        if (!participacaoAreaRepository.existsByUsuarioIdAndAreaId(usuarioId, areaId)) {
+        if (!permissaoAreaService.podeEditar(usuarioId, areaId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -83,7 +91,7 @@ public class ListaController {
     @GetMapping("/{listaId}/tarefas")
     @ResponseBody
     public ResponseEntity<?> listarTarefasPorLista(@PathVariable Long listaId, HttpServletRequest request) {
-        if (usuarioAutenticadoComAcesso(listaId, request) == null) {
+        if (usuarioAutenticadoComAcesso(listaId, request, false) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -106,6 +114,7 @@ public class ListaController {
                 mapa.put("responsavelNome", null);
             }
             mapa.put("notificacoes", t.getNotificacoes());
+            mapa.put("repeticao", t.getRepeticao() != null ? t.getRepeticao().name() : "NENHUMA");
             if (t.getChecklist() != null) {
                 mapa.put("checklistId", t.getChecklist().getId());
                 mapa.put("checklistTotal", t.getChecklist().getItens().size());
@@ -131,7 +140,7 @@ public class ListaController {
             @RequestParam String descricao,
             HttpServletRequest request
     ) {
-        if (usuarioAutenticadoComAcesso(id, request) == null) {
+        if (usuarioAutenticadoComAcesso(id, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -144,7 +153,7 @@ public class ListaController {
             @PathVariable Long id,
             HttpServletRequest request
     ) {
-        if (usuarioAutenticadoComAcesso(id, request) == null) {
+        if (usuarioAutenticadoComAcesso(id, request, false) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -154,7 +163,7 @@ public class ListaController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarLista(@PathVariable Long id, HttpServletRequest request) {
-        if (usuarioAutenticadoComAcesso(id, request) == null) {
+        if (usuarioAutenticadoComAcesso(id, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -168,7 +177,7 @@ public class ListaController {
         if (usuarioIdStr == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         Long usuarioId = Long.parseLong(usuarioIdStr);
 
-        if (!participacaoAreaRepository.existsByUsuarioIdAndAreaId(usuarioId, areaId)) {
+        if (!permissaoAreaService.podeVisualizar(usuarioId, areaId)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

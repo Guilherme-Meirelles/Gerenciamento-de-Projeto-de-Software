@@ -23,6 +23,7 @@ import com.example.demo.Entidades.ItemChecklist;
 import com.example.demo.Entidades.Lista;
 import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
+import com.example.demo.Serviços.PermissaoAreaService;
 import com.example.demo.Serviços.TarefaService;
 import com.example.demo.ConsultasBD.ListaRepository;
 import com.example.demo.ConsultasBD.ParticipacaoAreaRepository;
@@ -46,8 +47,12 @@ public class TarefaController {
     @Autowired
     private ParticipacaoAreaRepository participacaoAreaRepository;
 
+    @Autowired
+    private PermissaoAreaService permissaoAreaService;
+
     // Confere se o usuário autenticado participa da área dona da lista informada.
-    private Long usuarioComAcessoALista(Long listaId, HttpServletRequest request) {
+    // exigeEdicao=true barra Observador (só Editor/Admin podem alterar dados).
+    private Long usuarioComAcessoALista(Long listaId, HttpServletRequest request, boolean exigeEdicao) {
         String usuarioIdStr = SessaoUtil.getUsuarioId(request);
         if (usuarioIdStr == null) return null;
         Long usuarioId = Long.parseLong(usuarioIdStr);
@@ -55,15 +60,18 @@ public class TarefaController {
         Lista lista = listaRepository.findById(listaId).orElse(null);
         if (lista == null) return null;
 
-        boolean temAcesso = participacaoAreaRepository.existsByUsuarioIdAndAreaId(usuarioId, lista.getArea().getId());
+        Long areaId = lista.getArea().getId();
+        boolean temAcesso = exigeEdicao
+                ? permissaoAreaService.podeEditar(usuarioId, areaId)
+                : permissaoAreaService.podeVisualizar(usuarioId, areaId);
         return temAcesso ? usuarioId : null;
     }
 
     // Confere se o usuário autenticado participa da área dona da tarefa informada.
-    private Long usuarioComAcessoATarefa(Long tarefaId, HttpServletRequest request) {
+    private Long usuarioComAcessoATarefa(Long tarefaId, HttpServletRequest request, boolean exigeEdicao) {
         Tarefa tarefa = tarefaRepository.findById(tarefaId).orElse(null);
         if (tarefa == null) return null;
-        return usuarioComAcessoALista(tarefa.getListaOrigem().getId(), request);
+        return usuarioComAcessoALista(tarefa.getListaOrigem().getId(), request, exigeEdicao);
     }
 
     // CRIAR TAREFA
@@ -72,7 +80,7 @@ public class TarefaController {
 
         Long listaId = Long.valueOf(body.get("listaId").toString());
 
-        if (usuarioComAcessoALista(listaId, request) == null) {
+        if (usuarioComAcessoALista(listaId, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -83,9 +91,10 @@ public class TarefaController {
         Long responsavel = body.get("responsavelId") != null ? Long.valueOf(body.get("responsavelId").toString()) : null;
         Boolean notificacoes = body.get("notificacoes") != null ? Boolean.valueOf(body.get("notificacoes").toString()) : null;
         List<Long> categoriaIds = extrairCategoriaIds(body);
+        String repeticao = (String) body.get("repeticao");
 
         // Chama o service
-        Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsavel, notificacoes, categoriaIds);
+        Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsavel, notificacoes, categoriaIds, repeticao);
 
         return ResponseEntity.ok(tarefaParaJson(tarefa, responsavel));
     }
@@ -98,13 +107,13 @@ public class TarefaController {
             HttpServletRequest request
     ) {
 
-        if (usuarioComAcessoATarefa(id, request) == null) {
+        if (usuarioComAcessoATarefa(id, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         Long listaId = Long.valueOf(body.get("listaId").toString());
 
-        if (usuarioComAcessoALista(listaId, request) == null) {
+        if (usuarioComAcessoALista(listaId, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -115,8 +124,9 @@ public class TarefaController {
         Long responsavelId = body.get("responsavelId") != null ? Long.valueOf(body.get("responsavelId").toString()) : null;
         Boolean notificacoes = body.get("notificacoes") != null ? Boolean.valueOf(body.get("notificacoes").toString()) : null;
         List<Long> categoriaIds = extrairCategoriaIds(body);
+        String repeticao = (String) body.get("repeticao");
 
-        Tarefa tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsavelId, notificacoes, categoriaIds);
+        Tarefa tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsavelId, notificacoes, categoriaIds, repeticao);
 
         return ResponseEntity.ok(tarefaParaJson(tarefa, responsavelId));
     }
@@ -128,7 +138,7 @@ public class TarefaController {
             HttpServletRequest request
     ) {
 
-        if (usuarioComAcessoATarefa(id, request) == null) {
+        if (usuarioComAcessoATarefa(id, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -146,7 +156,7 @@ public class TarefaController {
     // LISTAR TAREFAS DA LISTA
     @GetMapping("/lista/{listaId}")
     public ResponseEntity<?> listarPorLista(@PathVariable Long listaId, HttpServletRequest request) {
-        if (usuarioComAcessoALista(listaId, request) == null) {
+        if (usuarioComAcessoALista(listaId, request, false) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         return ResponseEntity.ok(tarefaService.listarTarefasPorLista(listaId));
@@ -155,7 +165,7 @@ public class TarefaController {
     // DELETAR TAREFA
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remover(@PathVariable Long id, HttpServletRequest request) {
-        if (usuarioComAcessoATarefa(id, request) == null) {
+        if (usuarioComAcessoATarefa(id, request, true) == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         tarefaService.remover(id);
@@ -181,6 +191,7 @@ public class TarefaController {
         tarefaJson.put("listaId", tarefa.getListaOrigem() != null ? tarefa.getListaOrigem().getId() : null);
         tarefaJson.put("responsavelId", responsavelId);
         tarefaJson.put("notificacoes", tarefa.getNotificacoes());
+        tarefaJson.put("repeticao", tarefa.getRepeticao() != null ? tarefa.getRepeticao().name() : "NENHUMA");
         if (tarefa.getChecklist() != null) {
             tarefaJson.put("checklistId", tarefa.getChecklist().getId());
             tarefaJson.put("checklistTotal", tarefa.getChecklist().getItens().size());

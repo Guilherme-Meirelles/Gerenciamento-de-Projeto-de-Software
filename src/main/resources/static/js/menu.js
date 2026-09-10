@@ -479,6 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const dataFim = document.getElementById('tarefaDataFim').value || null; // LocalDate
         const responsavelId = +document.getElementById('tarefaResponsavel').value || null;
         const notificacoes = document.getElementById('tarefaNotificacoes').checked;
+        const repeticao = document.getElementById('tarefaRepeticao').value;
         const categoriaIds = categoriaIdsSelecionadosTarefa.slice();
 
         if (!listaId || !titulo) {
@@ -492,6 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
             descricao,
             dataFim,            // LocalDate string
             notificacoes,
+            repeticao,
             categoriaIds,
             listaId,
             responsavelId
@@ -596,6 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarefaDataFim').value = '';
         document.getElementById('tarefaResponsavel').value = '';
         document.getElementById('tarefaNotificacoes').checked = false;
+        document.getElementById('tarefaRepeticao').value = 'NENHUMA';
         categoriaIdsSelecionadosTarefa = [];
         btnCategoria.style.borderColor = '';
         btnCategoria.style.backgroundColor = '';
@@ -642,6 +645,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarefaDataFim').value = tarefa.dataFim;
         document.getElementById('tarefaResponsavel').value = tarefa.responsavel;
         document.getElementById('tarefaNotificacoes').checked = tarefa.notificacoes;
+        document.getElementById('tarefaRepeticao').value = tarefa.repeticao || 'NENHUMA';
         categoriaIdsSelecionadosTarefa = (tarefa.categoriaIds || []).slice();
         atualizarVisualBotaoCategoria();
     }
@@ -676,6 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById("tarefaDataFim").value = tarefa.dataFim || "";
         document.getElementById("tarefaResponsavel").value = tarefa.responsavel || "";
         document.getElementById("tarefaNotificacoes").checked = tarefa.notificacoes || false;
+        document.getElementById("tarefaRepeticao").value = tarefa.repeticao || "NENHUMA";
 
         categoriaIdsSelecionadosTarefa = (tarefa.categoriaIds || []).slice();
         atualizarVisualBotaoCategoria();
@@ -843,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // e listas, então precisa deixar claro de onde cada uma é.
             const mostrarOrigem = typeof listaAtual === 'string' && tarefa.areaNome && tarefa.listaNome;
 
-            if (mostrarOrigem || tarefa.dataFim || tarefa.responsavel || tarefa.checklistTotal || tarefa.anexoTotal || (tarefa.categoriaIds && tarefa.categoriaIds.length)) {
+            if (mostrarOrigem || tarefa.dataFim || tarefa.responsavel || tarefa.checklistTotal || tarefa.anexoTotal || (tarefa.categoriaIds && tarefa.categoriaIds.length) || (tarefa.repeticao && tarefa.repeticao !== 'NENHUMA')) {
                 const info = document.createElement('div');
                 info.className = 'tarefa-info';
 
@@ -885,6 +890,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     data.className = 'tarefa-data';
                     data.innerHTML = `<i data-lucide="calendar"></i> ${formatarData(tarefa.dataFim)}`;
                     info.appendChild(data);
+                }
+
+                if (tarefa.repeticao && tarefa.repeticao !== 'NENHUMA') {
+                    const rotulosRepeticao = { DIARIA: 'Diariamente', SEMANAL: 'Semanalmente', MENSAL: 'Mensalmente', ANUAL: 'Anualmente' };
+                    const badge = document.createElement('span');
+                    badge.className = 'tarefa-repeticao-badge';
+                    badge.innerHTML = `<i data-lucide="repeat"></i> ${rotulosRepeticao[tarefa.repeticao] || tarefa.repeticao}`;
+                    info.appendChild(badge);
                 }
 
                 if (tarefa.responsavelNome) {

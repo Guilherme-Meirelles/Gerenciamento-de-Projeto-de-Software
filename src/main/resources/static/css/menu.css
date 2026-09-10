@@ -372,6 +372,23 @@ i {
     height: 14px;
 }
 
+/* Indica que a tarefa se repete automaticamente (diária/mensal/anual) */
+.tarefa-repeticao-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: #fff;
+}
+
+.tarefa-repeticao-badge i {
+    width: 14px;
+    height: 14px;
+}
+
 /* Indica de qual área/lista a tarefa vem, nas visões globais (Para Hoje/Agendadas/Todas) */
 .tarefa-origem-badge {
     display: inline-flex;
