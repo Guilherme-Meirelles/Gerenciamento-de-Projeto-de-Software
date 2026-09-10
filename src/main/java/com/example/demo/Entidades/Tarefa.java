@@ -37,6 +37,7 @@ public class Tarefa {
     private LocalDate dataFim;
     private Boolean status;
     private Boolean notificacoes;
+    private Boolean lembreteEnviado;
 
     // RELACIONAMENTOS DE TAREFA
 
@@ -100,6 +101,10 @@ public class Tarefa {
     // notificações
     public Boolean getNotificacoes() { return notificacoes; }
     public void setNotificacoes(Boolean not) { this.notificacoes = not; }
+
+    // lembreteEnviado: evita mandar o e-mail de lembrete mais de uma vez pra mesma tarefa.
+    public Boolean getLembreteEnviado() { return lembreteEnviado; }
+    public void setLembreteEnviado(Boolean lembreteEnviado) { this.lembreteEnviado = lembreteEnviado; }
 
     // Date
     public LocalDate getDataFim() {return dataFim;}

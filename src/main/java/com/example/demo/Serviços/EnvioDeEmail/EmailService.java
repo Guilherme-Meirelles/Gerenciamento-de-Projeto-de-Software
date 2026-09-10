@@ -1,6 +1,7 @@
 package com.example.demo.Serviços.EnvioDeEmail;
 
 import com.example.demo.Entidades.AreaTrabalho;
+import com.example.demo.Entidades.Tarefa;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.example.demo.Entidades.Usuario;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class EmailService {
@@ -125,6 +127,37 @@ public class EmailService {
 
             mailSender.send(message);
             System.out.println("Email enviado com sucesso!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Erro ao enviar email: " + e.getMessage());
+        }
+    }
+
+    public void enviarEmailLembreteTarefa(Usuario destinatario, Tarefa tarefa) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(remetente);
+            helper.setSubject("Lembrete: \"" + tarefa.getTitulo() + "\" vence em breve - ToDaily");
+            helper.setTo(destinatario.getEmail());
+
+            AreaTrabalho area = tarefa.getListaOrigem().getArea();
+            String dataFimFormatada = tarefa.getDataFim().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+            String template = carregaTemplateEmail("templates/lembreteTarefa.html");
+            template = template.replace("{baseUrl}", baseUrl);
+            template = template.replace("{nome}", destinatario.getNome());
+            template = template.replace("{titulo}", tarefa.getTitulo());
+            template = template.replace("{dataFim}", dataFimFormatada);
+            template = template.replace("{areaId}", area.getId().toString());
+            template = template.replace("{area}", area.getNome());
+
+            helper.setText(template, true);
+
+            mailSender.send(message);
+            System.out.println("Email de lembrete enviado com sucesso!");
 
         } catch (Exception e) {
             e.printStackTrace();

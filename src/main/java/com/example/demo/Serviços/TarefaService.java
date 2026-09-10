@@ -49,6 +49,7 @@ public class TarefaService {
         tarefa.setCor(cor);
         tarefa.setNotificacoes(notificacoes != null ? notificacoes : false);
         tarefa.setStatus(false);
+        tarefa.setLembreteEnviado(false);
 
         if (dataFim != null && !dataFim.isBlank()) {
             tarefa.setDataFim(LocalDate.parse(dataFim)); // LocalDate <---------
@@ -84,11 +85,12 @@ public class TarefaService {
         tarefa.setCor(cor);
         tarefa.setNotificacoes(notificacoes != null ? notificacoes : false);
 
-        if (dataFim != null && !dataFim.isBlank()) {
-            tarefa.setDataFim(LocalDate.parse(dataFim));
-        } else {
-            tarefa.setDataFim(null);
+        LocalDate novaDataFim = (dataFim != null && !dataFim.isBlank()) ? LocalDate.parse(dataFim) : null;
+        // Data de vencimento mudou: permite que o job de lembrete dispare de novo pra ela.
+        if (!java.util.Objects.equals(novaDataFim, tarefa.getDataFim())) {
+            tarefa.setLembreteEnviado(false);
         }
+        tarefa.setDataFim(novaDataFim);
 
         // Atualizar responsáveis
         tarefa.getResponsaveis().clear();
