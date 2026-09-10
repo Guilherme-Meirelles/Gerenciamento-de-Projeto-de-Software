@@ -328,6 +328,7 @@ public class AreaTrabalhoController {
                     mapa.put("id", l.getId());
                     mapa.put("nome", l.getNome());
                     mapa.put("descricao", l.getDescricao());
+                    mapa.put("areaId", l.getArea().getId());
                     return mapa;
                 })
                 .collect(Collectors.toList());
@@ -524,6 +525,7 @@ public class AreaTrabalhoController {
                     mapa.put("id", l.getId());
                     mapa.put("nome", l.getNome());
                     mapa.put("descricao", l.getDescricao());
+                    mapa.put("areaId", l.getArea().getId());
                     return mapa;
                 })
                 .collect(Collectors.toList());

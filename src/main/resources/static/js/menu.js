@@ -171,6 +171,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnTodasTarefas = document.querySelector('.menu-item:nth-child(3)');
     let tarefaParaRemover = null;
 
+    // Enquanto uma tarefa nova ainda não foi salva, checklist e anexos ficam
+    // "em rascunho" (só na memória) e só são enviados ao backend quando a
+    // tarefa é criada de fato — assim dá pra montá-los antes de salvar.
+    let modoRascunho = false;
+
     btnParaHoje.innerText
 
     const btnFiltro = document.getElementById('btnFiltro');
@@ -442,9 +447,8 @@ document.addEventListener('DOMContentLoaded', function() {
         btnCancelarTarefa.textContent = "Cancelar";
 
         tarefaSelecionada = null;
+        modoRascunho = true;
         document.getElementById("tituloModalTarefa").textContent = "Adicionar Tarefa";
-        document.getElementById("btnChecklist").disabled = true;
-        document.getElementById("btnChecklist").title = "Salve a tarefa antes de adicionar um checklist";
 
         atualizarCamposModalTarefa();
         modalAddTarefa.style.display = "flex";
@@ -520,6 +524,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
         tarefaCriadaOuEditada = await resposta.json();
 
+        // Se a tarefa era nova, envia agora o que ficou "em rascunho" (checklist e
+        // anexos montados enquanto a tarefa ainda não existia no backend).
+        if (!tarefaSelecionada && (itensChecklistRascunho.length > 0 || anexosRascunho.length > 0)) {
+            await Promise.all([
+                ...itensChecklistRascunho.map(async item => {
+                    const respItem = await fetch(`/tarefas/${tarefaCriadaOuEditada.id}/checklist/itens`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ descricao: item.descricao })
+                    });
+                    if (respItem.ok && item.concluido) {
+                        const salvo = await respItem.json();
+                        await fetch(`/checklists/itens/${salvo.id}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ concluido: true })
+                        });
+                    }
+                }),
+                ...anexosRascunho.map(anexo => {
+                    const formData = new FormData();
+                    formData.append('arquivo', anexo.arquivo);
+                    return fetch(`/tarefas/${tarefaCriadaOuEditada.id}/anexos`, { method: 'POST', body: formData });
+                })
+            ]);
+
+            tarefaCriadaOuEditada.checklistTotal = itensChecklistRascunho.length;
+            tarefaCriadaOuEditada.checklistConcluidos = itensChecklistRascunho.filter(i => i.concluido).length;
+            tarefaCriadaOuEditada.anexoTotal = anexosRascunho.length;
+        }
+
         // Atualiza arrays locais
         if (tarefaSelecionada) {
             const idx = tarefas.findIndex(t => t.id === tarefaCriadaOuEditada.id);
@@ -550,9 +585,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select")
             .forEach(el => el.disabled = false);
         document.getElementById("btnAnexo").disabled = false;
-        // Sem tarefa selecionada ainda não há onde guardar itens de checklist.
-        document.getElementById("btnChecklist").disabled = true;
-        document.getElementById("btnChecklist").title = "Salve a tarefa antes de adicionar um checklist";
+        document.getElementById("btnChecklist").disabled = false;
+        document.getElementById("btnChecklist").title = "";
         document.getElementById("btnCategoria").disabled = false;
 
         document.getElementById('tarefaLista').disabled = false;
@@ -565,6 +599,10 @@ document.addEventListener('DOMContentLoaded', function() {
         categoriaIdsSelecionadosTarefa = [];
         btnCategoria.style.borderColor = '';
         btnCategoria.style.backgroundColor = '';
+
+        modoRascunho = false;
+        itensChecklistRascunho = [];
+        anexosRascunho = [];
     }
 
     window.preencherFormulario = async function (tarefa) {
@@ -578,6 +616,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         listasCarregadas = await respListas.json();
+
+        modoRascunho = false;
 
         document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select")
             .forEach(el => el.disabled = false);
@@ -618,6 +658,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         listasCarregadas = await respListas.json();
 
+        modoRascunho = false;
+
         const selectLista = document.getElementById("tarefaLista");
         selectLista.innerHTML = `<option value="">Selecione uma lista...</option>`;
 
@@ -640,10 +682,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select")
             .forEach(el => el.disabled = true);
-        document.getElementById("btnAnexo").disabled = true;
+        // Visualizar (mesmo de outra área/lista) ainda permite ver/gerenciar
+        // checklist, anexos e categorias — só os campos da tarefa ficam travados.
+        document.getElementById("btnAnexo").disabled = false;
         document.getElementById("btnChecklist").disabled = false;
         document.getElementById("btnChecklist").title = "";
-        document.getElementById("btnCategoria").disabled = true;
+        document.getElementById("btnCategoria").disabled = false;
 
         document.querySelector(".titulo-modal-tarefa").textContent = "Detalhes da Tarefa";
         document.getElementById("btnOkTarefa").style.display = "none";
@@ -1023,6 +1067,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== SISTEMA DE CHECKLIST (subatividades marcáveis de uma tarefa) =====
     let itensChecklistAtual = [];
     let itemChecklistParaRemover = null;
+    let itensChecklistRascunho = [];
+    let proximoIdRascunho = 1;
+
+    function ehItemRascunho(item) {
+        return typeof item.id === 'string' && item.id.startsWith('rascunho-');
+    }
 
     // Elementos do DOM
     const btnChecklist = document.getElementById('btnChecklist');
@@ -1063,12 +1113,17 @@ document.addEventListener('DOMContentLoaded', function() {
         recarregarListaAtual();
     }
 
-    // Abrir checklist da tarefa selecionada
+    // Abrir checklist da tarefa selecionada (ou o rascunho, se a tarefa ainda não foi salva)
     btnChecklist.addEventListener('click', async function() {
-        if (!tarefaSelecionada) {
-            alert('Salve a tarefa antes de adicionar um checklist.');
+        if (modoRascunho) {
+            itensChecklistAtual = itensChecklistRascunho;
+            renderizarChecklistItens();
+            modalGerenciarChecklist.style.display = 'flex';
+            setTimeout(() => lucide.createIcons(), 10);
             return;
         }
+
+        if (!tarefaSelecionada) return;
 
         const resposta = await fetch(`/tarefas/${tarefaSelecionada.id}/checklist`);
         itensChecklistAtual = resposta.ok ? await resposta.json() : [];
@@ -1092,7 +1147,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Adicionar item
     async function adicionarItemChecklist() {
         const descricao = novoItemChecklistInput.value.trim();
-        if (!descricao || !tarefaSelecionada) return;
+        if (!descricao) return;
+
+        if (modoRascunho) {
+            itensChecklistRascunho.push({ id: 'rascunho-' + (proximoIdRascunho++), descricao, concluido: false });
+            itensChecklistAtual = itensChecklistRascunho;
+            novoItemChecklistInput.value = '';
+            renderizarChecklistItens();
+            return;
+        }
+
+        if (!tarefaSelecionada) return;
 
         const resposta = await fetch(`/tarefas/${tarefaSelecionada.id}/checklist/itens`, {
             method: "POST",
@@ -1121,6 +1186,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Marcar/desmarcar item
     async function alternarItemChecklist(item, concluido) {
+        if (ehItemRascunho(item)) {
+            item.concluido = concluido;
+            renderizarChecklistItens();
+            return;
+        }
+
         const resposta = await fetch(`/checklists/itens/${item.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -1140,6 +1211,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Renomear item
     async function renomearItemChecklist(item, descricao) {
         if (!descricao || descricao === item.descricao) {
+            renderizarChecklistItens();
+            return;
+        }
+
+        if (ehItemRascunho(item)) {
+            item.descricao = descricao;
             renderizarChecklistItens();
             return;
         }
@@ -1176,8 +1253,14 @@ document.addEventListener('DOMContentLoaded', function() {
     btnConfirmarRemoverChecklist.addEventListener('click', async function() {
         if (!itemChecklistParaRemover) return;
 
-        await fetch(`/checklists/itens/${itemChecklistParaRemover.id}`, { method: 'DELETE' });
-        itensChecklistAtual = itensChecklistAtual.filter(i => i.id !== itemChecklistParaRemover.id);
+        if (ehItemRascunho(itemChecklistParaRemover)) {
+            itensChecklistRascunho = itensChecklistRascunho.filter(i => i.id !== itemChecklistParaRemover.id);
+            itensChecklistAtual = itensChecklistRascunho;
+        } else {
+            await fetch(`/checklists/itens/${itemChecklistParaRemover.id}`, { method: 'DELETE' });
+            itensChecklistAtual = itensChecklistAtual.filter(i => i.id !== itemChecklistParaRemover.id);
+        }
+
         modalRemoverChecklist.style.display = 'none';
         itemChecklistParaRemover = null;
         renderizarChecklistItens();
@@ -1266,6 +1349,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // ===== SISTEMA DE ANEXOS =====
     let anexosAtuais = [];
     let anexoParaRemover = null;
+    let anexosRascunho = [];
+
+    function ehAnexoRascunho(anexo) {
+        return typeof anexo.id === 'string' && anexo.id.startsWith('rascunho-');
+    }
 
     // Elementos do DOM
     const btnAnexo = document.getElementById('btnAnexo');
@@ -1297,12 +1385,17 @@ document.addEventListener('DOMContentLoaded', function() {
         recarregarListaAtual();
     }
 
-    // Abrir anexos da tarefa selecionada
+    // Abrir anexos da tarefa selecionada (ou o rascunho, se a tarefa ainda não foi salva)
     btnAnexo.addEventListener('click', async function() {
-        if (!tarefaSelecionada) {
-            alert('Salve a tarefa antes de adicionar anexos.');
+        if (modoRascunho) {
+            anexosAtuais = anexosRascunho;
+            renderizarAnexos();
+            modalGerenciarAnexo.style.display = 'flex';
+            setTimeout(() => lucide.createIcons(), 10);
             return;
         }
+
+        if (!tarefaSelecionada) return;
 
         const resposta = await fetch(`/tarefas/${tarefaSelecionada.id}/anexos`);
         anexosAtuais = resposta.ok ? await resposta.json() : [];
@@ -1328,7 +1421,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Adicionar anexo
     btnAdicionarAnexo.addEventListener('click', async function() {
         const arquivo = novoAnexoInput.files[0];
-        if (!arquivo || !tarefaSelecionada) return;
+        if (!arquivo) return;
+
+        if (modoRascunho) {
+            anexosRascunho.push({
+                id: 'rascunho-' + (proximoIdRascunho++),
+                nomeArquivo: arquivo.name,
+                tamanho: arquivo.size,
+                arquivo
+            });
+            anexosAtuais = anexosRascunho;
+            novoAnexoInput.value = '';
+            renderizarAnexos();
+            return;
+        }
+
+        if (!tarefaSelecionada) return;
 
         const formData = new FormData();
         formData.append('arquivo', arquivo);
@@ -1366,8 +1474,14 @@ document.addEventListener('DOMContentLoaded', function() {
     btnConfirmarRemoverAnexo.addEventListener('click', async function() {
         if (!anexoParaRemover) return;
 
-        await fetch(`/anexos/${anexoParaRemover.id}`, { method: 'DELETE' });
-        anexosAtuais = anexosAtuais.filter(a => a.id !== anexoParaRemover.id);
+        if (ehAnexoRascunho(anexoParaRemover)) {
+            anexosRascunho = anexosRascunho.filter(a => a.id !== anexoParaRemover.id);
+            anexosAtuais = anexosRascunho;
+        } else {
+            await fetch(`/anexos/${anexoParaRemover.id}`, { method: 'DELETE' });
+            anexosAtuais = anexosAtuais.filter(a => a.id !== anexoParaRemover.id);
+        }
+
         modalRemoverAnexo.style.display = 'none';
         anexoParaRemover = null;
         renderizarAnexos();
@@ -1397,13 +1511,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const info = document.createElement('div');
             info.className = 'checklist-info';
 
-            const link = document.createElement('a');
-            link.className = 'checklist-nome';
-            link.href = `/anexos/${anexo.id}/download`;
-            link.target = '_blank';
-            link.rel = 'noopener';
-            link.textContent = anexo.nomeArquivo;
-            info.appendChild(link);
+            if (ehAnexoRascunho(anexo)) {
+                const nome = document.createElement('span');
+                nome.className = 'checklist-nome';
+                nome.textContent = anexo.nomeArquivo;
+                info.appendChild(nome);
+            } else {
+                const link = document.createElement('a');
+                link.className = 'checklist-nome';
+                link.href = `/anexos/${anexo.id}/download`;
+                link.target = '_blank';
+                link.rel = 'noopener';
+                link.textContent = anexo.nomeArquivo;
+                info.appendChild(link);
+            }
 
             const tamanho = document.createElement('span');
             tamanho.className = 'anexo-tamanho';
@@ -1452,6 +1573,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnCancelarRemoverCategoria = document.getElementById('btnCancelarRemoverCategoria');
     const btnConfirmarRemoverCategoria = document.getElementById('btnConfirmarRemoverCategoria');
     let categoriaParaRemover = null;
+    // Área "dona" das categorias sendo gerenciadas no momento: a área atual da página,
+    // ou (fora de uma área, como em "Para Hoje") a área da lista escolhida na tarefa.
+    let areaIdCategoriaAtual = null;
+
+    function resolverAreaIdParaCategorias() {
+        if (window.areaAtualId) return window.areaAtualId;
+        const listaId = +document.getElementById('tarefaLista').value;
+        const lista = listasCarregadas.find(l => l.id === listaId);
+        return lista ? lista.areaId : null;
+    }
+
+    async function recarregarCategoriasDaAreaAtual() {
+        if (!areaIdCategoriaAtual) { categorias = []; return; }
+        const resposta = await fetch(`/areasTrabalho/${areaIdCategoriaAtual}/categorias`);
+        categorias = resposta.ok ? await resposta.json() : [];
+    }
 
     // Aplica destaque no botão da tarefa quando há categorias selecionadas
     window.atualizarVisualBotaoCategoria = function () {
@@ -1469,11 +1606,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Abrir modal de gerenciar/atribuir categorias
     btnCategoria.addEventListener('click', async function() {
-        if (!window.areaAtualId) {
-            alert('Abra uma área de trabalho para gerenciar categorias.');
+        areaIdCategoriaAtual = resolverAreaIdParaCategorias();
+        if (!areaIdCategoriaAtual) {
+            alert('Escolha uma lista para a tarefa antes de gerenciar categorias.');
             return;
         }
-        await carregarCategorias();
+        await recarregarCategoriasDaAreaAtual();
         modalGerenciarCategoria.style.display = 'flex';
         renderizarCategorias();
         setTimeout(() => lucide.createIcons(), 10);
@@ -1520,7 +1658,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resposta = await fetch(`/categorias`, {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams({ areaId: window.areaAtualId, nome, cor: corSelecionadaCategoria })
+                body: new URLSearchParams({ areaId: areaIdCategoriaAtual, nome, cor: corSelecionadaCategoria })
             });
         }
 
@@ -1529,7 +1667,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        await carregarCategorias();
+        await recarregarCategoriasDaAreaAtual();
         atualizarVisualBotaoCategoria();
         modalAddCategoria.style.display = 'none';
         renderizarCategorias();
@@ -1594,7 +1732,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (categoriaParaRemover) {
             await fetch(`/categorias/${categoriaParaRemover.id}`, { method: 'DELETE' });
             categoriaIdsSelecionadosTarefa = categoriaIdsSelecionadosTarefa.filter(id => id !== categoriaParaRemover.id);
-            await carregarCategorias();
+            await recarregarCategoriasDaAreaAtual();
             atualizarVisualBotaoCategoria();
             modalRemoverCategoria.style.display = 'none';
             renderizarCategorias();

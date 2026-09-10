@@ -21,6 +21,11 @@
     color: #ffffff;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     animation: slideUp 0.3s ease;
+    transition: max-width 0.2s ease;
+}
+
+.modal-calendario.modo-ano {
+    max-width: 640px;
 }
 
 @keyframes slideUp {
@@ -74,7 +79,7 @@
     height: 18px;
 }
 
-/* ===== Corpo do Calendário ===== */
+/* ===== Corpo do Calendário (visão mês) ===== */
 .calendario-corpo {
     margin-bottom: 20px;
 }
@@ -101,6 +106,7 @@
 }
 
 .calendario-dia {
+    position: relative;
     aspect-ratio: 1;
     display: flex;
     align-items: center;
@@ -112,6 +118,21 @@
     cursor: pointer;
     transition: all 0.2s;
     color: #e0e0e0;
+}
+
+.calendario-dia.tem-tarefa::after {
+    content: '';
+    position: absolute;
+    bottom: 5px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #4caf50;
+}
+
+.calendario-dia.hoje.tem-tarefa::after,
+.calendario-dia.selecionado.tem-tarefa::after {
+    background-color: #ffffff;
 }
 
 .calendario-dia.vazio {
@@ -144,15 +165,139 @@
     background-color: #42a5f5;
 }
 
+/* ===== Visão ano (mini-meses, tipo Google Calendar) ===== */
+.calendario-ano-grid {
+    display: none;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.mini-mes-titulo {
+    font-size: 12px;
+    font-weight: 600;
+    color: #ddd;
+    text-align: center;
+    margin-bottom: 6px;
+    cursor: pointer;
+    padding: 3px 0;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.mini-mes-titulo:hover {
+    background-color: #3a3a3a;
+    color: #4caf50;
+}
+
+.mini-mes-dias-semana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 2px;
+}
+
+.mini-mes-dias-semana span {
+    text-align: center;
+    font-size: 8px;
+    color: #777;
+}
+
+.mini-mes-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+}
+
+.mini-mes-dia {
+    text-align: center;
+    font-size: 9px;
+    line-height: 1.9;
+    color: #bbb;
+    border-radius: 50%;
+}
+
+.mini-mes-dia.tem-tarefa {
+    background-color: rgba(76, 175, 80, 0.3);
+    font-weight: 600;
+    color: #fff;
+}
+
+.mini-mes-dia.hoje {
+    background-color: #4caf50;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* ===== Tarefas do dia selecionado ===== */
+.calendario-tarefas-dia {
+    margin-bottom: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #3a3a3a;
+}
+
+.calendario-tarefas-titulo {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 10px;
+}
+
+.calendario-tarefas-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+
+.calendario-tarefas-vazia {
+    font-size: 13px;
+    color: #888;
+    margin: 0;
+}
+
+.calendario-tarefa-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #3a3a3a;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.calendario-tarefa-nome {
+    font-size: 14px;
+    color: #fff;
+    flex-grow: 1;
+}
+
+.calendario-tarefa-nome.concluida {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.calendario-tarefa-origem {
+    font-size: 11px;
+    color: #888;
+}
+
 /* ===== Footer do Calendário ===== */
 .calendario-footer {
     display: flex;
+    align-items: center;
     gap: 12px;
     justify-content: flex-end;
 }
 
+.btn-ver-ano {
+    margin-right: auto;
+}
+
 .btn-hoje,
-.btn-fechar-calendario {
+.btn-fechar-calendario,
+.btn-ver-ano {
     padding: 10px 20px;
     border: none;
     border-radius: 8px;
@@ -162,12 +307,14 @@
     transition: all 0.2s;
 }
 
-.btn-hoje {
+.btn-hoje,
+.btn-ver-ano {
     background-color: #3a3a3a;
     color: #ffffff;
 }
 
-.btn-hoje:hover {
+.btn-hoje:hover,
+.btn-ver-ano:hover {
     background-color: #4a4a4a;
 }
 
@@ -199,12 +346,22 @@
         font-size: 12px;
     }
 
+    .calendario-ano-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
     .calendario-footer {
-        flex-direction: column;
+        flex-wrap: wrap;
+    }
+
+    .btn-ver-ano {
+        margin-right: 0;
+        order: 1;
     }
 
     .btn-hoje,
-    .btn-fechar-calendario {
-        width: 100%;
+    .btn-fechar-calendario,
+    .btn-ver-ano {
+        flex: 1 1 auto;
     }
 }
