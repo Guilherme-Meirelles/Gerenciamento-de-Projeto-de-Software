@@ -192,6 +192,7 @@ public class TarefaController {
             tarefaJson.put("checklistConcluidos", 0);
         }
         tarefaJson.put("categoriaIds", tarefa.getCategorias().stream().map(Categoria::getId).collect(Collectors.toList()));
+        tarefaJson.put("anexoTotal", tarefa.getAnexos().size());
         return tarefaJson;
     }
 }

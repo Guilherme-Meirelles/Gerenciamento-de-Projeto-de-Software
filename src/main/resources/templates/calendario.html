@@ -9,7 +9,7 @@
 <div th:fragment="calendario">
     <!-- Modal do Calendário -->
     <div class="overlay-calendario" id="modalCalendario" style="display: none;">
-        <div class="modal-calendario">
+        <div class="modal-calendario" id="calendarioBox">
             <div class="calendario-header">
                 <button class="btn-nav-mes" id="btnMesAnterior">
                     <i data-lucide="chevron-left"></i>
@@ -35,7 +35,20 @@
                 </div>
             </div>
 
+            <!-- Visão anual (mini-meses), escondida por padrão -->
+            <div class="calendario-ano-grid" id="calendarioAnoGrid">
+                <!-- Os 12 mini-meses serão gerados dinamicamente -->
+            </div>
+
+            <div class="calendario-tarefas-dia" id="calendarioTarefasDia" style="display: none;">
+                <h4 class="calendario-tarefas-titulo" id="calendarioTarefasTitulo"></h4>
+                <div class="calendario-tarefas-lista" id="calendarioTarefasLista">
+                    <!-- Tarefas do dia selecionado serão renderizadas aqui -->
+                </div>
+            </div>
+
             <div class="calendario-footer">
+                <button class="btn-ver-ano" id="btnVerAno">Ver ano</button>
                 <button class="btn-hoje" id="btnHoje">Hoje</button>
                 <button class="btn-fechar-calendario" id="btnFecharCalendario">Fechar</button>
             </div>
@@ -49,26 +62,70 @@
         document.addEventListener('DOMContentLoaded', function() {
             const btnCalendario = document.getElementById('btnCalendario');
             const modalCalendario = document.getElementById('modalCalendario');
+            const calendarioBox = document.getElementById('calendarioBox');
             const btnFecharCalendario = document.getElementById('btnFecharCalendario');
+            const calendarioCorpo = document.querySelector('.calendario-corpo');
             const calendarioGrid = document.getElementById('calendarioGrid');
+            const calendarioAnoGrid = document.getElementById('calendarioAnoGrid');
             const calendarioTitulo = document.getElementById('calendarioTitulo');
             const btnMesAnterior = document.getElementById('btnMesAnterior');
             const btnMesProximo = document.getElementById('btnMesProximo');
             const btnHoje = document.getElementById('btnHoje');
+            const btnVerAno = document.getElementById('btnVerAno');
+            const calendarioTarefasDia = document.getElementById('calendarioTarefasDia');
+            const calendarioTarefasTitulo = document.getElementById('calendarioTarefasTitulo');
+            const calendarioTarefasLista = document.getElementById('calendarioTarefasLista');
 
             let dataAtual = new Date();
             let mesAtual = dataAtual.getMonth();
             let anoAtual = dataAtual.getFullYear();
             let diaSelecionado = null;
+            let tarefasCalendario = [];
+            let modoAno = false;
 
             const meses = [
                 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
             ];
+            const mesesAbrev = [
+                'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
+            ];
+            const diasSemanaAbrev = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+
+            // Busca as tarefas da área atual (ou de todas as áreas do usuário) para
+            // marcar os dias com atividade e listar as tarefas do dia selecionado.
+            // Busca tudo de uma vez (não só do mês exibido) pra não precisar refazer a
+            // requisição ao navegar entre meses/anos dentro do modal já aberto.
+            async function carregarTarefasCalendario() {
+                let resposta;
+                if (window.areaAtualId) {
+                    resposta = await fetch(`/areasTrabalho/${window.areaAtualId}/tarefas`);
+                } else {
+                    resposta = await fetch(`/user/tarefas`);
+                }
+                tarefasCalendario = resposta.ok ? await resposta.json() : [];
+            }
+
+            function dataISO(ano, mes, dia) {
+                return `${ano}-${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+            }
+
+            function sairDoModoAno() {
+                modoAno = false;
+                calendarioBox.classList.remove('modo-ano');
+                calendarioAnoGrid.style.display = 'none';
+                calendarioCorpo.style.display = 'block';
+                btnVerAno.textContent = 'Ver ano';
+            }
 
             // Abrir modal do calendário
-            btnCalendario.addEventListener('click', function() {
+            btnCalendario.addEventListener('click', async function() {
                 modalCalendario.style.display = 'flex';
+                calendarioTarefasDia.style.display = 'none';
+                diaSelecionado = null;
+                sairDoModoAno();
+                await carregarTarefasCalendario();
                 renderizarCalendario();
                 lucide.createIcons();
             });
@@ -85,35 +142,70 @@
                 }
             });
 
-            // Navegar para mês anterior
+            // Navegar para mês (ou ano, se estiver na visão anual) anterior
             btnMesAnterior.addEventListener('click', function() {
+                if (modoAno) {
+                    anoAtual--;
+                    renderizarAno();
+                    return;
+                }
                 mesAtual--;
                 if (mesAtual < 0) {
                     mesAtual = 11;
                     anoAtual--;
                 }
+                diaSelecionado = null;
+                calendarioTarefasDia.style.display = 'none';
                 renderizarCalendario();
                 lucide.createIcons();
             });
 
-            // Navegar para próximo mês
+            // Navegar para próximo mês (ou ano, se estiver na visão anual)
             btnMesProximo.addEventListener('click', function() {
+                if (modoAno) {
+                    anoAtual++;
+                    renderizarAno();
+                    return;
+                }
                 mesAtual++;
                 if (mesAtual > 11) {
                     mesAtual = 0;
                     anoAtual++;
                 }
+                diaSelecionado = null;
+                calendarioTarefasDia.style.display = 'none';
                 renderizarCalendario();
                 lucide.createIcons();
             });
 
-            // Voltar para hoje
+            // Voltar para hoje (sempre volta pra visão mês)
             btnHoje.addEventListener('click', function() {
                 const hoje = new Date();
                 mesAtual = hoje.getMonth();
                 anoAtual = hoje.getFullYear();
+                diaSelecionado = null;
+                calendarioTarefasDia.style.display = 'none';
+                sairDoModoAno();
                 renderizarCalendario();
                 lucide.createIcons();
+            });
+
+            // Alternar entre a visão mês e a visão ano (overview anual, tipo Google Calendar)
+            btnVerAno.addEventListener('click', function() {
+                modoAno = !modoAno;
+                calendarioTarefasDia.style.display = 'none';
+
+                if (modoAno) {
+                    calendarioBox.classList.add('modo-ano');
+                    calendarioCorpo.style.display = 'none';
+                    calendarioAnoGrid.style.display = 'grid';
+                    btnVerAno.textContent = 'Ver mês';
+                    renderizarAno();
+                } else {
+                    sairDoModoAno();
+                    renderizarCalendario();
+                    lucide.createIcons();
+                }
             });
 
             // Função para renderizar o calendário
@@ -141,9 +233,20 @@
                     celula.className = 'calendario-dia';
                     celula.textContent = dia;
 
+                    const iso = dataISO(anoAtual, mesAtual, dia);
+
                     // Destacar o dia de hoje
                     if (dia === diaHoje && mesAtual === mesHoje && anoAtual === anoHoje) {
                         celula.classList.add('hoje');
+                    }
+
+                    // Marcar dias que têm alguma tarefa com prazo nessa data
+                    if (tarefasCalendario.some(t => t.dataFim === iso)) {
+                        celula.classList.add('tem-tarefa');
+                    }
+
+                    if (dia === diaSelecionado) {
+                        celula.classList.add('selecionado');
                     }
 
                     // Adicionar evento de clique
@@ -157,14 +260,145 @@
                         celula.classList.add('selecionado');
                         diaSelecionado = dia;
 
-                        console.log(`Data selecionada: ${dia}/${mesAtual + 1}/${anoAtual}`);
-
-                        // Aqui você pode adicionar lógica para filtrar tarefas por data
-                        // Por exemplo: filtrarTarefasPorData(dia, mesAtual, anoAtual);
+                        mostrarTarefasDoDia(iso, dia);
                     });
 
                     calendarioGrid.appendChild(celula);
                 }
+            }
+
+            // Constrói um mini-mês (usado na visão anual)
+            function construirMiniMes(ano, mes) {
+                const container = document.createElement('div');
+                container.className = 'mini-mes';
+
+                const titulo = document.createElement('div');
+                titulo.className = 'mini-mes-titulo';
+                titulo.textContent = mesesAbrev[mes];
+                titulo.title = 'Ver ' + meses[mes] + ' de ' + ano;
+                titulo.addEventListener('click', function() {
+                    mesAtual = mes;
+                    anoAtual = ano;
+                    diaSelecionado = null;
+                    sairDoModoAno();
+                    renderizarCalendario();
+                    lucide.createIcons();
+                });
+                container.appendChild(titulo);
+
+                const diasSemanaEl = document.createElement('div');
+                diasSemanaEl.className = 'mini-mes-dias-semana';
+                diasSemanaAbrev.forEach(letra => {
+                    const span = document.createElement('span');
+                    span.textContent = letra;
+                    diasSemanaEl.appendChild(span);
+                });
+                container.appendChild(diasSemanaEl);
+
+                const grid = document.createElement('div');
+                grid.className = 'mini-mes-grid';
+
+                const primeiroDia = new Date(ano, mes, 1).getDay();
+                const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+                const hoje = new Date();
+
+                for (let i = 0; i < primeiroDia; i++) {
+                    grid.appendChild(document.createElement('span'));
+                }
+
+                for (let dia = 1; dia <= diasNoMes; dia++) {
+                    const iso = dataISO(ano, mes, dia);
+                    const celula = document.createElement('span');
+                    celula.className = 'mini-mes-dia';
+                    celula.textContent = dia;
+
+                    if (dia === hoje.getDate() && mes === hoje.getMonth() && ano === hoje.getFullYear()) {
+                        celula.classList.add('hoje');
+                    }
+                    if (tarefasCalendario.some(t => t.dataFim === iso)) {
+                        celula.classList.add('tem-tarefa');
+                    }
+
+                    grid.appendChild(celula);
+                }
+
+                container.appendChild(grid);
+                return container;
+            }
+
+            // Renderiza a visão anual: 12 mini-meses do ano atual
+            function renderizarAno() {
+                calendarioTitulo.textContent = `${anoAtual}`;
+                calendarioAnoGrid.innerHTML = '';
+                for (let mes = 0; mes < 12; mes++) {
+                    calendarioAnoGrid.appendChild(construirMiniMes(anoAtual, mes));
+                }
+            }
+
+            // Mostra, abaixo do grid, as tarefas cujo prazo é a data selecionada
+            function mostrarTarefasDoDia(iso, dia) {
+                const tarefasDoDia = tarefasCalendario.filter(t => t.dataFim === iso);
+
+                calendarioTarefasTitulo.textContent = `Tarefas em ${String(dia).padStart(2, '0')}/${String(mesAtual + 1).padStart(2, '0')}/${anoAtual}`;
+                calendarioTarefasLista.innerHTML = '';
+
+                if (tarefasDoDia.length === 0) {
+                    calendarioTarefasLista.innerHTML = '<p class="calendario-tarefas-vazia">Nenhuma tarefa nesse dia.</p>';
+                } else {
+                    tarefasDoDia.forEach(tarefa => {
+                        const item = document.createElement('div');
+                        item.className = 'calendario-tarefa-item';
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.checked = !!tarefa.concluida;
+                        checkbox.addEventListener('change', function() {
+                            alternarConclusaoTarefaCalendario(tarefa, checkbox.checked);
+                        });
+
+                        const nome = document.createElement('span');
+                        nome.className = 'calendario-tarefa-nome' + (tarefa.concluida ? ' concluida' : '');
+                        nome.textContent = tarefa.titulo;
+
+                        item.appendChild(checkbox);
+                        item.appendChild(nome);
+
+                        if (tarefa.areaNome && tarefa.listaNome) {
+                            const origem = document.createElement('span');
+                            origem.className = 'calendario-tarefa-origem';
+                            origem.textContent = `${tarefa.areaNome} › ${tarefa.listaNome}`;
+                            item.appendChild(origem);
+                        }
+
+                        calendarioTarefasLista.appendChild(item);
+                    });
+                }
+
+                calendarioTarefasDia.style.display = 'block';
+            }
+
+            // Marca/desmarca a tarefa como concluída direto pela lista do calendário
+            async function alternarConclusaoTarefaCalendario(tarefa, concluida) {
+                const resposta = await fetch(`/tarefas/${tarefa.id}/toggle`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        titulo: tarefa.titulo,
+                        listaId: tarefa.listaId,
+                        concluida,
+                        responsavelId: tarefa.responsavel
+                    })
+                });
+
+                if (!resposta.ok) {
+                    alert('Erro ao atualizar a tarefa.');
+                    return;
+                }
+
+                tarefa.concluida = concluida;
+                renderizarCalendario();
+                mostrarTarefasDoDia(tarefa.dataFim, diaSelecionado);
+                lucide.createIcons();
             }
 
             // Renderizar calendário inicial

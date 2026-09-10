@@ -437,6 +437,28 @@
     height: 18px;
 }
 
+.campo-permissao-link {
+    margin-bottom: 20px;
+}
+
+.campo-permissao-link label {
+    display: block;
+    font-size: 13px;
+    color: #b0b0b0;
+    margin-bottom: 8px;
+}
+
+.campo-permissao-link select {
+    width: 100%;
+    background-color: #4a4a4a;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+}
+
 /* Botão de excluir (vermelho) */
 .btn-excluir-areas {
     background-color: #ff6b6b;

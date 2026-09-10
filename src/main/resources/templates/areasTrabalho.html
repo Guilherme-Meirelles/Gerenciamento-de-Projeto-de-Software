@@ -90,25 +90,24 @@
                 <h3>Compartilhar via:</h3>
 
                 <div class="metodos-compartilhamento">
-                    <button class="btn-metodo-compartilhar" id="btnGoogle" onclick="abrirModalEmail()" disabled>
+                    <button class="btn-metodo-compartilhar" id="btnEmail" onclick="abrirModalEmail()" disabled>
                         <i data-lucide="mail"></i>
-                        Google
-                    </button>
-
-                    <button class="btn-metodo-compartilhar" id="btnMicrosoft" onclick="compartilharVia('microsoft')" disabled>
-                        <i data-lucide="briefcase"></i>
-                        Microsoft
-                    </button>
-
-                    <button class="btn-metodo-compartilhar" id="btnGithub" onclick="compartilharVia('github')" disabled>
-                        <i data-lucide="github"></i>
-                        GitHub
+                        E-mail
                     </button>
 
                     <button class="btn-link-compartilhar" id="btnLink" onclick="gerarLinkCompartilhamento()" disabled>
                         <i data-lucide="link"></i>
                         Copiar Link
                     </button>
+                </div>
+
+                <div class="campo-permissao-link">
+                    <label for="permissaoLink">Nível de permissão do link:</label>
+                    <select id="permissaoLink">
+                        <option value="OBSERVADOR">Observador (só visualiza)</option>
+                        <option value="EDITOR" selected>Editor (cria e edita tarefas)</option>
+                        <option value="ADMIN">Administrador (controle total da área)</option>
+                    </select>
                 </div>
 
                 <div class="botoes-modal">
