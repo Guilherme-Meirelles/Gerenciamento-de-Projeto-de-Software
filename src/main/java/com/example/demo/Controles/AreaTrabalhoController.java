@@ -158,7 +158,7 @@ public class AreaTrabalhoController {
         participacao.setUsuario(usuario);
         participacao.setPermissao(PermissaoArea.ADMIN);
 
-        area.getParticipacoes().add(participacao); // adiciona na coleção da área
+        area.getParticipacoes().add(participacao);
         areaTrabalhoRepository.save(area);
 
         return area.getId().toString(); // o JS recebe esse ID e adiciona no HTML
@@ -207,7 +207,7 @@ public class AreaTrabalhoController {
                 List<ParticipacaoArea> participacoes = participacaoAreaRepository.findByArea(area);
                 ParticipacaoArea participacaoArea = participacoes.stream().filter(e -> e.getUsuario().getId().equals(usuarioId)).findFirst().orElse(null);
                 if (participacaoArea == null) {
-                    continue; // usuário não participa dessa área, ignora
+                    continue;
                 }
                 if (participacaoArea.getPermissao().equals(PermissaoArea.ADMIN)) {
                     areaTrabalhoRepository.delete(area);
@@ -315,19 +315,17 @@ public class AreaTrabalhoController {
         AreaTrabalho area = areaTrabalhoRepository.findById(id).orElse(null);
         if (area == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("AREA_NOT_FOUND");
 
-        // Verifica se o usuário tem participação na área
         boolean temAcesso = area.getParticipacoes().stream()
                 .anyMatch(p -> p.getUsuario().getId().equals(usuario.getId()));
         if (!temAcesso) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("NO_ACCESS");
 
-        // Mapeia membros para JSON
         List<Map<String, Object>> membros = area.getParticipacoes().stream()
             .map(p -> {
                 Map<String, Object> mapa = new HashMap<>();
                 mapa.put("id", p.getUsuario().getId());
                 mapa.put("nome", p.getUsuario().getNome());
                 mapa.put("email", p.getUsuario().getEmail());
-                mapa.put("permissao", p.getPermissao() != PermissaoArea.OBSERVADOR ? "editar" : "visualizar");
+                mapa.put("permissao", p.getPermissao().name().toLowerCase());
                 return mapa;
             })
             .collect(Collectors.toList());
@@ -339,26 +337,21 @@ public class AreaTrabalhoController {
     @GetMapping("/areasTrabalho/{id}/listas")
     @ResponseBody
     public ResponseEntity<?> listarListas(@PathVariable Long id, HttpServletRequest request) {
-        // Verifica se o usuário está logado
         String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_FOUND");
 
-        // Verifica se a área existe
         AreaTrabalho area = areaTrabalhoRepository.findById(id).orElse(null);
         if (area == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("AREA_NOT_FOUND");
 
-        // Verifica se o usuário tem acesso à área
         boolean temAcesso = area.getParticipacoes().stream()
                 .anyMatch(p -> p.getUsuario().getId().equals(usuario.getId()));
         if (!temAcesso) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("NO_ACCESS");
 
-        // Obtém as listas da área
         List<Lista> listas = listaService.listarPorArea(id);
 
-        // Mapeia as listas para JSON simples
         List<Map<String, Object>> listasJson = listas.stream()
                 .map(l -> {
                     Map<String, Object> mapa = new HashMap<>();
@@ -407,26 +400,20 @@ public class AreaTrabalhoController {
     @GetMapping("/areasTrabalho/{areaId}/tarefas")
     @ResponseBody
     public ResponseEntity<?> listarTarefasPorArea(@PathVariable Long areaId, HttpServletRequest request) {
-        // Verifica se o usuário está logado
         String usuarioId = SessaoUtil.getUsuarioId(request);
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
         if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_FOUND");
 
-        // Verifica se a área existe
         AreaTrabalho area = areaTrabalhoRepository.findById(areaId).orElse(null);
         if (area == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("AREA_NOT_FOUND");
 
-        // Verifica se o usuário tem acesso à área
         boolean temAcesso = area.getParticipacoes().stream()
                 .anyMatch(p -> p.getUsuario().getId().equals(usuario.getId()));
         if (!temAcesso) return ResponseEntity.status(HttpStatus.FORBIDDEN).body("NO_ACCESS");
 
-        // Obtém as listas da área
         List<Lista> listas = listaService.listarPorArea(areaId);
-
-        //List<Tarefa> tarefas = tarefaService.listarTarefasPorLista(listaId);
 
         List<Tarefa> todasTarefas = new ArrayList<>();
         for (Lista lista : listas) {
@@ -474,8 +461,7 @@ public class AreaTrabalhoController {
     @GetMapping("/user/tarefas")
     @ResponseBody
     public ResponseEntity<?> listarTarefasPorUser(HttpServletRequest request) {
-        
-        // Verifica se o usuário está logado
+
         String usuarioId = SessaoUtil.getUsuarioId(request);
 
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
@@ -539,8 +525,7 @@ public class AreaTrabalhoController {
     @GetMapping("/user/listas")
     @ResponseBody
     public ResponseEntity<?> listarListasPorUser(HttpServletRequest request) {
-        
-        // Verifica se o usuário está logado
+
         String usuarioId = SessaoUtil.getUsuarioId(request);
 
         if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
@@ -557,7 +542,6 @@ public class AreaTrabalhoController {
             todasListas.addAll(area.getListas());
         }
 
-        // Mapeia as listas para JSON simples
         List<Map<String, Object>> listasJson = todasListas.stream()
                 .map(l -> {
                     Map<String, Object> mapa = new HashMap<>();
@@ -590,21 +574,20 @@ public class AreaTrabalhoController {
             todosMembros.addAll(area.getParticipacoes());
         }
 
-        // Mapeia membros para JSON
         List<Map<String, Object>> membros = todosMembros.stream()
             .map(p -> {
                 Map<String, Object> mapa = new HashMap<>();
                 mapa.put("id", p.getUsuario().getId());
                 mapa.put("nome", p.getUsuario().getNome());
                 mapa.put("email", p.getUsuario().getEmail());
-                mapa.put("permissao", p.getPermissao() != PermissaoArea.OBSERVADOR ? "editar" : "visualizar");
+                mapa.put("permissao", p.getPermissao().name().toLowerCase());
                 return mapa;
             })
             .collect(Collectors.toList());
 
         return ResponseEntity.ok(membros);
     }
-    @PostMapping("/remover-membro") // Certifique-se que a classe não tem @RequestMapping("/api")
+    @PostMapping("/remover-membro")
     @ResponseBody
     @Transactional // Necessário para operações de delete funcionarem corretamente
     public ResponseEntity<?> removerMembro(@RequestBody Map<String, Object> map, HttpServletRequest request) {
@@ -615,12 +598,11 @@ public class AreaTrabalhoController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Não autenticado."));
             }
 
-            // 1. Validação de segurança na entrada de dados
             if (map.get("usuarioId") == null || map.get("areaId") == null) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "IDs não fornecidos."));
             }
 
-            // 2. Conversão segura (trata tanto se vier como String quanto Integer/Long do JSON)
+            // Trata tanto se vier como String quanto Integer/Long do JSON
             Long idUsuario = Long.parseLong(map.get("usuarioId").toString());
             Long idArea = Long.parseLong(map.get("areaId").toString());
             Long idSolicitante = Long.parseLong(solicitanteId);
@@ -628,7 +610,6 @@ public class AreaTrabalhoController {
             Usuario usuario = usuarioRepository.findById(idUsuario).orElse(null);
             AreaTrabalho area = areaTrabalhoRepository.findById(idArea).orElse(null);
 
-            // 3. Parar a execução se não encontrar (Return explícito)
             if (area == null) {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Área não encontrada."));
             }
@@ -639,7 +620,7 @@ public class AreaTrabalhoController {
 
             List<ParticipacaoArea> todosMembros = participacaoAreaRepository.findByArea(area);
 
-            // 3.5 Só ADMIN da área pode remover membro
+            // Só ADMIN da área pode remover membro
             ParticipacaoArea participacaoSolicitante = todosMembros.stream()
                     .filter(p -> p.getUsuario().getId().equals(idSolicitante))
                     .findFirst().orElse(null);
@@ -648,19 +629,13 @@ public class AreaTrabalhoController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Apenas administradores podem remover membros."));
             }
 
-            // 4. Remoção Otimizada
-            // Em vez de trazer TODOS e fazer loop, tentamos achar a participação exata
-            // Se você tiver um método findByAreaAndUsuario no repository, use-o.
-            // Caso contrário, mantive sua lógica de loop mas com break para otimizar.
-
             boolean removeu = false;
 
             for (ParticipacaoArea participacao : todosMembros) {
-                // Comparação segura de Longs usa .equals
                 if (participacao.getUsuario().getId().equals(idUsuario)) {
                     participacaoAreaRepository.delete(participacao);
                     removeu = true;
-                    break; // Importante: para o loop assim que encontrar
+                    break;
                 }
             }
 
@@ -668,11 +643,9 @@ public class AreaTrabalhoController {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Este usuário não faz parte desta área."));
             }
 
-            // Retorna sucesso
             return ResponseEntity.ok(Map.of("success", true, "message", "Membro removido com sucesso!"));
 
         } catch (Exception e) {
-            // 5. Log do erro para você ver no console do servidor o que houve
             e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erro interno: " + e.getMessage()));
         }

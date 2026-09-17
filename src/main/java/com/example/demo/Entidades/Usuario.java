@@ -8,7 +8,6 @@ import java.util.Set;
 @Entity
 public class Usuario {
 
-    // CAMPOS DE USUÁRIO
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,25 +21,19 @@ public class Usuario {
     private String dataNascimento;
     private boolean emailVerificado = false;
 
-    // RELACIONAMENTOS DE USUÁRIO
-
-    // Áreas que o usuário criou
     // @JsonIgnore evita o ciclo Usuario -> areasCriadas -> AreaTrabalho -> dono -> Usuario -> ...
     @JsonIgnore
     @OneToMany(mappedBy = "dono")
     private Set<AreaTrabalho> areasCriadas = new HashSet<>();
 
-    // Participações do usuário em áreas
     @JsonIgnore
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
     private Set<ParticipacaoArea> participacoes = new HashSet<>();
 
-    // usuario(n)-(n)tarefa
     @JsonIgnore
     @ManyToMany(mappedBy = "responsaveis")
     private Set<Tarefa> tarefasAtribuidas = new HashSet<>();
 
-    // getters e setters básicos
     public Long getId() { return id; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -55,7 +48,5 @@ public class Usuario {
 
     public Set<AreaTrabalho> getAreasCriadas() { return areasCriadas; }
     public Set<ParticipacaoArea> getParticipacoes() { return participacoes; }
-
-    // tarefasAtribuidas
     public Set<Tarefa> getTarefasAtribuidas() { return tarefasAtribuidas; }
 }

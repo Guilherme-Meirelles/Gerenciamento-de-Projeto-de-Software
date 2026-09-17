@@ -12,10 +12,9 @@ public class LoginInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
         if (SessaoUtil.getUsuarioId(request) != null) {
-            return true; // ✅ Usuário autenticado, pode prosseguir
+            return true;
         }
 
-        // ❌ Não autenticado, redireciona para login
         response.sendRedirect("/login");
         return false;
     }

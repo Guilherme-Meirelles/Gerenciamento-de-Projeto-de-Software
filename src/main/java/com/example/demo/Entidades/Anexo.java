@@ -5,16 +5,6 @@ import jakarta.persistence.*;
 
 @Entity
 public class Anexo {
-    /*
-     * id : Long
-     * nomeArquivo : String
-     * tipoConteudo : String
-     * tamanho : Long
-     * dados : byte[]
-     * REL: tarefa : Tarefa
-     */
-
-    // CAMPOS DE ANEXO
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,15 +19,10 @@ public class Anexo {
     @Column(length = 16777215) // MEDIUMBLOB
     private byte[] dados;
 
-    // RELACIONAMENTOS DE ANEXO
-
-    // anexo(n)-(1)tarefa
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tarefa_id", nullable = false)
     private Tarefa tarefa;
-
-    // GETTERS E SETTERS
 
     public Long getId() { return id; }
 

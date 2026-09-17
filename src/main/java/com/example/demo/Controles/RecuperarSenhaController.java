@@ -34,13 +34,11 @@ public class RecuperarSenhaController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Abre página que solicita o email
     @GetMapping("/recuperarSenhaEmail")
     public String abrirPaginaRecuperarSenha() {
         return "recuperarSenhaEmail";
     }
 
-    // 🔥 Quando clica em "CONFIRMAR" e envia o email
     @PostMapping("/recuperar-senha")
     public String recuperarSenha(@RequestParam("email") String email, Model model, HttpServletResponse response) {
         try {
@@ -51,18 +49,16 @@ public class RecuperarSenhaController {
                 return "recuperarSenhaEmail";
             }
 
-            // -------- GERAR TOKEN --------
             String tokenString = UUID.randomUUID().toString();
 
             Token token = new Token();
             token.setToken(tokenString);
             token.setEmail(usuario.getEmail());
-            token.setExpiraEm(LocalDateTime.now().plusMinutes(10)); // 🔥 expira em 10 minutos
+            token.setExpiraEm(LocalDateTime.now().plusMinutes(10));
             token.setUsado(false);
 
             tokenRepository.save(token);
 
-            // Enviar email com token
             emailService2.enviarEmailRecuperacaoSenha(usuario.getEmail(), usuario.getNome(), tokenString);
 
             model.addAttribute("mensagem", "Email enviado com sucesso!");
@@ -74,7 +70,6 @@ public class RecuperarSenhaController {
         return "recuperarSenhaEmail";
     }
 
-    // 🔥 Página acessada via link do email
     @GetMapping("/redefinicaoSenha")
     public String redefinicaoSenha(@RequestParam("token") String token, Model model) {
 
@@ -89,7 +84,6 @@ public class RecuperarSenhaController {
         return "redefinicaoSenha";
     }
 
-    // 🔥 Quando o usuário envia a nova senha
     @PostMapping("/redefinirSenha")
     public String redefinirSenha(@RequestParam("senha") String senha,
                                  @RequestParam("token") String token,
@@ -107,7 +101,6 @@ public class RecuperarSenhaController {
             usuario.setSenha(passwordEncoder.encode(senha));
             ur.save(usuario);
 
-            // invalidar token
             t.setUsado(true);
             tokenRepository.save(t);
 

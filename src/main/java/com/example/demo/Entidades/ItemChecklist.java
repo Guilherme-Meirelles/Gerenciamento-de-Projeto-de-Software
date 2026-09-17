@@ -5,14 +5,6 @@ import jakarta.persistence.*;
 
 @Entity
 public class ItemChecklist {
-    /*
-     * id : Long
-     * descricao : String
-     * concluido : Boolean
-     * REL: checklist : Checklist
-     */
-
-    // CAMPOS DE ITEM CHECKLIST
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,15 +13,10 @@ public class ItemChecklist {
     private String descricao;
     private Boolean concluido = false;
 
-    // RELACIONAMENTOS DE ITEM CHECKLIST
-
-    // itemChecklist(n)-(1)checklist
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "checklist_id", nullable = false)
     private Checklist checklist;
-
-    // GETTERS E SETTERS
 
     public Long getId() { return id; }
 

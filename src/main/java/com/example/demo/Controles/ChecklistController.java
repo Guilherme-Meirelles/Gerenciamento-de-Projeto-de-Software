@@ -84,8 +84,6 @@ public class ChecklistController {
         return usuarioComAcessoATarefa(tarefa.getId(), request, exigeEdicao);
     }
 
-    // ITENS DA CHECKLIST DE UMA TAREFA
-
     @GetMapping("/tarefas/{tarefaId}/checklist")
     public ResponseEntity<?> getChecklist(@PathVariable Long tarefaId, HttpServletRequest request) {
         if (usuarioComAcessoATarefa(tarefaId, request, false) == null) {

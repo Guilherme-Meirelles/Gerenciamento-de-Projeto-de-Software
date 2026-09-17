@@ -74,7 +74,6 @@ public class TarefaController {
         return usuarioComAcessoALista(tarefa.getListaOrigem().getId(), request, exigeEdicao);
     }
 
-    // CRIAR TAREFA
     @PostMapping
     public ResponseEntity<?> criarTarefa(@RequestBody Map<String, Object> body, HttpServletRequest request) {
 
@@ -93,13 +92,11 @@ public class TarefaController {
         List<Long> categoriaIds = extrairCategoriaIds(body);
         String repeticao = (String) body.get("repeticao");
 
-        // Chama o service
         Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsavel, notificacoes, categoriaIds, repeticao);
 
         return ResponseEntity.ok(tarefaParaJson(tarefa, responsavel));
     }
 
-    // EDITAR TAREFA
     @PutMapping("/{id}")
     public ResponseEntity<?> editarTarefa(
             @PathVariable Long id,
@@ -153,7 +150,6 @@ public class TarefaController {
         return ResponseEntity.ok(tarefaJson);
     }
 
-    // LISTAR TAREFAS DA LISTA
     @GetMapping("/lista/{listaId}")
     public ResponseEntity<?> listarPorLista(@PathVariable Long listaId, HttpServletRequest request) {
         if (usuarioComAcessoALista(listaId, request, false) == null) {
@@ -162,7 +158,6 @@ public class TarefaController {
         return ResponseEntity.ok(tarefaService.listarTarefasPorLista(listaId));
     }
 
-    // DELETAR TAREFA
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> remover(@PathVariable Long id, HttpServletRequest request) {
         if (usuarioComAcessoATarefa(id, request, true) == null) {

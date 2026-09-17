@@ -33,9 +33,6 @@ public class TarefaService {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
-    // ------------------------
-    // CRIAR
-    // ------------------------
     public Tarefa criarTarefa(Long listaId, String titulo, String descricao, Integer cor,
                               String dataFim, Long responsavelId, Boolean notificacoes,
                               List<Long> categoriaIds, String repeticao) {
@@ -54,7 +51,7 @@ public class TarefaService {
         tarefa.setRepeticao(parseRepeticao(repeticao));
 
         if (dataFim != null && !dataFim.isBlank()) {
-            tarefa.setDataFim(LocalDate.parse(dataFim)); // LocalDate <---------
+            tarefa.setDataFim(LocalDate.parse(dataFim));
         }
 
         if (responsavelId != null) {
@@ -68,9 +65,6 @@ public class TarefaService {
         return tarefaRepository.save(tarefa);
     }
 
-    // ------------------------
-    // EDITAR
-    // ------------------------
     public Tarefa editarTarefa(Long id, Long listaId, String titulo, String descricao, Integer cor,
                                String dataFim, Long responsavelId, Boolean notificacoes,
                                List<Long> categoriaIds, String repeticao) {
@@ -95,7 +89,6 @@ public class TarefaService {
         }
         tarefa.setDataFim(novaDataFim);
 
-        // Atualizar responsáveis
         tarefa.getResponsaveis().clear();
         if (responsavelId != null) {
             Usuario u = usuarioRepository.findById(responsavelId)
@@ -165,16 +158,10 @@ public class TarefaService {
         }
     }
 
-    // ------------------------
-    // LISTAR POR LISTA
-    // ------------------------
     public List<Tarefa> listarTarefasPorLista(Long listaId) {
         return tarefaRepository.findByListaOrigemId(listaId);
     }
 
-    // ------------------------
-    // DELETAR
-    // ------------------------
     public void remover(Long id) {
         tarefaRepository.deleteById(id);
     }

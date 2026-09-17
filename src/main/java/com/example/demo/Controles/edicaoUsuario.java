@@ -34,11 +34,10 @@ public class edicaoUsuario {
 
             if (usuario != null) {
                 model.addAttribute("usuario", usuario);
-                return "edicaoUsuario"; // nome do arquivo HTML (edicaoUsuario.html)
+                return "edicaoUsuario";
             }
         }
 
-        // Caso não esteja logado, redireciona para login
         return "redirect:/login";
     }
 

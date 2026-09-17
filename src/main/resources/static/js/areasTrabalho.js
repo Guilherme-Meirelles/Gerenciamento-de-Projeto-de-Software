@@ -592,6 +592,11 @@ window.voltarParaSelecao = function () {
     setTimeout(() => lucide.createIcons(), 10);
 }
 
+// Nível real de permissão (admin/editor/observador) -> rótulo exibido
+function rotuloPermissao(permissao) {
+    return { admin: 'Administrador', editor: 'Editor', observador: 'Observador' }[permissao] || permissao;
+}
+
 window.abrirMembros = function () {
     if (!areaSelecionadaGerenciar) return;
 
@@ -617,19 +622,19 @@ window.abrirMembros = function () {
                 div.classList.add('membro-item');
                 div.setAttribute('data-membro-id', membro.id);
 
-                const btnAlterar =  membro.permissao !== 'editar'?
+                const btnAlterar =  membro.permissao !== 'admin'?
                     `<button class="btn-acao-membro" onclick="abrirModalPermissao('${membro.id}','${membro.nome}','${membro.permissao}')">
                         <i data-lucide="shield"></i> Alterar Permissão
                     </button>` :
-                    `<button class="btn-acao-membro" disabled title="Você não pode alterar suas próprias permissões">
+                    `<button class="btn-acao-membro" disabled title="Administradores não têm a permissão alterada por aqui">
                         <i data-lucide="shield"></i> Alterar Permissão
                     </button>`;
 
-                const btnRemover = membro.permissao !== 'editar'  ?
+                const btnRemover = membro.permissao !== 'admin'  ?
                     `<button class="btn-acao-membro remover" onclick="removerMembro('${membro.id}','${membro.nome}','${areaSelecionadaGerenciar}')">
                         <i data-lucide="user-minus"></i> Remover
                     </button>` :
-                    `<button class="btn-acao-membro remover" disabled title="O criador não pode ser removido">
+                    `<button class="btn-acao-membro remover" disabled title="O administrador não pode ser removido">
                         <i data-lucide="user-minus"></i> Remover
                     </button>`;
 
@@ -641,7 +646,7 @@ window.abrirMembros = function () {
                         </div>
                         <div class="membro-badges">
                             <span class="badge-permissao ${membro.permissao}" data-permissao="${membro.permissao}">
-                                ${membro.permissao === 'editar' ? 'Administrador' : 'Editor'}
+                                ${rotuloPermissao(membro.permissao)}
                             </span>
                         </div>
                     </div>
@@ -689,7 +694,9 @@ window.abrirModalPermissao = function (membroId, membroNome, permissaoAtual) {
         radio.checked = false;
     });
 
-    const radioAtual = document.getElementById('perm-' + permissaoAtual);
+    // O modal só oferece "editar" (nível editor) e "visualizar" (nível observador)
+    const idRadioAtual = { editor: 'editar', observador: 'visualizar' }[permissaoAtual];
+    const radioAtual = document.getElementById('perm-' + idRadioAtual);
     if (radioAtual) {
         radioAtual.checked = true;
         radioAtual.closest('.opcao-permissao').classList.add('selecionada');
@@ -727,9 +734,10 @@ window.salvarPermissao = function () {
         return;
     }
 
-    const novaPermissao = permissaoSelecionada.value;
+    const novaPermissao = permissaoSelecionada.value; // 'editar' ou 'visualizar' (radios do modal)
+    const novoNivel = { editar: 'editor', visualizar: 'observador' }[novaPermissao];
 
-    console.log('Alterando permissão do membro:', membroAtualPermissao.id, 'para:', novaPermissao);
+    console.log('Alterando permissão do membro:', membroAtualPermissao.id, 'para:', novoNivel);
     // Aqui você implementa a chamada ao backend
 
     // Atualiza a UI
@@ -738,26 +746,20 @@ window.salvarPermissao = function () {
         const badgePermissao = membroCard.querySelector('.badge-permissao');
         if (badgePermissao) {
             // Remove classes antigas
-            badgePermissao.classList.remove('criador', 'editar');
-            badgePermissao.setAttribute('data-permissao', novaPermissao);
-
-            // Atualiza texto e classe
-            if (novaPermissao === 'editar') {
-                badgePermissao.textContent = 'Administrador';
-                badgePermissao.classList.add('editar');
-            } else if (novaPermissao === 'visualizar') {
-                badgePermissao.textContent = 'Editor';
-            }
+            badgePermissao.classList.remove('admin', 'editor', 'observador');
+            badgePermissao.setAttribute('data-permissao', novoNivel);
+            badgePermissao.classList.add(novoNivel);
+            badgePermissao.textContent = rotuloPermissao(novoNivel);
         }
 
         // Atualiza o botão de alterar permissão para refletir nova permissão
         const btnAlterar = membroCard.querySelector('.btn-acao-membro:not(.remover)');
         if (btnAlterar) {
-            btnAlterar.setAttribute('onclick', `abrirModalPermissao('${membroAtualPermissao.id}', '${membroAtualPermissao.nome}', '${novaPermissao}')`);
+            btnAlterar.setAttribute('onclick', `abrirModalPermissao('${membroAtualPermissao.id}', '${membroAtualPermissao.nome}', '${novoNivel}')`);
         }
     }
 
-    alert(`Permissão de ${membroAtualPermissao.nome} alterada para "${novaPermissao === 'editar' ? 'Administrador' : 'Editor'}"`);
+    alert(`Permissão de ${membroAtualPermissao.nome} alterada para "${rotuloPermissao(novoNivel)}"`);
     fecharModalPermissao();
 }
 

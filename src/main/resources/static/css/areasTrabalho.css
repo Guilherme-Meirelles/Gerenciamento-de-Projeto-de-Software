@@ -779,12 +779,16 @@
     color: #8ecf8e;
 }
 
-.badge-permissao.criador {
+.badge-permissao.admin {
     color: #ffd966;
 }
 
-.badge-permissao.editar {
+.badge-permissao.editor {
     color: #66b3ff;
+}
+
+.badge-permissao.observador {
+    color: #8ecf8e;
 }
 
 .membro-acoes {

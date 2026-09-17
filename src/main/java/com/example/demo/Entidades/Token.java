@@ -27,7 +27,6 @@ public class Token {
     @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
     private PermissaoArea permissao;
 
-    // getters e setters
     public Token() {}
     public Token(String token, String email, LocalDateTime expiraEm, boolean usado) {
         this.token = token;

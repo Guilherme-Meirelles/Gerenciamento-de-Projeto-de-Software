@@ -92,8 +92,6 @@ public class AnexoController {
         );
     }
 
-    // ANEXOS DE UMA TAREFA
-
     @GetMapping("/tarefas/{tarefaId}/anexos")
     public ResponseEntity<?> listar(@PathVariable Long tarefaId, HttpServletRequest request) {
         if (usuarioComAcessoATarefa(tarefaId, request, false) == null) {

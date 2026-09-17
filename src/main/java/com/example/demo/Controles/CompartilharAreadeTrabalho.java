@@ -43,38 +43,6 @@ public class CompartilharAreadeTrabalho {
 
 
 
-    /*
-    @PostMapping("/notificacaoArea")
-    @ResponseBody
-    public void notificarCompartilhamentoArea(@ModelAttribute String email,
-                                                @ModelAttribute("id_area") String id_area, Model model) {
-
-        if (id_area.equals("") || id_area == null) {
-            model.addAttribute("erro", "Id da area não capturado");
-            System.out.println("Erro 1");
-        } else {
-            Long idArea = Long.parseLong(id_area);
-            AreaTrabalho area = areaTrabalhoRepository.findById(idArea).get();
-            Usuario usuario = usuarioRepository.findByEmail(email);
-            if (area == null) {
-                model.addAttribute("erro", "Area de Trabalho Selecionada não existe");
-                System.out.println("Erro 2");
-            } else if (usuario == null) {
-                model.addAttribute("erro", "Não foi encontrado um usuário com este email no Banco de Dados");
-                System.out.println("Erro 3");
-            } else {
-                AreaCompartilhamento areaCompartilhamento = new AreaCompartilhamento(idArea, area.getNome(), email, usuario.getNome());
-                areaCompRepository.save(areaCompartilhamento);
-                model.addAttribute("mensagem", "Notificação enviada com sucesso");
-                System.out.println("Acerto");
-            }
-        }
-    }
-    */
-    // Importe: org.springframework.http.ResponseEntity;
-// Importe: org.springframework.web.bind.annotation.RequestBody;
-// Importe: java.util.Map;
-
     @PostMapping("/notificacaoArea")
     @ResponseBody // Garante que o retorno é dado puro, não uma página HTML
     public ResponseEntity<?> enviarNotificacao(@RequestBody Map<String, Object> dados, HttpServletRequest request) {
@@ -111,7 +79,6 @@ public class CompartilharAreadeTrabalho {
                     return ResponseEntity.status(403).body(Map.of("success", false, "message", "Você não tem permissão para convidar pessoas nesta área"));
                 }
 
-                // -------- GERAR TOKEN --------
                 String tokenString = UUID.randomUUID().toString();
 
                 Token token = new Token();
@@ -125,17 +92,11 @@ public class CompartilharAreadeTrabalho {
 
                 String nomeUsuario = remetente.getNome();
 
-                // Enviar email com token
                 emailService.enviarEmailCompartilharAreaTrabalho(destinatario, nomeUsuario, area ,tokenString);
 
                 System.out.println("Acerto");
             }
 
-
-            // --- SUA LÓGICA DE SALVAR NO BANCO AQUI ---
-            // notificacaoService.criar(email, idArea);
-
-            // Retorna sucesso para o JavaScript ler
             return ResponseEntity.ok(Map.of("success", true, "message", "Convite enviado!"));
 
         } catch (Exception e) {

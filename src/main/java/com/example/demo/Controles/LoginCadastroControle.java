@@ -76,7 +76,7 @@ public class LoginCadastroControle {
 
         usuario.setEmailVerificado(false);
         usuario.setSenha(passwordEncoder.encode(usuario.getSenha()));
-        ur.save(usuario); // salva no banco
+        ur.save(usuario);
 
         try {
             String tokenString = UUID.randomUUID().toString();
@@ -95,10 +95,9 @@ public class LoginCadastroControle {
             model.addAttribute("mensagem", "Cadastro realizado, mas houve um erro ao enviar o e-mail de confirmação.");
         }
 
-        return "login"; // redireciona para tela de login
+        return "login";
     }
 
-    // Página acessada via link do email de confirmação de cadastro
     @GetMapping("/verificarEmail")
     public String verificarEmail(@RequestParam("token") String token, Model model) {
 
@@ -190,7 +189,7 @@ public class LoginCadastroControle {
                 }
             }
 
-            return "redirect:/menu"; // ✅ Agora redireciona corretamente
+            return "redirect:/menu";
         }
 
         model.addAttribute("erro", "Usuário Inválido");
@@ -201,7 +200,7 @@ public class LoginCadastroControle {
     @GetMapping("/logout")
     public String logout(HttpServletRequest request) {
         SessaoUtil.encerrar(request);
-        return "redirect:/login"; // volta para a página de login
+        return "redirect:/login";
     }
 }
 

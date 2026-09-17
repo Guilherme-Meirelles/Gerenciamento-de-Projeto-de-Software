@@ -17,27 +17,19 @@ public class AreaTrabalho {
 
     private String nome;
 
-    // RELACIONAMENTOS DE AREA DE TRABALHO
-
-    // Dono da área (criador)
     @ManyToOne
     @JoinColumn(name = "dono_id")
     private Usuario dono;
 
-    // Participantes com permissões
     // @JsonIgnore evita o ciclo AreaTrabalho -> participacoes -> ParticipacaoArea -> area -> ...
     @JsonIgnore
     @OneToMany(mappedBy = "area", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ParticipacaoArea> participacoes = new HashSet<>();
 
-    // areaTrabalho(1)-(n)Lista
-    // Area de trabalho é dona da relação
     // @JsonIgnore evita o ciclo AreaTrabalho -> listas -> Lista -> area -> ...
     @JsonIgnore
     @OneToMany(mappedBy = "area", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Lista> listas = new ArrayList<>();
-
-    // GETTERS E SETTERS
 
     public Long getId() { return id; }
     public String getNome() { return nome; }
