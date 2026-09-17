@@ -2,6 +2,7 @@ package com.example.demo.Controles;
 
 import com.example.demo.ConsultasBD.*;
 import com.example.demo.Entidades.*;
+import com.example.demo.Serviços.AreaTrabalhoService;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.ConviteAreaService;
 import com.example.demo.Serviços.ListaService;
@@ -60,6 +61,9 @@ public class AreaTrabalhoController {
 
     @Autowired
     private PermissaoAreaService permissaoAreaService;
+
+    @Autowired
+    private AreaTrabalhoService areaTrabalhoService;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -210,7 +214,7 @@ public class AreaTrabalhoController {
                     continue;
                 }
                 if (participacaoArea.getPermissao().equals(PermissaoArea.ADMIN)) {
-                    areaTrabalhoRepository.delete(area);
+                    areaTrabalhoService.excluirArea(area);
                     for (ParticipacaoArea p : participacoes) {
                         participacaoAreaRepository.delete(p);
                     }

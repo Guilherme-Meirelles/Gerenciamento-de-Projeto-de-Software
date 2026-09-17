@@ -22,8 +22,10 @@ public class Usuario {
     private boolean emailVerificado = false;
 
     // @JsonIgnore evita o ciclo Usuario -> areasCriadas -> AreaTrabalho -> dono -> Usuario -> ...
+    // cascade+orphanRemoval: ao excluir o usuário, as áreas das quais ele é dono são excluídas
+    // junto (e essas por sua vez já cascateiam para listas/tarefas/participações).
     @JsonIgnore
-    @OneToMany(mappedBy = "dono")
+    @OneToMany(mappedBy = "dono", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AreaTrabalho> areasCriadas = new HashSet<>();
 
     @JsonIgnore

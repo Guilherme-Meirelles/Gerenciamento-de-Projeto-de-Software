@@ -96,7 +96,15 @@ public class Tarefa {
     public void setCategorias(Set<Categoria> categorias) { this.categorias = categorias; }
 
     public Set<Usuario> getResponsaveis() { return responsaveis; }
-    public void setResponsaveis(Usuario u) { this.responsaveis = Set.of(u);}
+    // Set.of(u) geraria uma coleção imutável neste campo, que o resto do
+    // código (ex: TarefaService.editarTarefa) trata como mutável (.clear()/.add()).
+    public void setResponsaveis(Usuario u) {
+        Set<Usuario> novo = new HashSet<>();
+        if (u != null) {
+            novo.add(u);
+        }
+        this.responsaveis = novo;
+    }
 
     public List<Anexo> getAnexos() { return anexos; }
 }

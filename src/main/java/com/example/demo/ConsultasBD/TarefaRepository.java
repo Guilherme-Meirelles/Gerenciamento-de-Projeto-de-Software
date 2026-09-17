@@ -15,6 +15,7 @@ public interface TarefaRepository extends JpaRepository<Tarefa, Long> {
     List<Tarefa> findByListaOrigemId(Long listaId);
     List<Tarefa> findByChecklistId(Long checklistId);
     List<Tarefa> findByCategoriasId(Long categoriaId);
+    List<Tarefa> findByResponsaveisId(Long usuarioId);
 
     // Tarefas com notificação ligada, ainda não concluídas, vencendo entre hoje e o limite
     // informado, e que ainda não receberam o e-mail de lembrete — usado pelo job de lembretes.

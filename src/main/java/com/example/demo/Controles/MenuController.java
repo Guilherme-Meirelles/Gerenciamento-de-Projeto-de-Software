@@ -3,6 +3,7 @@ package com.example.demo.Controles;
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Entidades.Usuario;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
+import com.example.demo.Serviços.UsuarioService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +20,9 @@ public class MenuController {
 
     @Autowired
     private UsuarioRepository ur;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -78,7 +82,7 @@ public class MenuController {
         }
 
         if (passwordEncoder.matches(usuarioSenha.getSenha(), usuario.getSenha())) {
-            this.ur.delete(usuario);
+            this.usuarioService.excluirConta(usuario);
             SessaoUtil.encerrar(request);
 
             model.addAttribute("remocao", "Usuário removido com sucesso!");
