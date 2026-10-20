@@ -598,6 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarefaDataFim').value = '';
         document.getElementById('tarefaResponsavel').value = '';
         document.getElementById('tarefaNotificacoes').checked = false;
+        mostrarNotificacoesSomenteLeitura(false);
         document.getElementById('tarefaRepeticao').value = 'NENHUMA';
         categoriaIdsSelecionadosTarefa = [];
         btnCategoria.style.borderColor = '';
@@ -606,6 +607,13 @@ document.addEventListener('DOMContentLoaded', function() {
         modoRascunho = false;
         itensChecklistRascunho = [];
         anexosRascunho = [];
+    }
+
+    // No modal "Detalhes da Tarefa" (só leitura) o toggle vira um "Sim"/"Não",
+    // pra não parecer clicável.
+    function mostrarNotificacoesSomenteLeitura(somenteLeitura) {
+        document.getElementById('tarefaNotificacoes').style.display = somenteLeitura ? 'none' : '';
+        document.getElementById('tarefaNotificacoesTexto').style.display = somenteLeitura ? '' : 'none';
     }
 
     window.preencherFormulario = async function (tarefa) {
@@ -645,6 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarefaDataFim').value = tarefa.dataFim;
         document.getElementById('tarefaResponsavel').value = tarefa.responsavel;
         document.getElementById('tarefaNotificacoes').checked = tarefa.notificacoes;
+        mostrarNotificacoesSomenteLeitura(false);
         document.getElementById('tarefaRepeticao').value = tarefa.repeticao || 'NENHUMA';
         categoriaIdsSelecionadosTarefa = (tarefa.categoriaIds || []).slice();
         atualizarVisualBotaoCategoria();
@@ -680,6 +689,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById("tarefaDataFim").value = tarefa.dataFim || "";
         document.getElementById("tarefaResponsavel").value = tarefa.responsavel || "";
         document.getElementById("tarefaNotificacoes").checked = tarefa.notificacoes || false;
+        document.getElementById("tarefaNotificacoesTexto").textContent = tarefa.notificacoes ? "Sim" : "Não";
+        mostrarNotificacoesSomenteLeitura(true);
         document.getElementById("tarefaRepeticao").value = tarefa.repeticao || "NENHUMA";
 
         categoriaIdsSelecionadosTarefa = (tarefa.categoriaIds || []).slice();

@@ -640,6 +640,13 @@ i {
     transform: translateX(20px);
 }
 
+/* Valor exibido no lugar do toggle no modal "Detalhes da Tarefa" (só leitura) */
+.valor-somente-leitura {
+    font-size: 14px;
+    color: #ffffff;
+    line-height: 24px;
+}
+
 /* --- Botões de Ação --- */
 .botoes-acao-tarefa {
     display: flex;
