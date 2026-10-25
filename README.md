@@ -1,6 +1,6 @@
 # ToDaily
 
-Protótipo de um gerenciador de tarefas colaborativo, desenvolvido como trabalho da disciplina de Construção de Software. Permite cadastro/login de usuários com confirmação por e-mail, criação de áreas de trabalho compartilháveis, listas e tarefas, além de recuperação de senha por e-mail.
+Protótipo de um gerenciador de tarefas colaborativo, desenvolvido como trabalho da disciplina de Gerenciamento de Projetos de Software. Permite cadastro/login de usuários com confirmação por e-mail, criação de áreas de trabalho compartilháveis, listas e tarefas, além de recuperação de senha por e-mail.
 
 ## Stack
 
