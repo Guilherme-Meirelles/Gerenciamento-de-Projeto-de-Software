@@ -43,7 +43,7 @@
             <button class="btn-acao" title="Compartilhar" onclick="abrirModalCompartilhar()">
                 <i data-lucide="share-2"></i>
             </button>
-            <button class="btn-acao" title="Excluir" onclick="abrirModalExcluir()">
+            <button class="btn-acao" title="Excluir / Sair da área" onclick="abrirModalExcluir()">
                 <i data-lucide="trash-2"></i>
             </button>
             <button class="btn-acao" title="Configurações" onclick="abrirModalGerenciamento()">
@@ -137,7 +137,7 @@
     <!-- Modal de Exclusão -->
     <div id="modalExcluir" class="overlay-modal" style="display: none;" onclick="fecharModalExcluir()">
         <div class="modal-excluir" onclick="event.stopPropagation()">
-            <h2 class="titulo-modal">Excluir Áreas de Trabalho</h2>
+            <h2 class="titulo-modal">Excluir ou sair de Áreas de Trabalho</h2>
 
             <!-- Lista de áreas para excluir -->
             <div class="lista-areas-excluir" id="listaAreasExcluir">

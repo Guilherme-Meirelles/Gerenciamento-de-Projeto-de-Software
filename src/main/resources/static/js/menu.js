@@ -802,7 +802,9 @@ document.addEventListener('DOMContentLoaded', function() {
             tarefasFiltradas.sort((a, b) => {
                 const nomeA = a.responsavelNome ? a.responsavelNome.toLowerCase() : "";
                 const nomeB = b.responsavelNome ? b.responsavelNome.toLowerCase() : "";
-                return nomeB.localeCompare(nomeA);
+                if (!nomeA && nomeB) return 1;   // tarefas sem responsável vão para o fim
+                if (nomeA && !nomeB) return -1;
+                return nomeA.localeCompare(nomeB);
             });
         }
 
@@ -950,8 +952,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             tarefaEl.appendChild(checkbox);
             tarefaEl.appendChild(conteudo);
-            tarefaEl.appendChild(btnEditar);
-            tarefaEl.appendChild(btnExcluir);
+            if (window.podeEditar !== false) {
+                tarefaEl.appendChild(btnEditar);
+                tarefaEl.appendChild(btnExcluir);
+            }
             containerTarefas.appendChild(tarefaEl);
         });
 

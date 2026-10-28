@@ -53,6 +53,14 @@ spring.mail.password=<senha-de-app-do-gmail>
 
 A aplicação sobe em `http://localhost:8080`.
 
+## Rodando os testes
+
+```bash
+./mvnw test
+```
+
+Os testes usam um banco H2 em memória, então não precisam do MySQL rodando nem enviam e-mail de verdade. No Windows (PowerShell): `.\mvnw test`.
+
 ## Estrutura do projeto
 
 ```

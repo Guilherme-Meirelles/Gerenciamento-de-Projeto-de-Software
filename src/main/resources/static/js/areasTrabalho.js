@@ -35,6 +35,7 @@ window.adicionarCardArea = function (id, nome) {
     card.className = "area-card";
     card.setAttribute("data-nome", nome);
     card.setAttribute("data-id", id);
+    card.setAttribute("data-permissao", "ADMIN"); // quem cria a área é o administrador
     card.onclick = () => abrirArea(card);
     card.oncontextmenu = (e) => abrirMenuContexto(e, card);
 
@@ -360,7 +361,8 @@ window.abrirModalExcluir = function () {
         .filter(card => card.dataset.id && card.dataset.nome)
         .map(card => ({
             id: card.dataset.id,
-            nome: card.dataset.nome
+            nome: card.dataset.nome,
+            permissao: card.dataset.permissao
     }));
 
     // Preenche dinamicamente
@@ -398,12 +400,21 @@ window.atualizarSelecaoExclusao = function () {
 
     // Atualiza texto do botão
     if (areasSelecionadasExcluir.length > 0) {
-        btnExcluir.innerHTML = `<i data-lucide="trash-2"></i> Excluir ${areasSelecionadasExcluir.length} ${areasSelecionadasExcluir.length === 1 ? 'Área' : 'Áreas'}`;
+        const q = areasSelecionadasExcluir.length;
+        const soSaida = areasSelecionadasExcluir.every(id => !areaEhAdmin(id));
+        btnExcluir.innerHTML = soSaida
+            ? `<i data-lucide="log-out"></i> Sair de ${q} ${q === 1 ? 'Área' : 'Áreas'}`
+            : `<i data-lucide="trash-2"></i> Excluir ${q} ${q === 1 ? 'Área' : 'Áreas'}`;
     } else {
         btnExcluir.innerHTML = '<i data-lucide="trash-2"></i> Excluir Selecionadas';
     }
 
     setTimeout(() => lucide.createIcons(), 10);
+}
+
+function areaEhAdmin(areaId) {
+    const card = document.querySelector(`.area-card[data-id="${areaId}"]`);
+    return !!card && card.dataset.permissao === 'ADMIN';
 }
 
 window.confirmarExclusao = function () {
@@ -412,7 +423,16 @@ window.confirmarExclusao = function () {
         return;
     }
 
-    const confirmacao = confirm(`Tem certeza que deseja excluir ${areasSelecionadasExcluir.length} ${areasSelecionadasExcluir.length === 1 ? 'área' : 'áreas'}?\n\nEsta ação não pode ser desfeita.`);
+    const idsAdmin = areasSelecionadasExcluir.filter(areaEhAdmin);
+    const idsSaida = areasSelecionadasExcluir.filter(id => !areaEhAdmin(id));
+    let aviso = '';
+    if (idsAdmin.length > 0) {
+        aviso += `Você é administrador de ${idsAdmin.length} ${idsAdmin.length === 1 ? 'área' : 'áreas'}: ${idsAdmin.length === 1 ? 'ela será excluída' : 'elas serão excluídas'} para todos os membros.\n`;
+    }
+    if (idsSaida.length > 0) {
+        aviso += `Em ${idsSaida.length} ${idsSaida.length === 1 ? 'área' : 'áreas'} você não é administrador: você apenas sairá ${idsSaida.length === 1 ? 'dela' : 'delas'}, e ${idsSaida.length === 1 ? 'ela continuará' : 'elas continuarão'} existindo para os outros membros.\n`;
+    }
+    const confirmacao = confirm(`${aviso}\nDeseja continuar?`);
 
     if (!confirmacao) return;
 
@@ -431,7 +451,10 @@ window.confirmarExclusao = function () {
             const card = document.querySelector(`.area-card[data-id="${areaId}"]`);
             if (card) card.remove();
         });
-        alert(`${areasSelecionadasExcluir.length} ${areasSelecionadasExcluir.length === 1 ? 'área excluída' : 'áreas excluídas'} com sucesso!`);
+        const partes = [];
+        if (idsAdmin.length > 0) partes.push(`${idsAdmin.length} ${idsAdmin.length === 1 ? 'área excluída' : 'áreas excluídas'}`);
+        if (idsSaida.length > 0) partes.push(`você saiu de ${idsSaida.length} ${idsSaida.length === 1 ? 'área' : 'áreas'}`);
+        alert(`Concluído: ${partes.join(' e ')}.`);
         fecharModalExcluir();
     })
     .catch(err => {
@@ -457,7 +480,7 @@ window.popularListaAreasExcluir = function (areas) {
 
         const label = document.createElement('label');
         label.setAttribute('for', 'excluir-' + area.id);
-        label.textContent = area.nome;
+        label.textContent = area.permissao === 'ADMIN' ? area.nome : `${area.nome} (você só sairá da área)`;
 
         // Clique no item ignora label e checkbox
         item.onclick = (event) => {
@@ -737,30 +760,43 @@ window.salvarPermissao = function () {
     const novaPermissao = permissaoSelecionada.value; // 'editar' ou 'visualizar' (radios do modal)
     const novoNivel = { editar: 'editor', visualizar: 'observador' }[novaPermissao];
 
-    console.log('Alterando permissão do membro:', membroAtualPermissao.id, 'para:', novoNivel);
-    // Aqui você implementa a chamada ao backend
+    const areaId = areaSelecionadaGerenciar;
+    const membro = { ...membroAtualPermissao };
 
-    // Atualiza a UI
-    const membroCard = document.querySelector(`.membro-item[data-membro-id="${membroAtualPermissao.id}"]`);
-    if (membroCard) {
-        const badgePermissao = membroCard.querySelector('.badge-permissao');
-        if (badgePermissao) {
-            // Remove classes antigas
-            badgePermissao.classList.remove('admin', 'editor', 'observador');
-            badgePermissao.setAttribute('data-permissao', novoNivel);
-            badgePermissao.classList.add(novoNivel);
-            badgePermissao.textContent = rotuloPermissao(novoNivel);
-        }
+    fetch(`/areasTrabalho/${encodeURIComponent(areaId)}/membros/${encodeURIComponent(membro.id)}/permissao`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ permissao: novoNivel })
+    })
+        .then(async resposta => {
+            const dados = await resposta.json().catch(() => ({}));
+            if (!resposta.ok || dados.success === false) {
+                alert(dados.message || 'Não foi possível alterar a permissão.');
+                return;
+            }
+            // Atualiza a UI
+            const membroCard = document.querySelector(`.membro-item[data-membro-id="${membro.id}"]`);
+            if (membroCard) {
+                const badgePermissao = membroCard.querySelector('.badge-permissao');
+                if (badgePermissao) {
+                    // Remove classes antigas
+                    badgePermissao.classList.remove('admin', 'editor', 'observador');
+                    badgePermissao.setAttribute('data-permissao', novoNivel);
+                    badgePermissao.classList.add(novoNivel);
+                    badgePermissao.textContent = rotuloPermissao(novoNivel);
+                }
 
-        // Atualiza o botão de alterar permissão para refletir nova permissão
-        const btnAlterar = membroCard.querySelector('.btn-acao-membro:not(.remover)');
-        if (btnAlterar) {
-            btnAlterar.setAttribute('onclick', `abrirModalPermissao('${membroAtualPermissao.id}', '${membroAtualPermissao.nome}', '${novoNivel}')`);
-        }
-    }
+                // Atualiza o botão de alterar permissão para refletir nova permissão
+                const btnAlterar = membroCard.querySelector('.btn-acao-membro:not(.remover)');
+                if (btnAlterar) {
+                    btnAlterar.setAttribute('onclick', `abrirModalPermissao('${membro.id}', '${membro.nome}', '${novoNivel}')`);
+                }
+            }
 
-    alert(`Permissão de ${membroAtualPermissao.nome} alterada para "${rotuloPermissao(novoNivel)}"`);
-    fecharModalPermissao();
+            alert(`Permissão de ${membro.nome} alterada para "${rotuloPermissao(novoNivel)}"`);
+            fecharModalPermissao();
+        })
+        .catch(() => alert('Erro de conexão ao alterar a permissão.'));
 }
 
 // Adicionamos 'async' para poder esperar a resposta do servidor

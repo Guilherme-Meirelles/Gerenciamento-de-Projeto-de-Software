@@ -1,5 +1,7 @@
 package com.example.demo.Controles;
 
+import org.springframework.web.util.UriUtils;
+import java.nio.charset.StandardCharsets;
 import com.example.demo.Entidades.Token;
 import com.example.demo.Entidades.Usuario;
 import com.example.demo.ConsultasBD.TokenRepository;
@@ -185,7 +187,8 @@ public class LoginCadastroControle {
                 request.getSession().removeAttribute(ATRIBUTO_CONVITE_PENDENTE);
                 ConviteAreaService.Resultado resultado = conviteAreaService.aceitarLinkGenerico((String) convitePendente, usuarioLogado);
                 if (resultado.sucesso()) {
-                    return "redirect:/areasTrabalho/" + resultado.area().getId() + "/" + resultado.area().getNome();
+                    return "redirect:/areasTrabalho/" + resultado.area().getId() + "/"
+                            + UriUtils.encodePathSegment(resultado.area().getNome(), StandardCharsets.UTF_8);
                 }
             }
 

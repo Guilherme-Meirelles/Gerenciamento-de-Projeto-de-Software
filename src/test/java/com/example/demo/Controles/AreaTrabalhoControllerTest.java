@@ -274,4 +274,103 @@ class AreaTrabalhoControllerTest {
 
         assertThat(view).isEqualTo("menu");
     }
+
+    // ---------- alterarPermissaoMembro (só admin) ----------
+
+    private Long[] prepararAreaComAdminEMembro(String sufixo, PermissaoArea permissaoDoMembro, Usuario[] saida) {
+        Usuario dono = criarUsuario("dono-perm-" + sufixo + "@teste.com");
+        AreaTrabalho area = new AreaTrabalho();
+        area.setNome("Área");
+        area.setDono(dono);
+        entityManager.persistAndFlush(area);
+        Usuario admin = criarUsuario("admin-perm-" + sufixo + "@teste.com");
+        entityManager.persistAndFlush(new ParticipacaoArea(admin, area, PermissaoArea.ADMIN));
+        Usuario membro = criarUsuario("membro-perm-" + sufixo + "@teste.com");
+        entityManager.persistAndFlush(new ParticipacaoArea(membro, area, permissaoDoMembro));
+        saida[0] = admin;
+        saida[1] = membro;
+        Long[] ids = {area.getId(), membro.getId()};
+        entityManager.clear();
+        return ids;
+    }
+
+    @Test
+    void alterarPermissaoMembro_admin_gravaNovaPermissao() {
+        Usuario[] u = new Usuario[2];
+        Long[] ids = prepararAreaComAdminEMembro("ok", PermissaoArea.OBSERVADOR, u);
+
+        ResponseEntity<?> resposta = controller.alterarPermissaoMembro(ids[0], ids[1],
+                Map.of("permissao", "editor"), requestAutenticado(u[0].getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        entityManager.flush(); // grava a alteração antes de limpar o cache, para reler do banco
+        entityManager.clear();
+        assertThat(participacaoAreaRepository.findByUsuarioIdAndAreaId(ids[1], ids[0]).getPermissao())
+                .isEqualTo(PermissaoArea.EDITOR);
+    }
+
+    @Test
+    void alterarPermissaoMembro_naoLogado_retorna401() {
+        Usuario[] u = new Usuario[2];
+        Long[] ids = prepararAreaComAdminEMembro("401", PermissaoArea.OBSERVADOR, u);
+
+        ResponseEntity<?> resposta = controller.alterarPermissaoMembro(ids[0], ids[1],
+                Map.of("permissao", "editor"), requestAutenticado(null));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void alterarPermissaoMembro_naoAdmin_retorna403ENaoAltera() {
+        Usuario[] u = new Usuario[2];
+        Long[] ids = prepararAreaComAdminEMembro("403", PermissaoArea.OBSERVADOR, u);
+
+        // o próprio membro (observador) tenta se promover
+        ResponseEntity<?> resposta = controller.alterarPermissaoMembro(ids[0], ids[1],
+                Map.of("permissao", "editor"), requestAutenticado(u[1].getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        entityManager.clear();
+        assertThat(participacaoAreaRepository.findByUsuarioIdAndAreaId(ids[1], ids[0]).getPermissao())
+                .isEqualTo(PermissaoArea.OBSERVADOR);
+    }
+
+    @Test
+    void alterarPermissaoMembro_permissaoInvalidaOuAdmin_retorna400() {
+        Usuario[] u = new Usuario[2];
+        Long[] ids = prepararAreaComAdminEMembro("400", PermissaoArea.OBSERVADOR, u);
+
+        ResponseEntity<?> invalida = controller.alterarPermissaoMembro(ids[0], ids[1],
+                Map.of("permissao", "qualquer"), requestAutenticado(u[0].getId()));
+        ResponseEntity<?> promoverAdmin = controller.alterarPermissaoMembro(ids[0], ids[1],
+                Map.of("permissao", "admin"), requestAutenticado(u[0].getId()));
+
+        assertThat(invalida.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(promoverAdmin.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void alterarPermissaoMembro_alvoEhAdmin_retorna400ENaoRebaixa() {
+        Usuario[] u = new Usuario[2];
+        Long[] ids = prepararAreaComAdminEMembro("adm", PermissaoArea.ADMIN, u);
+
+        ResponseEntity<?> resposta = controller.alterarPermissaoMembro(ids[0], ids[1],
+                Map.of("permissao", "observador"), requestAutenticado(u[0].getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        entityManager.clear();
+        assertThat(participacaoAreaRepository.findByUsuarioIdAndAreaId(ids[1], ids[0]).getPermissao())
+                .isEqualTo(PermissaoArea.ADMIN);
+    }
+
+    @Test
+    void alterarPermissaoMembro_usuarioForaDaArea_retorna404() {
+        Usuario[] u = new Usuario[2];
+        Long[] ids = prepararAreaComAdminEMembro("404", PermissaoArea.OBSERVADOR, u);
+
+        ResponseEntity<?> resposta = controller.alterarPermissaoMembro(ids[0], 999999L,
+                Map.of("permissao", "editor"), requestAutenticado(u[0].getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
 }
