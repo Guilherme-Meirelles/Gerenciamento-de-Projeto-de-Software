@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import org.springframework.web.util.UriUtils;
+
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -133,6 +136,8 @@ public class AreaTrabalhoController {
         model.addAttribute("areaName", name);
         model.addAttribute("area", area);
         model.addAttribute("listas", listas);
+
+        model.addAttribute("podeEditar", permissaoAreaService.podeEditar(usuario.getId(), id));
 
         return "menu";
     }
@@ -304,7 +309,8 @@ public class AreaTrabalhoController {
             return "login";
         }
 
-        return "redirect:/areasTrabalho/" + resultado.area().getId() + "/" + resultado.area().getNome();
+        return "redirect:/areasTrabalho/" + resultado.area().getId() + "/"
+                + UriUtils.encodePathSegment(resultado.area().getNome(), StandardCharsets.UTF_8);
     }
 
     @GetMapping("/areasTrabalho/{id}/membros")
@@ -477,7 +483,7 @@ public class AreaTrabalhoController {
                 .map(ParticipacaoArea::getArea)
                 .collect(Collectors.toList());
 
-        
+
         List<Lista> todasListas = new ArrayList<>();
         for (AreaTrabalho area : areas) {
             todasListas.addAll(area.getListas());
@@ -540,7 +546,7 @@ public class AreaTrabalhoController {
         List<AreaTrabalho> areas = participacaoAreaRepository.findByUsuario(usuario).stream()
                 .map(ParticipacaoArea::getArea)
                 .collect(Collectors.toList());
-        
+
         List<Lista> todasListas = new ArrayList<>();
         for (AreaTrabalho area : areas) {
             todasListas.addAll(area.getListas());
@@ -572,7 +578,7 @@ public class AreaTrabalhoController {
         List<AreaTrabalho> areas = participacaoAreaRepository.findByUsuario(usuario).stream()
                 .map(ParticipacaoArea::getArea)
                 .collect(Collectors.toList());
-        
+
         List<ParticipacaoArea> todosMembros = new ArrayList<>();
         for (AreaTrabalho area : areas) {
             todosMembros.addAll(area.getParticipacoes());
@@ -591,6 +597,48 @@ public class AreaTrabalhoController {
 
         return ResponseEntity.ok(membros);
     }
+    // Altera o nível de permissão (EDITOR/OBSERVADOR) de um membro da área.
+    // Só ADMIN da área pode chamar, e o nível ADMIN não pode ser alterado por aqui,
+    // para a área nunca ficar sem administrador.
+    @PutMapping("/areasTrabalho/{areaId}/membros/{usuarioId}/permissao")
+    @ResponseBody
+    @Transactional
+    public ResponseEntity<?> alterarPermissaoMembro(@PathVariable Long areaId,
+                                                    @PathVariable Long usuarioId,
+                                                    @RequestBody Map<String, String> corpo,
+                                                    HttpServletRequest request) {
+        String solicitanteId = SessaoUtil.getUsuarioId(request);
+        if (solicitanteId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Não autenticado."));
+        }
+
+        if (!permissaoAreaService.podeAdministrar(Long.parseLong(solicitanteId), areaId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Apenas administradores podem alterar permissões."));
+        }
+
+        PermissaoArea nova;
+        try {
+            nova = PermissaoArea.valueOf(String.valueOf(corpo.get("permissao")).toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Permissão inválida."));
+        }
+        if (nova == PermissaoArea.ADMIN) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Use EDITOR ou OBSERVADOR."));
+        }
+
+        ParticipacaoArea alvo = participacaoAreaRepository.findByUsuarioIdAndAreaId(usuarioId, areaId);
+        if (alvo == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", "Este usuário não faz parte desta área."));
+        }
+        if (alvo.getPermissao() == PermissaoArea.ADMIN) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "A permissão de um administrador não pode ser alterada."));
+        }
+
+        alvo.setPermissao(nova);
+        participacaoAreaRepository.save(alvo);
+        return ResponseEntity.ok(Map.of("success", true, "permissao", nova.name().toLowerCase()));
+    }
+
     @PostMapping("/remover-membro")
     @ResponseBody
     @Transactional // Necessário para operações de delete funcionarem corretamente

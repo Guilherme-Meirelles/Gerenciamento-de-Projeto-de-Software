@@ -31,7 +31,7 @@
             </div>
         </div>
 
-        <div class="add-tarefa" id="btnAddTarefa">
+        <div class="add-tarefa" id="btnAddTarefa" th:style="${podeEditar == false} ? 'display:none'">
             <i data-lucide="plus"></i>
             <span>Adicionar Tarefa</span>
         </div>
@@ -349,6 +349,7 @@
 
 <script>
     window.areaName = /*[[${areaName}]]*/ "";
+    window.podeEditar = /*[[${podeEditar != false}]]*/ true;
 </script>
 
 <script src="https://unpkg.com/lucide@latest"></script>

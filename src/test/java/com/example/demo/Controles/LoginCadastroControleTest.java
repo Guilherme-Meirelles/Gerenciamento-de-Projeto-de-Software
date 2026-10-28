@@ -367,7 +367,7 @@ class LoginCadastroControleTest {
 
         String view = controller.loginUsuario(tentativa, model, request);
 
-        assertThat(view).isEqualTo("redirect:/areasTrabalho/7/Área Convidada");
+        assertThat(view).isEqualTo("redirect:/areasTrabalho/7/%C3%81rea%20Convidada");
         assertThat(session.getAttribute("conviteAreaPendente")).isNull(); // consumido
     }
 
