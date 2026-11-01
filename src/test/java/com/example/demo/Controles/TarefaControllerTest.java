@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 // Testa o guard de IDOR (usuarioComAcessoALista/usuarioComAcessoATarefa) de
 // ponta a ponta contra um banco real: participante Observador só lê, Editor
 // lê/escreve, quem não participa da área toma 403 em tudo — mesmo padrão que
-// já foi bug real (IDOR) em outros pontos do projeto (ver bugs-corrigidos.md).
+// já foi bug real (IDOR) em outros pontos do projeto (ver bugs-corrigidos-e-melhorias.md).
 @DataJpaTest
 @Import({TarefaController.class, TarefaService.class, PermissaoAreaService.class})
 class TarefaControllerTest {
