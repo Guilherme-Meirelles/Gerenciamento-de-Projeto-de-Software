@@ -60,6 +60,8 @@ body {
 }
 
 .avatar {
+    position: relative;
+    overflow: hidden;
     background-color: #333;
     width: 45px;
     height: 45px;
@@ -452,6 +454,295 @@ body {
     .botoes-acao {
         flex-direction: column;
     }
+}
+
+/* ===== Foto de perfil (sidebar e modal de Perfil) ===== */
+.foto-img {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.com-foto .foto-img {
+    display: block;
+}
+
+.com-foto > svg,
+.com-foto > i {
+    display: none;
+}
+
+/* ===== Modal de Perfil (modalPerfil), no mesmo padrão dos demais modais ===== */
+.modal-perfil {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 25px 30px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 92vh;
+    overflow-y: auto;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.titulo-modal-perfil {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 22px;
+    color: #ffffff;
+}
+
+.perfil-topo {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.perfil-avatar {
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background-color: #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.perfil-avatar > i,
+.perfil-avatar > svg {
+    width: 40px;
+    height: 40px;
+    color: #888;
+}
+
+.perfil-foto-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.perfil-foto-botoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.btn-foto {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background-color: #2e2e2e;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-foto:hover {
+    background-color: #252525;
+}
+
+.btn-foto:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.btn-foto i,
+.btn-foto svg {
+    width: 15px;
+    height: 15px;
+}
+
+.btn-foto-remover:hover {
+    color: #ff5555;
+}
+
+.perfil-foto-dica {
+    font-size: 12px;
+    color: #999;
+}
+
+.perfil-foto-msg {
+    font-size: 12px;
+    color: #ff6b6b;
+}
+
+.perfil-foto-msg:empty {
+    display: none;
+}
+
+.perfil-campos {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.campo-perfil {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campo-perfil label {
+    font-size: 14px;
+    color: #d0d0d0;
+    font-weight: 400;
+}
+
+/* Campos só de leitura: mais escuros que os inputs editáveis do resto do sistema */
+.valor-perfil {
+    background-color: #2a2a2a;
+    border: 1px solid #333;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #c8c8c8;
+    font-size: 14px;
+    word-break: break-word;
+    cursor: default;
+}
+
+.botoes-acao-perfil {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.botoes-acao-perfil-direita {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-editar-perfil,
+.btn-fechar-perfil,
+.btn-excluir-perfil {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #ffffff;
+}
+
+.btn-editar-perfil,
+.btn-fechar-perfil {
+    background-color: #2e2e2e;
+}
+
+.btn-editar-perfil:hover,
+.btn-fechar-perfil:hover {
+    background-color: #252525;
+}
+
+.btn-excluir-perfil {
+    background-color: #d32f2f;
+}
+
+.btn-excluir-perfil:hover {
+    background-color: #c62828;
+}
+
+@media (max-width: 600px) {
+    .modal-perfil {
+        padding: 20px;
+    }
+
+    .perfil-topo {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .perfil-foto-acoes {
+        align-items: center;
+    }
+
+    .perfil-foto-botoes {
+        justify-content: center;
+    }
+
+    .botoes-acao-perfil {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .botoes-acao-perfil-direita {
+        flex-direction: column-reverse;
+    }
+}
+
+/* ===== Modal de confirmação de saída (modalConfirmarLogout) ===== */
+.modal-sair {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 25px 30px;
+    width: 90%;
+    max-width: 400px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+.titulo-modal-sair {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #ffffff;
+}
+
+.texto-modal-sair {
+    font-size: 14px;
+    color: #d0d0d0;
+}
+
+.botoes-acao-sair {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    justify-content: flex-end;
+}
+
+.btn-cancelar-sair,
+.btn-confirmar-sair {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #ffffff;
+}
+
+.btn-cancelar-sair {
+    background-color: #2e2e2e;
+}
+
+.btn-cancelar-sair:hover {
+    background-color: #252525;
+}
+
+.btn-confirmar-sair {
+    background-color: #4a4a4a;
+}
+
+.btn-confirmar-sair:hover {
+    background-color: #555;
 }
 
 #modalConfirmarLogout {

@@ -19,6 +19,7 @@
     <div class="perfil" onclick="abrirModalPerfil('modalPerfil')" style="cursor: pointer;" title="Ver perfil">
         <div class="avatar">
             <i data-lucide="user"></i>
+            <img class="foto-img" alt="" />
         </div>
         <div class="info">
             <p class="nome" th:text="${nome}">Generic User</p>
@@ -82,37 +83,54 @@
 
     <!-- Modal: Perfil do Usuário -->
     <div id="modalPerfil" class="overlay-perfil" th:fragment="modalPerfil" style="display: none;" onclick="fecharModalPerfil('modalPerfil')">
-        <div class="perfil-modal" onclick="event.stopPropagation()">
-            <h2 class="titulo-modal">Perfil</h2>
+        <div class="modal-perfil" onclick="event.stopPropagation()">
+            <h3 class="titulo-modal-perfil">Perfil</h3>
 
             <!-- Foto de perfil -->
-            <div class="foto-perfil">
-                <div class="avatar-grande">
+            <div class="perfil-topo">
+                <div class="perfil-avatar">
                     <i data-lucide="user"></i>
+                    <img class="foto-img" alt="Foto de perfil" />
                 </div>
-                <button class="btn-alterar-foto">Alterar ou remover foto</button>
+                <div class="perfil-foto-acoes">
+                    <div class="perfil-foto-botoes">
+                        <button type="button" class="btn-foto" onclick="escolherFotoPerfil()">
+                            <i data-lucide="camera"></i>
+                            <span class="btn-foto-texto">Adicionar foto</span>
+                        </button>
+                        <button type="button" class="btn-foto btn-foto-remover" style="display: none;" onclick="removerFotoPerfil()">
+                            <i data-lucide="trash-2"></i> Remover foto
+                        </button>
+                    </div>
+                    <p class="perfil-foto-dica">JPG, PNG, GIF ou WebP.</p>
+                    <p class="perfil-foto-msg" role="alert"></p>
+                    <input type="file" class="input-foto-perfil" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;" onchange="aoEscolherFotoPerfil(this)" />
+                </div>
             </div>
 
             <!-- Informações do usuário -->
-            <div class="info-usuario">
-                <div class="campo-info">
+            <div class="perfil-campos">
+                <div class="campo-perfil">
                     <label>Nome:</label>
-                    <p th:text="${nome}">Generic User</p>
+                    <p class="valor-perfil" th:text="${nome}">Generic User</p>
                 </div>
-                <div class="campo-info">
+                <div class="campo-perfil">
                     <label>E-mail:</label>
-                    <p th:text="${email}">genericemail@gmail.com</p>
+                    <p class="valor-perfil" th:text="${email}">genericemail@gmail.com</p>
                 </div>
-                <div class="campo-info">
+                <div class="campo-perfil">
                     <label>Data de Nascimento:</label>
-                    <p th:text="${dataNascimento}">01/01/2000</p>
+                    <p class="valor-perfil" th:text="${dataNascimento}">01/01/2000</p>
                 </div>
             </div>
 
             <!-- Ações do perfil -->
-            <div class="formulario-perfil">
-                <button type="button" class="btn-salvar" onclick="abrirModalAcao('editar')">Editar Conta</button>
-                <button type="button" class="btn-excluir" onclick="abrirModalAcao('remover')">Excluir Conta</button>
+            <div class="botoes-acao-perfil">
+                <button type="button" class="btn-excluir-perfil" onclick="abrirModalAcao('remover')">Excluir Conta</button>
+                <div class="botoes-acao-perfil-direita">
+                    <button type="button" class="btn-editar-perfil" onclick="abrirModalAcao('editar')">Editar Conta</button>
+                    <button type="button" class="btn-fechar-perfil" onclick="fecharModalPerfil('modalPerfil')">Fechar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -120,21 +138,24 @@
     <!-- Modal: Verificação (Confirmar Ação) -->
     <div id="modalVerificacao" class="confirma-acao" th:style="${abrirModal} == 'verificacao' ? 'display:flex;' : 'display:none;'" onclick="fecharModalPerfil('modalVerificacao')">
         <div class="verificacao" onclick="event.stopPropagation()">
-            <h3 class="mensagem-verificacao" id="mensagemVerificacao">
+            <h3 class="mensagem-verificacao" id="mensagemVerificacao"
+                th:text="${acaoConta == 'remover'} ? 'Deseja realmente remover sua conta?' : (${acaoConta == 'editar'} ? 'Deseja realmente editar sua conta?' : 'Deseja realmente executar esta ação?')">
                 Deseja realmente executar esta ação?
             </h3>
 
             <!-- Formulário enviado ao backend -->
-            <form id="formConfirmacao" method="post">
-                <p th:if="${erro}" class="mensagem-erro" th:text="${erro}"></p>
+            <form id="formConfirmacao" method="post"
+                  th:attr="action=${acaoConta == 'remover'} ? '/removerConta' : (${acaoConta == 'editar'} ? '/editarConta' : null)">
                 <div class="campo-senha">
                     <label for="senhaConfirmacao">Digite sua senha para confirmar:</label>
-                    <input type="password" id="senhaConfirmacao" name="senha" placeholder="Sua senha" required />
+                    <input type="password" id="senhaConfirmacao" name="senha" placeholder="Sua senha"
+                           th:classappend="${erro} ? 'campo-invalido'" required />
+                    <p th:if="${erro}" class="mensagem-erro" th:text="${erro}"></p>
                 </div>
 
                 <div class="botoes-verificacao">
-                    <button type="submit" class="btn-confirmar-V">Confirmar</button>
                     <button type="button" class="btn-cancelar-V" onclick="fecharModalPerfil('modalVerificacao')">Cancelar</button>
+                    <button type="submit" class="btn-confirmar-V">Confirmar</button>
                 </div>
             </form>
         </div>
@@ -201,11 +222,12 @@
 
     <!-- Modal: Confirmação de Logout -->
     <div id="modalConfirmarLogout" class="confirma-acao" style="display: none;" onclick="fecharModalPerfil('modalConfirmarLogout')">
-        <div class="modal-remover" onclick="event.stopPropagation()">
-            <h3 class="modal-remover-mensagem">Deseja realmente sair da sua conta?</h3>
-            <div class="modal-remover-botoes">
-                <button class="btn-remover-nao" onclick="fecharModalPerfil('modalConfirmarLogout')">Não</button>
-                <button class="btn-remover-sim" onclick="confirmarLogout()">Sim</button>
+        <div class="modal-sair" onclick="event.stopPropagation()">
+            <h3 class="titulo-modal-sair">Sair da conta</h3>
+            <p class="texto-modal-sair">Deseja realmente sair da sua conta?</p>
+            <div class="botoes-acao-sair">
+                <button type="button" class="btn-cancelar-sair" onclick="fecharModalPerfil('modalConfirmarLogout')">Cancelar</button>
+                <button type="button" class="btn-confirmar-sair" onclick="confirmarLogout()">Sair</button>
             </div>
         </div>
     </div>

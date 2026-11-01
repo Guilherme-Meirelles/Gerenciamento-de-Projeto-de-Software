@@ -90,6 +90,7 @@ public class MenuController {
         } else {
             model.addAttribute("erro", "Senha incorreta. Tente novamente.");
             model.addAttribute("abrirModal", "verificacao");
+            model.addAttribute("acaoConta", "remover");
             model.addAttribute("nome", usuario.getNome());
             model.addAttribute("email", usuario.getEmail());
             model.addAttribute("dataNascimento", usuario.getDataNascimento());
@@ -127,6 +128,7 @@ public class MenuController {
         } else {
             model.addAttribute("erro", "Senha incorreta. Tente novamente.");
             model.addAttribute("abrirModal", "verificacao");
+            model.addAttribute("acaoConta", "editar");
 
             model.addAttribute("nome", usuario.getNome());
             model.addAttribute("email", usuario.getEmail());

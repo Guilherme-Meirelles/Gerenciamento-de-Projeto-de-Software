@@ -42,9 +42,13 @@ window.fecharModalPerfil = function (nomeModal) {
         desc.value = "";
     }
 
+    // Limpa a mensagem de erro da foto de perfil, se existir
+    modal.querySelectorAll('.perfil-foto-msg').forEach(m => { m.textContent = ''; });
+
     // Limpa o campo de senha, se existir
     const inputSenha = modal.querySelector('input[type="password"]');
     if (inputSenha) {
+        inputSenha.classList.remove('campo-invalido');
         inputSenha.value = '';
     }
 }
@@ -98,6 +102,7 @@ document.addEventListener('keydown', (e) => {
         fecharModalPerfil('modalAddLista');
         fecharModalPerfil('modalEditLista');
         fecharModalPerfil('modalRemoveLista');
+        fecharModalPerfil('modalConfirmarLogout');
     }
 });
 
@@ -201,8 +206,10 @@ window.abrirModalAcao = function (tipo) {
         form.action = '/removerConta';
     }
 
-    // Limpa o campo de senha e mostra o modal
+    // Limpa o campo de senha (e o aviso de senha incorreta) e mostra o modal
     document.getElementById('senhaConfirmacao').value = '';
+    document.getElementById('senhaConfirmacao').classList.remove('campo-invalido');
+    modal.querySelectorAll('.mensagem-erro').forEach(m => { m.textContent = ''; });
     modal.style.display = 'flex';
 }
 
@@ -355,3 +362,135 @@ window.abrirModalLogout = function () {
 window.confirmarLogout = function () {
     window.location.href = "/logout";
 }
+
+// ===== Foto de perfil =====
+const URL_FOTO_PERFIL = '/perfil/foto';
+const LADO_FOTO_PERFIL = 400;      // a imagem é recortada em quadrado e reduzida antes do envio
+const TAMANHO_MAX_FOTO = 20 * 1024 * 1024; // limite só para não tentar processar arquivos enormes
+let urlFotoAtual = null;
+
+function mostrarMensagemFoto(texto) {
+    document.querySelectorAll('.perfil-foto-msg').forEach(m => { m.textContent = texto || ''; });
+}
+
+// Aplica (ou remove, com null) a foto no avatar da sidebar e no do modal de Perfil
+function definirFotoPerfil(url) {
+    if (urlFotoAtual) URL.revokeObjectURL(urlFotoAtual);
+    urlFotoAtual = url;
+
+    document.querySelectorAll('.foto-img').forEach(img => {
+        if (url) {
+            img.src = url;
+        } else {
+            img.removeAttribute('src');
+        }
+        img.parentElement.classList.toggle('com-foto', !!url);
+    });
+
+    document.querySelectorAll('.btn-foto-remover').forEach(b => { b.style.display = url ? 'flex' : 'none'; });
+    document.querySelectorAll('.btn-foto-texto').forEach(t => { t.textContent = url ? 'Alterar foto' : 'Adicionar foto'; });
+}
+
+window.carregarFotoPerfil = async function () {
+    try {
+        const resposta = await fetch(URL_FOTO_PERFIL, { cache: 'no-cache' });
+        if (resposta.status === 200) {
+            definirFotoPerfil(URL.createObjectURL(await resposta.blob()));
+        } else {
+            definirFotoPerfil(null);
+        }
+    } catch (e) {
+        definirFotoPerfil(null);
+    }
+}
+
+window.escolherFotoPerfil = function () {
+    mostrarMensagemFoto('');
+    const input = document.querySelector('.input-foto-perfil');
+    if (input) input.click();
+}
+
+// Recorta a imagem em quadrado, reduz e converte para JPEG
+function prepararImagemPerfil(arquivo) {
+    return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(arquivo);
+        const img = new Image();
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            const lado = Math.min(img.naturalWidth, img.naturalHeight);
+            if (!lado) { reject(new Error('imagem vazia')); return; }
+            const saida = Math.min(lado, LADO_FOTO_PERFIL);
+            const canvas = document.createElement('canvas');
+            canvas.width = saida;
+            canvas.height = saida;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff'; // PNG/GIF transparentes ficam com fundo branco no JPEG
+            ctx.fillRect(0, 0, saida, saida);
+            ctx.drawImage(img,
+                (img.naturalWidth - lado) / 2, (img.naturalHeight - lado) / 2, lado, lado,
+                0, 0, saida, saida);
+            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('falha ao converter')), 'image/jpeg', 0.9);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('imagem ilegível')); };
+        img.src = url;
+    });
+}
+
+window.aoEscolherFotoPerfil = async function (input) {
+    const arquivo = input.files && input.files[0];
+    input.value = ''; // permite escolher o mesmo arquivo de novo depois
+    if (!arquivo) return;
+
+    if (!/^image\/(jpeg|png|gif|webp)$/.test(arquivo.type)) {
+        mostrarMensagemFoto('Formato inválido. Use uma imagem JPG, PNG, GIF ou WebP.');
+        return;
+    }
+    if (arquivo.size > TAMANHO_MAX_FOTO) {
+        mostrarMensagemFoto('A imagem é grande demais. Escolha uma de até 20 MB.');
+        return;
+    }
+
+    mostrarMensagemFoto('');
+    const botoes = document.querySelectorAll('.btn-foto');
+    botoes.forEach(b => { b.disabled = true; });
+
+    try {
+        const imagem = await prepararImagemPerfil(arquivo);
+        const dados = new FormData();
+        dados.append('foto', imagem, 'foto.jpg');
+
+        const resposta = await fetch(URL_FOTO_PERFIL, { method: 'POST', body: dados });
+        if (!resposta.ok) {
+            const texto = await resposta.text();
+            mostrarMensagemFoto(texto && texto.length < 200 ? texto : 'Não foi possível salvar a foto.');
+        } else {
+            await carregarFotoPerfil();
+        }
+    } catch (e) {
+        mostrarMensagemFoto('Não foi possível ler essa imagem. Tente outro arquivo.');
+    } finally {
+        botoes.forEach(b => { b.disabled = false; });
+    }
+}
+
+window.removerFotoPerfil = async function () {
+    mostrarMensagemFoto('');
+    const botoes = document.querySelectorAll('.btn-foto');
+    botoes.forEach(b => { b.disabled = true; });
+
+    try {
+        const resposta = await fetch(URL_FOTO_PERFIL, { method: 'DELETE' });
+        if (resposta.ok) {
+            definirFotoPerfil(null);
+        } else {
+            mostrarMensagemFoto('Não foi possível remover a foto.');
+        }
+    } catch (e) {
+        mostrarMensagemFoto('Não foi possível remover a foto.');
+    } finally {
+        botoes.forEach(b => { b.disabled = false; });
+    }
+}
+
+// Carrega a foto ao abrir qualquer página que use a sidebar
+carregarFotoPerfil();
