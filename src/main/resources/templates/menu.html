@@ -18,8 +18,10 @@
     <main class="conteudo">
         <div class="titulo">
             <div class="titulo-info">
-                <h2 id="titulo-principal">Para Hoje</h2>
-                <span id="subtitulo-principal" th:text="${descricaoDaLista}" th:title="${descricaoDaLista}"></span>
+                <div class="titulo-texto">
+                    <h2 id="titulo-principal">Para Hoje</h2>
+                    <span id="subtitulo-principal" th:text="${descricaoDaLista}" th:title="${descricaoDaLista}"></span>
+                </div>
                 <div class="titulo-acoes">
                     <button class="btn-filtro" id="btnFiltro" title="Filtrar tarefas">
                         <i data-lucide="filter"></i>
@@ -301,10 +303,19 @@
                 <div class="seletor-cor">
                     <button type="button" class="btn-cor-selecionada" id="btnAbrirPaletaCategoria">
                         <div class="cor-preview" id="corPreviewCategoria" style="background-color: #4caf50;"></div>
-                        <span>Escolher cor</span>
+                        <span id="textoCorCategoria">#4CAF50</span>
                     </button>
 
                     <div class="paleta-cores" id="paletaCoresCategoria" style="display: none;">
+                        <div class="picker-cor">
+                            <div class="picker-sv" id="pickerSV"><div class="picker-sv-cursor" id="pickerSVCursor"></div></div>
+                            <input type="range" class="picker-hue" id="pickerHue" min="0" max="360" step="1" value="0" aria-label="Matiz">
+                            <div class="picker-hex">
+                                <div class="cor-preview" id="pickerPreview"></div>
+                                <input type="text" id="pickerHex" maxlength="7" placeholder="#RRGGBB" spellcheck="false" autocomplete="off">
+                                <button type="button" class="btn-ok-paleta" id="btnOkPaletaCategoria">OK</button>
+                            </div>
+                        </div>
                         <button type="button" class="cor-opcao" data-cor="#4caf50" style="background-color: #4caf50;"></button>
                         <button type="button" class="cor-opcao" data-cor="#2196f3" style="background-color: #2196f3;"></button>
                         <button type="button" class="cor-opcao" data-cor="#ff9800" style="background-color: #ff9800;"></button>
@@ -334,6 +345,16 @@
         <div class="modal-remover-botoes">
             <button class="btn-remover-nao" id="btnCancelarRemoverCategoria">Não</button>
             <button class="btn-remover-sim" id="btnConfirmarRemoverCategoria">Sim</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Aviso -->
+<div class="overlay-tarefa" id="modalAviso" style="display: none;">
+    <div class="modal-remover">
+        <p class="modal-remover-mensagem" id="avisoMensagem"></p>
+        <div class="modal-remover-botoes">
+            <button type="button" class="btn-remover-sim" id="btnOkAviso">OK</button>
         </div>
     </div>
 </div>

@@ -370,6 +370,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Pesquisa ao vivo: refaz a lista a cada letra digitada, sem precisar apertar Enter.
+    // O filtro roda no navegador sobre as tarefas já carregadas, então não vai ao servidor.
+    document.getElementById("filtroTexto").addEventListener("input", function () {
+        if (listaAtual !== null) {
+            renderizarTarefas(listaAtual);
+        }
+    });
+
     // Aplicar filtros
     document.querySelectorAll('#menuFiltro .menu-filtro-item').forEach(item => {
         item.addEventListener('click', function() {
@@ -483,7 +491,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const categoriaIds = categoriaIdsSelecionadosTarefa.slice();
 
         if (!listaId || !titulo) {
-            alert("Lista e título são obrigatórios.");
+            const faltando = !listaId && !titulo
+                ? "Escolha a lista e digite o título da tarefa."
+                : !listaId
+                    ? "Escolha a lista em que a tarefa será criada."
+                    : "Digite o título da tarefa.";
+            if (!listaId) document.getElementById('tarefaLista').classList.add('campo-invalido');
+            if (!titulo) document.getElementById('tarefaTitulo').classList.add('campo-invalido');
+            mostrarAviso(faltando, () => {
+                document.getElementById(!listaId ? 'tarefaLista' : 'tarefaTitulo').focus();
+            });
             return;
         }
 
@@ -584,6 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     window.limparFormulario = function () {
+        document.querySelectorAll('#modalAddTarefa .campo-invalido').forEach(el => el.classList.remove('campo-invalido'));
         document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select")
             .forEach(el => el.disabled = false);
         document.getElementById("btnAnexo").disabled = false;
@@ -1579,6 +1597,31 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => lucide.createIcons(), 10);
     }
 
+    // Tira a marca vermelha de um campo obrigatório assim que o usuário mexe nele
+    for (const id of ['tarefaLista', 'tarefaTitulo', 'categoriaNome']) {
+        const el = document.getElementById(id);
+        for (const ev of ['input', 'change']) {
+            el.addEventListener(ev, () => el.classList.remove('campo-invalido'));
+        }
+    }
+
+    // Aviso no padrão do projeto (substitui o alert do navegador)
+    let aoFecharAviso = null;
+    function mostrarAviso(mensagem, aoFechar) {
+        document.getElementById('avisoMensagem').textContent = mensagem;
+        aoFecharAviso = aoFechar || null;
+        document.getElementById('modalAviso').style.display = 'flex';
+        document.getElementById('btnOkAviso').focus();
+    }
+    function fecharAviso() {
+        document.getElementById('modalAviso').style.display = 'none';
+        if (aoFecharAviso) { const f = aoFecharAviso; aoFecharAviso = null; f(); }
+    }
+    document.getElementById('btnOkAviso').addEventListener('click', fecharAviso);
+    document.getElementById('modalAviso').addEventListener('click', function (e) {
+        if (e.target === this) fecharAviso();
+    });
+
     // ===== SISTEMA DE CATEGORIAS =====
     let categoriaSelecionada = null;
     let corSelecionadaCategoria = '#4caf50';
@@ -1650,13 +1693,105 @@ document.addEventListener('DOMContentLoaded', function() {
         modalGerenciarCategoria.style.display = 'none';
     });
 
+    // ----- Seletor de cor livre (retângulo cromático + código hexadecimal) -----
+    const textoCorCategoria = document.getElementById('textoCorCategoria');
+    const btnOkPaletaCategoria = document.getElementById('btnOkPaletaCategoria');
+    btnOkPaletaCategoria.addEventListener('click', function () { paletaCoresCategoria.style.display = 'none'; });
+    const pickerSV = document.getElementById('pickerSV');
+    const pickerSVCursor = document.getElementById('pickerSVCursor');
+    const pickerHue = document.getElementById('pickerHue');
+    const pickerHex = document.getElementById('pickerHex');
+    const pickerPreview = document.getElementById('pickerPreview');
+    let pickerH = 0, pickerS = 1, pickerV = 1;
+
+    function hsvParaHex(h, s, v) {
+        const f = n => {
+            const k = (n + h / 60) % 6;
+            const c = v - v * s * Math.max(0, Math.min(k, 4 - k, 1));
+            return Math.round(c * 255).toString(16).padStart(2, '0');
+        };
+        return '#' + f(5) + f(3) + f(1);
+    }
+
+    function hexParaHsv(hex) {
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+        let h = 0;
+        if (d) {
+            if (max === r) h = ((g - b) / d + 6) % 6;
+            else if (max === g) h = (b - r) / d + 2;
+            else h = (r - g) / d + 4;
+            h *= 60;
+        }
+        return { h, s: max ? d / max : 0, v: max };
+    }
+
+    function normalizarHex(texto) {
+        let t = texto.trim().replace(/^#/, '');
+        if (/^[0-9a-fA-F]{3}$/.test(t)) t = t.split('').map(c => c + c).join('');
+        return /^[0-9a-fA-F]{6}$/.test(t) ? '#' + t.toLowerCase() : null;
+    }
+
+    function aplicarCorCategoria(hex, atualizarCampo) {
+        corSelecionadaCategoria = hex;
+        corPreviewCategoria.style.backgroundColor = hex;
+        textoCorCategoria.textContent = hex.toUpperCase();
+        pickerPreview.style.backgroundColor = hex;
+        pickerSV.style.backgroundColor = hsvParaHex(pickerH, 1, 1);
+        pickerSVCursor.style.left = (pickerS * 100) + '%';
+        pickerSVCursor.style.top = ((1 - pickerV) * 100) + '%';
+        pickerHue.value = pickerH;
+        if (atualizarCampo) { pickerHex.value = hex; pickerHex.classList.remove('invalido'); }
+        document.querySelectorAll('#paletaCoresCategoria .cor-opcao').forEach(b =>
+            b.classList.toggle('selecionada', b.dataset.cor.toLowerCase() === hex.toLowerCase()));
+    }
+
+    function definirCorCategoria(hex) {
+        categoriaNomeInput.classList.remove('campo-invalido');
+        const hsv = hexParaHsv(hex);
+        pickerH = hsv.h; pickerS = hsv.s; pickerV = hsv.v;
+        aplicarCorCategoria(hex, true);
+    }
+
+    function moverNoRetangulo(e) {
+        const r = pickerSV.getBoundingClientRect();
+        pickerS = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+        pickerV = 1 - Math.min(1, Math.max(0, (e.clientY - r.top) / r.height));
+        aplicarCorCategoria(hsvParaHex(pickerH, pickerS, pickerV), true);
+    }
+
+    pickerSV.addEventListener('pointerdown', function (e) {
+        pickerSV.setPointerCapture(e.pointerId);
+        moverNoRetangulo(e);
+        pickerSV.onpointermove = moverNoRetangulo;
+    });
+    pickerSV.addEventListener('pointerup', function () { pickerSV.onpointermove = null; });
+
+    pickerHue.addEventListener('input', function () {
+        pickerH = +pickerHue.value;
+        aplicarCorCategoria(hsvParaHex(pickerH, pickerS, pickerV), true);
+    });
+
+    pickerHex.addEventListener('input', function () {
+        const hex = normalizarHex(pickerHex.value);
+        pickerHex.classList.toggle('invalido', !hex && pickerHex.value.trim() !== '');
+        if (hex) {
+            const hsv = hexParaHsv(hex);
+            pickerH = hsv.h; pickerS = hsv.s; pickerV = hsv.v;
+            aplicarCorCategoria(hex, false);
+        }
+    });
+    pickerHex.addEventListener('blur', function () { pickerHex.value = corSelecionadaCategoria; pickerHex.classList.remove('invalido'); });
+    pickerHex.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); pickerHex.blur(); } });
+
     // Abrir modal de nova categoria
     btnNovaCategoria.addEventListener('click', function() {
         categoriaSelecionada = null;
-        corSelecionadaCategoria = '#4caf50';
         tituloModalCategoria.textContent = 'Nova Categoria';
         categoriaNomeInput.value = '';
-        corPreviewCategoria.style.backgroundColor = corSelecionadaCategoria;
+        definirCorCategoria('#4caf50');
         modalAddCategoria.style.display = 'flex';
     });
 
@@ -1671,7 +1806,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const nome = categoriaNomeInput.value.trim();
 
         if (!nome) {
-            alert('Por favor, digite um nome para a categoria');
+            categoriaNomeInput.classList.add('campo-invalido');
+            mostrarAviso('Digite o nome da categoria.', () => categoriaNomeInput.focus());
             return;
         }
 
@@ -1711,13 +1847,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Selecionar cor
     document.querySelectorAll('#paletaCoresCategoria .cor-opcao').forEach(btn => {
         btn.addEventListener('click', function() {
-            corSelecionadaCategoria = this.dataset.cor;
-            corPreviewCategoria.style.backgroundColor = corSelecionadaCategoria;
-
-            document.querySelectorAll('#paletaCoresCategoria .cor-opcao').forEach(b => b.classList.remove('selecionada'));
-            this.classList.add('selecionada');
-
-            paletaCoresCategoria.style.display = 'none';
+            definirCorCategoria(this.dataset.cor);
         });
     });
 
@@ -1811,8 +1941,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 categoriaSelecionada = categoria;
                 tituloModalCategoria.textContent = 'Editar Categoria';
                 categoriaNomeInput.value = categoria.nome;
-                corSelecionadaCategoria = categoria.cor;
-                corPreviewCategoria.style.backgroundColor = corSelecionadaCategoria;
+                definirCorCategoria(normalizarHex(categoria.cor || '') || '#4caf50');
                 modalAddCategoria.style.display = 'flex';
             });
 
