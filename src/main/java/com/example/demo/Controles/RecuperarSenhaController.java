@@ -45,7 +45,7 @@ public class RecuperarSenhaController {
             Usuario usuario = this.ur.findByEmail(email);
 
             if (usuario == null) {
-                model.addAttribute("erro", "Este email não está cadastrado");
+                model.addAttribute("erro", "Não encontramos nenhuma conta com esse e-mail.");
                 return "recuperarSenhaEmail";
             }
 
@@ -61,10 +61,10 @@ public class RecuperarSenhaController {
 
             emailService2.enviarEmailRecuperacaoSenha(usuario.getEmail(), usuario.getNome(), tokenString);
 
-            model.addAttribute("mensagem", "Email enviado com sucesso!");
+            model.addAttribute("mensagem", "Enviamos o link de recuperação para o seu e-mail. Ele vale por 10 minutos.");
 
         } catch (Exception e) {
-            model.addAttribute("erro", "Erro ao enviar email! \n" + e.getMessage());
+            model.addAttribute("erro", "Não foi possível enviar o e-mail agora. Tente novamente em instantes.");
         }
 
         return "recuperarSenhaEmail";

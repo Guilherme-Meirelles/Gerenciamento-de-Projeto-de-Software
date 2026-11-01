@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ToDaily - Cadastro</title>
     <link rel="stylesheet" href="/css/cadastro.css" />
+    <link rel="stylesheet" href="/css/avisos.css" />
 </head>
 <body>
 <div class="logo">
@@ -15,9 +16,10 @@
 <div class="cadastro-container">
     <h2>Cadastro</h2>
 
-    <p th:text="${mensagem}"></p>
+    <p class="aviso erro" th:if="${mensagem != null}" th:text="${mensagem}"></p>
+    <p class="aviso erro" id="erro" hidden></p>
 
-    <form id="cadastroForm" action="/cadastro" method="post" onsubmit="return validarFormulario()">
+    <form id="cadastroForm" action="/cadastro" method="post" novalidate>
 
         <label for="nome">Nome*:</label>
         <input type="text" id="nome" name="nome" placeholder="Maria Silva" required />
@@ -29,45 +31,76 @@
         <input type="date" id="dataNasc" name="dataNascimento" required />
 
         <label for="senha">Senha*:</label>
-        <input type="password" id="senha" name="senha" placeholder="8+ caracteres" minlength="8" required />
+        <input type="password" id="senha" name="senha" placeholder="Mínimo de 8 caracteres" required />
 
         <label for="confirmar">Confirmar Senha*:</label>
-        <input type="password" id="confirmar" name="confirmarSenha" placeholder="Repita a senha" minlength="8" required />
+        <input type="password" id="confirmar" name="confirmarSenha" placeholder="Repita a senha" required />
 
         <div class="botoes">
-            <a href="/login" class="voltar" title="Voltar para Login">&larr;</a>
+            <a href="/login" class="voltar" title="Voltar para Login" aria-label="Voltar para Login">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+            </a>
             <button type="submit" class="btn">Cadastrar-se</button>
         </div>
     </form>
 
-    <p id="erro"></p>
 </div>
 
+<script src="/js/validacao.js"></script>
 <script>
-    function validarFormulario() {
-        // Removida a validação de formato de data, pois o input type="date" faz isso.
-        const senha = document.getElementById("senha").value.trim();
-        const confirmar = document.getElementById("confirmar").value.trim();
-        const erro = document.getElementById("erro");
+    const form = document.getElementById("cadastroForm");
+    const erro = document.getElementById("erro");
+    const dataNasc = document.getElementById("dataNasc");
 
-        // Limpa mensagens anteriores
-        erro.textContent = "";
+    // Não permite escolher uma data de nascimento no futuro
+    const hoje = new Date();
+    dataNasc.max = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0") + "-" + String(hoje.getDate()).padStart(2, "0");
+    dataNasc.min = "1900-01-01";
 
-        // Validação de senha mínima
-        if (senha.length < 8) {
-            erro.textContent = "A senha deve ter pelo menos 8 caracteres.";
-            return false;
+    Validacao.limparAoDigitar(form, erro);
+
+    form.addEventListener("submit", function (e) {
+        const campos = ["nome", "email", "dataNasc", "senha", "confirmar"].map(id => document.getElementById(id));
+        const [nome, email, , senha, confirmar] = campos;
+        let mensagem = "";
+        let primeiro = null;
+
+        function falha(campo, texto) {
+            Validacao.marcar(campo, true);
+            if (!primeiro) { primeiro = campo; mensagem = texto; }
         }
 
-        // Validação de confirmação de senha
-        if (senha !== confirmar) {
-            erro.textContent = "As senhas não coincidem.";
-            return false;
+        campos.forEach(c => Validacao.marcar(c, false));
+
+        // 1) campos vazios
+        const vazios = campos.filter(c => !c.value.trim());
+        if (vazios.length) {
+            vazios.forEach(c => Validacao.marcar(c, true));
+            primeiro = vazios[0];
+            mensagem = vazios.length === 1 ? "Preencha o campo destacado." : "Preencha os campos destacados.";
+        } else {
+            // 2) formatos e regras
+            if (!Validacao.emailValido(email.value.trim())) {
+                falha(email, "Digite um e-mail válido, como nome@exemplo.com.");
+            }
+            if (dataNasc.value > dataNasc.max || dataNasc.value < dataNasc.min) {
+                falha(dataNasc, "Informe uma data de nascimento válida.");
+            }
+            const faltando = Validacao.requisitosFaltando(senha.value);
+            if (faltando.length) {
+                falha(senha, "A senha precisa ter " + Validacao.juntar(faltando) + ".");
+            }
+            if (senha.value !== confirmar.value) {
+                falha(confirmar, "As senhas não coincidem.");
+            }
         }
 
-        // Tudo certo — envia o formulário
-        return true;
-    }
+        if (primeiro) {
+            e.preventDefault();
+            Validacao.mostrarAviso(erro, mensagem);
+            primeiro.focus();
+        }
+    });
 </script>
 </body>
 </html>

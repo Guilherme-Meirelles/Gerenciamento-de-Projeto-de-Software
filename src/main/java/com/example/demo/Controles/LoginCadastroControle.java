@@ -42,6 +42,11 @@ public class LoginCadastroControle {
 
     private static final String ATRIBUTO_CONVITE_PENDENTE = "conviteAreaPendente";
 
+    // Maiúscula, minúscula, número e caractere especial (o tamanho mínimo é checado à parte)
+    static boolean senhaForte(String senha) {
+        return senha.matches("(?s)(?=.*\\p{Lu})(?=.*\\p{Ll})(?=.*\\d)(?=.*[^\\p{L}\\p{N}\\s]).*");
+    }
+
     @GetMapping("/login")
     public String login() {
         return "login";
@@ -62,6 +67,12 @@ public class LoginCadastroControle {
 
         if (usuario.getSenha().length() < 8) {
             model.addAttribute("mensagem", "A senha deve ter pelo menos 8 caracteres!");
+            return "cadastro";
+        }
+
+        if (!senhaForte(usuario.getSenha())) {
+            model.addAttribute("mensagem",
+                    "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
             return "cadastro";
         }
 
@@ -195,7 +206,8 @@ public class LoginCadastroControle {
             return "redirect:/menu";
         }
 
-        model.addAttribute("erro", "Usuário Inválido");
+        model.addAttribute("erro", "E-mail ou senha incorretos. Confira os dados e tente novamente.");
+        model.addAttribute("credenciaisInvalidas", true);
         return "login";
 
     }

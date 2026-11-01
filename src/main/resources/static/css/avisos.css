@@ -1,0 +1,49 @@
+/* ===== Avisos e campos inválidos (login, cadastro e recuperação de senha) ===== */
+/* O aviso fica logo abaixo da caixa, fora do fluxo da página:
+   assim a caixa nunca muda de tamanho, não importa o tamanho da mensagem. */
+.login-container,
+.cadastro-container {
+    position: relative;
+}
+
+.aviso {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 0;
+    right: 0;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.4;
+    font-weight: 500;
+    text-align: left;
+    background-color: #1a1a1a;
+}
+
+.aviso[hidden] {
+    display: none;
+}
+
+.aviso.erro {
+    background-image: linear-gradient(rgba(255, 77, 77, 0.1), rgba(255, 77, 77, 0.1));
+    color: #ff6b6b;
+    border-left: 3px solid #ff4d4d;
+}
+
+.aviso.sucesso {
+    background-image: linear-gradient(rgba(0, 200, 83, 0.1), rgba(0, 200, 83, 0.1));
+    color: #00c853;
+    border-left: 3px solid #00c853;
+}
+
+.aviso.alerta {
+    background-image: linear-gradient(rgba(255, 165, 0, 0.1), rgba(255, 165, 0, 0.1));
+    color: #ffb84d;
+    border-left: 3px solid orange;
+}
+
+input.campo-invalido,
+input.campo-invalido:focus {
+    border-color: #c0504d;
+    box-shadow: 0 0 0 1px rgba(192, 80, 77, 0.35);
+}

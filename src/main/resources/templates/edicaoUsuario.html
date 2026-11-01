@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ToDaily - Edicao</title>
     <link rel="stylesheet" href="/css/cadastro.css" />
+    <link rel="stylesheet" href="/css/avisos.css" />
 </head>
 <body>
 <div class="logo">
@@ -12,12 +13,12 @@
 
 </div>
 
-<div class="cadastro-container">
+<div class="cadastro-container largo">
     <h2>Edição Usuario</h2>
 
     <p th:text="${mensagem}" style="color: lightgreen; text-align:center;"></p>
 
-    <form id="cadastroForm" action="/edicaoUsuario" method="post" onsubmit="return validarFormulario()" th:object="${usuario}">
+    <form id="cadastroForm" action="/edicaoUsuario" method="post" novalidate onsubmit="return validarFormulario()" th:object="${usuario}">
 
         <label for="nome">Nome*:</label>
         <input type="text" id="nome" name="nome" th:value="*{nome}" required />
@@ -34,45 +35,62 @@
         <label for="confirmar">Confirmar Nova Senha:</label>
         <input type="password" id="confirmar" name="confirmarSenha" minlength="8" placeholder="Deixe em branco para manter a senha atual" />
 
-        <p class="info">(*) São campos obrigatórios</p>
-
-        <div class="botoes">
-            <button  type="button" class="btn" onclick="window.location.href='/menu'">Cancelar</button>
+        <div class="botoes botoes-dupla">
+            <button type="button" class="btn secundario" onclick="window.location.href='/menu'">Cancelar</button>
             <button type="submit" class="btn">Confirmar</button>
         </div>
     </form>
 
     <!-- Mensagem de erro -->
-    <p id="erro" style="color: #ff5555; text-align:center; margin-top:10px;"></p>
+    <p class="aviso erro" id="erro" hidden></p>
 </div>
 
+<script src="/js/validacao.js"></script>
 <script>
+    Validacao.limparAoDigitar(document.getElementById("cadastroForm"), document.getElementById("erro"));
+
     function validarFormulario() {
-        const dataNasc = document.getElementById("dataNasc").value.trim();
-        const senha = document.getElementById("senha").value.trim();
-        const confirmar = document.getElementById("confirmar").value.trim();
+        const nome = document.getElementById("nome");
+        const email = document.getElementById("email");
+        const dataNasc = document.getElementById("dataNasc");
+        const senha = document.getElementById("senha");
+        const confirmar = document.getElementById("confirmar");
         const erro = document.getElementById("erro");
+        let mensagem = "";
+        let primeiro = null;
 
-        // Limpa mensagens anteriores
-        erro.textContent = "";
+        function falha(campo, texto) {
+            Validacao.marcar(campo, true);
+            if (!primeiro) { primeiro = campo; mensagem = texto; }
+        }
 
-        // Validação de data no formato dd/mm/aaaa
+        [nome, email, dataNasc, senha, confirmar].forEach(c => Validacao.marcar(c, false));
 
-
-        // Só valida a senha se o usuário decidiu trocá-la
-        if (senha.length > 0 || confirmar.length > 0) {
-            if (senha.length < 8) {
-                erro.textContent = "A senha deve ter pelo menos 8 caracteres.";
-                return false;
+        const vazios = [nome, email, dataNasc].filter(c => !c.value.trim());
+        if (vazios.length) {
+            vazios.forEach(c => Validacao.marcar(c, true));
+            primeiro = vazios[0];
+            mensagem = vazios.length === 1 ? "Preencha o campo destacado." : "Preencha os campos destacados.";
+        } else {
+            if (!Validacao.emailValido(email.value.trim())) {
+                falha(email, "Digite um e-mail válido, como nome@exemplo.com.");
             }
-
-            if (senha !== confirmar) {
-                erro.textContent = "As senhas não coincidem.";
-                return false;
+            // Só valida a senha se o usuário decidiu trocá-la
+            if (senha.value.length > 0 || confirmar.value.length > 0) {
+                if (senha.value.length < 8) {
+                    falha(senha, "A senha deve ter pelo menos 8 caracteres.");
+                }
+                if (senha.value !== confirmar.value) {
+                    falha(confirmar, "As senhas não coincidem.");
+                }
             }
         }
 
-        // Tudo certo — envia o formulário
+        if (primeiro) {
+            Validacao.mostrarAviso(erro, mensagem);
+            primeiro.focus();
+            return false;
+        }
         return true;
     }
 </script>

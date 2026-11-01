@@ -64,7 +64,7 @@ class LoginCadastroControleTest {
         Usuario usuario = new Usuario();
         usuario.setNome("Fulano");
         usuario.setEmail("fulano@teste.com");
-        usuario.setSenha("senhaSegura123");
+        usuario.setSenha("Senha@Segura1");
         usuario.setDataNascimento("2000-01-01");
         return usuario;
     }
@@ -81,6 +81,23 @@ class LoginCadastroControleTest {
         String view = controller.cadastroUsuario(usuario, errosDeBinding, model);
 
         assertThat(view).isEqualTo("cadastro");
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void cadastro_senhaSemRequisitos_naoSalva() {
+        for (String fraca : new String[] {"senhasegura1!", "SENHASEGURA1!", "SenhaSegura!!", "SenhaSegura12"}) {
+            Usuario usuario = usuarioValido();
+            usuario.setSenha(fraca);
+            BindingResult semErros = new BeanPropertyBindingResult(usuario, "usuario");
+            Model model = new ExtendedModelMap();
+
+            String view = controller.cadastroUsuario(usuario, semErros, model);
+
+            assertThat(view).isEqualTo("cadastro");
+            assertThat(model.getAttribute("mensagem")).isEqualTo(
+                    "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
+        }
         verify(usuarioRepository, never()).save(any());
     }
 
@@ -137,7 +154,7 @@ class LoginCadastroControleTest {
         assertThat(view).isEqualTo("login");
         assertThat(usuario.isEmailVerificado()).isFalse();
         assertThat(usuario.getSenha()).startsWith("$2"); // hash BCrypt, não texto puro
-        assertThat(passwordEncoder.matches("senhaSegura123", usuario.getSenha())).isTrue();
+        assertThat(passwordEncoder.matches("Senha@Segura1", usuario.getSenha())).isTrue();
         verify(usuarioRepository).save(usuario);
         verify(tokenRepository).save(any(Token.class));
         verify(emailService).enviarEmailVerificacao(eq(usuario.getEmail()), eq(usuario.getNome()), anyString());
@@ -275,7 +292,7 @@ class LoginCadastroControleTest {
         String view = controller.loginUsuario(tentativa, model, request);
 
         assertThat(view).isEqualTo("login");
-        assertThat(model.getAttribute("erro")).isEqualTo("Usuário Inválido");
+        assertThat(model.getAttribute("erro")).isEqualTo("E-mail ou senha incorretos. Confira os dados e tente novamente.");
         assertThat(SessaoUtil.getUsuarioId(request)).isNull();
     }
 

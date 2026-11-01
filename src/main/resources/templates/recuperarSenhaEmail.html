@@ -4,25 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ToDaily - Recuperação de Senha</title>
-    <link rel="stylesheet" href="/css/login.css"> </head>
+    <link rel="stylesheet" href="/css/login.css">
+    <link rel="stylesheet" href="/css/avisos.css">
+</head>
 <body>
 <div class="logo">
     <img src="/img/logo.png" alt="ToDaily logo" />
 </div>
 
 <div class="login-container">
-    <h4>Insira o seu email para<br>recuperar sua senha</h4>
-    <p th:if="${mensagem != null}" th:text="${mensagem}" style="color: lightgreen; text-align:center;"></p>
-    <p th:if="${erro != null}" th:text="${erro}" style="color: red; text-align:center;"></p>
-    <form id="emailForm" method="post" action="/recuperar-senha">
+    <h4>Insira o seu e-mail para<br>recuperar sua senha</h4>
+    <p class="aviso sucesso" th:if="${mensagem != null}" th:text="${mensagem}"></p>
+    <p class="aviso erro" th:if="${erro != null}" th:text="${erro}"></p>
+    <p class="aviso erro" id="avisoEmail" hidden></p>
+    <form id="emailForm" method="post" action="/recuperar-senha" novalidate>
 
 
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" required>
+        <label for="email">E-mail:</label>
+        <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" th:classappend="${erro != null} ? 'campo-invalido'" required>
         <button type="submit" class="btn">CONFIRMAR</button>
         <button type="button" class="btn secundario" onclick="window.location.href='/login'">Voltar</button>
     </form>
 </div>
 
+<script src="/js/validacao.js"></script>
+<script>
+    const form = document.getElementById("emailForm");
+    const aviso = document.getElementById("avisoEmail");
+    Validacao.limparAoDigitar(form, aviso);
+
+    form.addEventListener("submit", function (e) {
+        const email = document.getElementById("email");
+        const valor = email.value.trim();
+        if (!valor) {
+            e.preventDefault();
+            Validacao.marcar(email, true);
+            Validacao.mostrarAviso(aviso, "Informe o seu e-mail para receber o link de recuperação.");
+            email.focus();
+        } else if (!Validacao.emailValido(valor)) {
+            e.preventDefault();
+            Validacao.marcar(email, true);
+            Validacao.mostrarAviso(aviso, "Digite um e-mail válido, como nome@exemplo.com.");
+            email.focus();
+        }
+    });
+</script>
 </body>
 </html>
