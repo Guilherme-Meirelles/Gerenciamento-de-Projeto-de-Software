@@ -1,6 +1,6 @@
-# Bugs corrigidos — sessão de revisão do ToDaily
+# Bugs corrigidos e melhorias — ToDaily
 
-Registro dos bugs encontrados e corrigidos em sessões de revisão do projeto, nas branches `matheusfoltran` (revisão geral) e `matheuscampaner` (testes manuais, ver seção própria abaixo). A primeira sessão partiu de: verificar se o banco antigo ainda funcionava após trocar de repositório, um raio-x geral do código, e correção dos bugs de segurança encontrados.
+Registro dos bugs encontrados e corrigidos, e das melhorias feitas, em sessões de revisão do projeto, nas branches `matheusfoltran` (revisão geral) e `matheuscampaner` (testes manuais e melhorias de interface, ver seções próprias abaixo). A primeira sessão partiu de: verificar se o banco antigo ainda funcionava após trocar de repositório, um raio-x geral do código, e correção dos bugs de segurança encontrados.
 
 ## Verificação de e-mail (não existia)
 
@@ -74,6 +74,25 @@ Registro dos bugs encontrados e corrigidos em sessões de revisão do projeto, n
 - **Ordenação por responsável (SCRUM-53).** Tarefas sem responsável apareciam no início; agora ficam no fim (`menu.js`).
 - **"Excluir" confundia quem não é ADMIN.** O backend já apenas tirava o usuário da área (só o ADMIN apaga para todos), mas a tela dizia "Excluir". O modal agora mostra "Sair da área" e avisa na confirmação o que vai acontecer em cada caso. Não houve mudança de backend.
 
+## Melhorias de interface, perfil e validação de formulários (branch `matheuscampaner`)
+
+Não são bugs: o comportamento anterior funcionava, mas destoava do restante do software ou deixava o usuário sem orientação. Todas as telas seguem o padrão visual já usado nos modais do projeto (fundo `#3a3a3a`, botões `#2e2e2e`, campos `#4a4a4a` com borda `#555`).
+
+- **Perfil com foto funcionando.** O modal de perfil foi redesenhado no padrão do software e os botões "Alterar foto" e "Remover foto" passaram a funcionar de verdade. Nova entidade `FotoPerfil` (conteúdo em `@Lob byte[]`, mesmo padrão de `Anexo`, com `@OnDelete(CASCADE)` para sumir junto com o usuário) e `FotoPerfilController` (`GET/POST/DELETE /perfil/foto`): exige sessão (401), valida pelos bytes do arquivo se é mesmo uma imagem (não confia no tipo enviado pelo navegador) e respeita o limite de 10 MB já configurado. Nome, e-mail e data de nascimento ficaram mais escuros para indicar que são só leitura. 
+- **Confirmação ao sair da conta** virou um modal próprio (`.modal-sair`, fecha com ESC) no lugar do aviso simples.
+- **Modal de confirmação com senha (editar/excluir conta).** Botões no mesmo padrão dos demais modais (Cancelar à esquerda, Confirmar à direita), campo ocupando a largura toda e "Senha incorreta" exibido sob o campo, que ganha borda vermelha. Depois de uma senha errada o título voltava a "executar esta ação"; agora o servidor informa a ação (`acaoConta`) e o título e o `action` do formulário se mantêm.
+- **Menu de tarefas.** Menus de filtro e de ordenação redesenhados; título e data ("Para Hoje – data") alinhados na mesma linha de base; botões de editar e excluir centralizados na vertical em relação ao cartão da tarefa. O ícone dos itens não era estilizado porque o Lucide troca `<i>` por `<svg>` ao carregar, então o CSS passou a mirar também o `svg`.
+- **Pesquisa em tempo real.** O filtro de pesquisa só atualizava ao apertar Enter; agora filtra a cada letra digitada.
+- **Avisos nativos do navegador substituídos.** O `alert()` de "Lista e título são obrigatórios" (que mostrava "localhost:8080 diz") virou um modal no padrão do projeto, que diz o que falta (lista, título ou ambos), marca em vermelho os campos pendentes e devolve o cursor ao primeiro deles. O mesmo foi feito para o nome da categoria vazio.
+- **Cores de categoria livres.** A paleta tinha só 10 cores fixas. Agora há um retângulo cromático (saturação/brilho) com barra de matiz e campo para digitar o código (`#RRGGBB`, `RRGGBB` ou `#RGB`, validado), com as 10 cores antigas mantidas como atalho e botão OK para fechar. O botão do seletor passou a mostrar o código da cor escolhida em vez de "Escolher cor". Ao editar uma categoria o seletor abre na cor já salva.
+- **Validação dos formulários de login, cadastro, recuperação de senha e edição de usuário.** Os balões nativos do navegador ("Preencha este campo", "Aumente este texto para 8 caracteres…") foram trocados por validação própria (`validacao.js`, `avisos.css`, compartilhados pelas quatro telas): campos pendentes ficam com borda vermelha discreta e o aviso aparece logo abaixo da caixa, fora do fluxo da página, para a caixa nunca mudar de tamanho conforme a mensagem.
+  - **Senha forte no cadastro.** Passou a exigir maiúscula, minúscula, número e caractere especial além dos 8 caracteres, no navegador (o aviso lista só o que falta) e no servidor (`LoginCadastroControle.senhaForte`), para que não dê para burlar desligando o JavaScript.
+  - **Login.** "Usuário Inválido" virou "E-mail ou senha incorretos. Confira os dados e tente novamente.", e os dois campos ficam vermelhos (atributo `credenciaisInvalidas`). Os avisos de sucesso, erro e alerta da tela usam classes (`.aviso.sucesso/.erro/.alerta`) em vez de `style` inline, que deixava o CSS morto (os seletores `p[th\:if]` nunca casavam depois da renderização do Thymeleaf).
+  - **Recuperação de senha.** Rótulo "E-mail:" e mensagens reescritas ("Enviamos o link de recuperação para o seu e-mail. Ele vale por 10 minutos.", "Não encontramos nenhuma conta com esse e-mail."); o erro de envio deixou de expor `e.getMessage()` ao usuário.
+  - **Cadastro.** Seta de voltar centralizada (ícone SVG no lugar do caractere `←`, cuja altura de linha deixava o botão torto); calendário no tema escuro (`color-scheme: dark`), sem aceitar data futura nem anterior a 1900. O calendário em si é do navegador e não dá para redesenhar com CSS.
+  - **Edição de usuário.** Caixa mais larga (o placeholder da senha aparecia cortado), botões Cancelar/Confirmar separados e distintos, e remoção da linha "(*) São campos obrigatórios".
+- **Testes.** `FotoPerfilControllerTest` (novo); `LoginCadastroControleTest` atualizado para a senha forte (`Senha@Segura1`), a nova mensagem de login e um teste novo de senhas sem os requisitos.
+
 ## Suíte de testes automatizados (não existia nenhuma)
 
 - Projeto não tinha `src/test` nem nenhuma dependência de teste configurada além do `spring-boot-starter-test` (não usado). Adicionado `com.h2database:h2` (escopo `test`) pra rodar testes de integração contra um banco real em memória sem depender do MySQL local.
@@ -88,3 +107,5 @@ Registro dos bugs encontrados e corrigidos em sessões de revisão do projeto, n
 ## Ainda pendente
 
 Ver `PENDENCIAS.md` na raiz do repositório do projeto — inclui funcionalidades ainda incompletas ("compartilhar via link" não faz nada, calendário não mostra nenhuma atividade real) e a senha de app do Gmail exposta no histórico do git (aguardando conversa com o Gui, é a conta dele). Checklists e categorias de tarefa, que antes estavam nessa lista, já foram implementados de verdade; o menu de acessibilidade saiu da lista porque foi removido do projeto em vez de implementado (ver seções acima). Os bugs pequenos que faltavam já foram todos corrigidos.
+
+Sobras das melhorias de interface: a regra de senha forte vale só no cadastro (redefinição de senha e edição de perfil ainda exigem só 8 caracteres, e contas já criadas com senha fraca continuam funcionando); e dois `alert()` nativos restam no fluxo de categorias ("Escolha uma lista para a tarefa antes de gerenciar categorias." e "Erro ao salvar a categoria.").
