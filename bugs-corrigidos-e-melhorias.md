@@ -104,6 +104,11 @@ Não são bugs: o comportamento anterior funcionava, mas destoava do restante do
 - `.idea/` estava sendo versionada e enviada pro remoto, porque o `.gitignore` só vivia dentro da pasta aninhada antes e nunca cobria a `.idea/` da raiz. Destrackeada.
 - README reescrito com descrição do projeto, stack, setup de banco e de e-mail, e como rodar.
 
+## Bugs resolvidos pelo Guizé
+
+- O programa crashava quando removia-se um usuário e ele tinha áreas de trabalho e categorias criadas no nome dele. (Havia um erro em remoção cascata e categoria tinha relação com área de trabalho mas área de trabalho não).
+- Serviço de email atualizado com um email novo e com o nome ToDaily no email remetente.
+
 ## Ainda pendente
 
 Ver `PENDENCIAS.md` na raiz do repositório do projeto — inclui funcionalidades ainda incompletas ("compartilhar via link" não faz nada, calendário não mostra nenhuma atividade real) e a senha de app do Gmail exposta no histórico do git (aguardando conversa com o Gui, é a conta dele). Checklists e categorias de tarefa, que antes estavam nessa lista, já foram implementados de verdade; o menu de acessibilidade saiu da lista porque foi removido do projeto em vez de implementado (ver seções acima). Os bugs pequenos que faltavam já foram todos corrigidos.
