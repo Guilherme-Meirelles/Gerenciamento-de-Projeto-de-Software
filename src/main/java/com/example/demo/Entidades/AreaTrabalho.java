@@ -31,6 +31,10 @@ public class AreaTrabalho {
     @OneToMany(mappedBy = "area", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Lista> listas = new ArrayList<>();
 
+    @JsonIgnore
+    @OneToMany(mappedBy = "area", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Categoria> categorias = new ArrayList<>();
+
     public Long getId() { return id; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -38,4 +42,7 @@ public class AreaTrabalho {
     public void setDono(Usuario dono) { this.dono = dono; }
     public Set<ParticipacaoArea> getParticipacoes() { return participacoes; }
     public List<Lista> getListas() { return listas; }
+    
+    public List<Categoria> getCategorias() { return categorias; }
+    public void setCategorias(List<Categoria> categorias) { this.categorias = categorias; }
 }

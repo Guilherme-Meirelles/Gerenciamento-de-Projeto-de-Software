@@ -23,8 +23,11 @@ public class EmailService {
 
     // O Gmail rejeita/reescreve o "From" quando ele não é a própria conta autenticada,
     // então o remetente precisa ser o mesmo usuário configurado em spring.mail.username.
+    @Value("${mail.from.name}")
+    private String remetenteNome;
+
     @Value("${spring.mail.username}")
-    private String remetente;
+    private String remetenteEmail;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -43,7 +46,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(remetente);
+            helper.setFrom(remetenteEmail, remetenteNome);
             helper.setSubject("Redefinição de senha ToDaily");
             helper.setTo(destinatarioEmail);
 
@@ -71,7 +74,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(remetente);
+            helper.setFrom(remetenteEmail, remetenteNome);
             helper.setSubject("Compartilhamento de Área de Trabalho ToDaily");
             helper.setTo(destinatario.getEmail());
 
@@ -101,7 +104,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(remetente);
+            helper.setFrom(remetenteEmail, remetenteNome);
             helper.setSubject("Confirme seu e-mail - ToDaily");
             helper.setTo(destinatarioEmail);
 
@@ -129,7 +132,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(remetente);
+            helper.setFrom(remetenteEmail, remetenteNome);
             helper.setSubject("Lembrete: \"" + tarefa.getTitulo() + "\" vence em breve - ToDaily");
             helper.setTo(destinatario.getEmail());
 
