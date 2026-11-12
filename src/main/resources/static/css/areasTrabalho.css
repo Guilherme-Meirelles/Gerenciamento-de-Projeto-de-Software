@@ -12,7 +12,7 @@
 }
 
 .titulo h2 {
-    font-size: 32px;
+    font-size: 22px; /* mesmo tamanho da tela "Para Hoje" (menu.css) */
     font-weight: 600;
     color: #fff;
 }
@@ -192,8 +192,8 @@
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
 
-.titulo-modal {
-    font-size: 24px;
+.overlay-modal .titulo-modal {
+    font-size: 22px; /* padrão dos modais do projeto; vence o .titulo-modal de 32px do menu.css */
     font-weight: 600;
     margin-bottom: 25px;
     color: #ffffff;
@@ -437,31 +437,9 @@
     height: 18px;
 }
 
-.campo-permissao-link {
-    margin-bottom: 20px;
-}
-
-.campo-permissao-link label {
-    display: block;
-    font-size: 13px;
-    color: #b0b0b0;
-    margin-bottom: 8px;
-}
-
-.campo-permissao-link select {
-    width: 100%;
-    background-color: #4a4a4a;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 14px;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-}
-
 /* Botão de excluir (vermelho) */
 .btn-excluir-areas {
-    background-color: #ff6b6b;
+    background-color: #d32f2f;
     border: none;
     border-radius: 10px;
     padding: 14px 20px;
@@ -927,12 +905,13 @@
 }
 
 /* ===== Menu de Contexto (Botão Direito) ===== */
+/* Mesmo visual do .context-menu da barra lateral (menu.css) */
 .menu-contexto {
     position: absolute;
-    background-color: #3a3a3a;
-    border-radius: 8px;
+    background-color: #2a2a2a;
+    border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    padding: 8px;
+    padding: 4px;
     z-index: 10000;
     min-width: 160px;
 }
@@ -940,26 +919,105 @@
 .item-menu-contexto {
     background: none;
     border: none;
-    color: #fff;
-    padding: 10px 12px;
+    color: #e0e0e0;
+    padding: 8px 12px;
     width: 100%;
     text-align: left;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     gap: 10px;
     font-size: 14px;
-    transition: background 0.2s;
+    transition: background-color 0.2s;
 }
 
 .item-menu-contexto:hover {
-    background-color: #4a4a4a;
+    background-color: #3a3a3a;
+    color: #fff;
 }
 
 .item-menu-contexto i {
     width: 16px;
     height: 16px;
+}
+
+/* ===== Modal de Compartilhamento: permissão e convite por e-mail ===== */
+.secao-permissao-convite {
+    border-top: 1px solid #4a4a4a;
+    padding-top: 25px;
+    margin-bottom: 25px;
+}
+
+.secao-permissao-convite h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #d0d0d0;
+    margin-bottom: 15px;
+}
+
+.opcoes-permissao-convite {
+    margin-bottom: 0;
+}
+
+.opcoes-permissao-convite .opcao-permissao {
+    padding: 12px 18px;
+}
+
+.descricao-modal {
+    font-size: 14px;
+    color: #b0b0b0;
+    line-height: 1.5;
+    margin: -10px 0 25px;
+}
+
+.descricao-modal strong {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+/* O aviso (.aviso, de avisos.css) fica logo abaixo da caixa, como nas telas de login e cadastro */
+.modal-email {
+    position: relative;
+}
+
+.campo-modal input.campo-invalido,
+.campo-modal input.campo-invalido:focus {
+    box-shadow: 0 0 0 1px #c0504d;
+}
+
+/* ===== Tela da engrenagem (Gerenciar Áreas) ===== */
+.btn-avancar-gerenciar {
+    flex: 1; /* "Avançar" e "Cancelar" com a mesma largura, como nos outros modais */
+}
+
+.area-item-gerenciar .badge-permissao {
+    flex-shrink: 0;
+}
+
+.titulo-detalhes {
+    flex: 1;
+    min-width: 0;
+}
+
+.subtitulo-detalhes {
+    display: block;
+    font-size: 13px;
+    color: #b0b0b0;
+    margin-top: 2px;
+}
+
+.item-menu-detalhes:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.item-menu-detalhes:disabled:hover {
+    background-color: #4a4a4a;
+}
+
+.badge-contador:empty {
+    display: none;
 }
 
 /* ===== Responsividade ===== */
@@ -1006,115 +1064,4 @@
     .botoes-modal {
         flex-direction: column;
     }
-}
-
-/* ===== Modal de Compartilhamento (Estilo Login) ===== */
-
-/* 1. O Fundo (Overlay) - Centraliza e deixa o resto opaco */
-#ModalCompartilhamentoOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.85); /* Fundo escuro transparente */
-    z-index: 10000; /* Garante que fique acima de tudo */
-    display: flex; /* Para centralizar o conteúdo */
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(2px); /* Opcional: leve desfoque no fundo */
-}
-
-/* 2. A Caixa (Container) - Baseada no login.css */
-#ModalCompartilhamentoOverlay .login-container {
-    background-color: #2a2a2a;
-    padding: 40px 50px;
-    border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 380px;
-    max-width: 90%;
-    /* Garante que a caixa não fique transparente, apenas o overlay */
-    opacity: 1;
-}
-
-/* 3. Tipografia e Títulos */
-#ModalCompartilhamentoOverlay h4 {
-    margin-bottom: 25px;
-    font-size: 18px;
-    font-weight: bold;
-    color: #fff;
-    text-align: center;
-    line-height: 1.4;
-}
-
-#ModalCompartilhamentoOverlay p {
-    margin-bottom: 15px;
-    font-size: 14px;
-}
-
-/* 4. Formulário e Inputs (Estilo login.css) */
-#ModalCompartilhamentoOverlay form {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
-
-#ModalCompartilhamentoOverlay label {
-    margin-top: 10px;
-    margin-bottom: 5px;
-    font-size: 14px;
-    color: #ccc;
-    text-align: left;
-    width: 100%;
-}
-
-#ModalCompartilhamentoOverlay input {
-    background-color: #1e1e1e;
-    border: 1px solid transparent;
-    border-radius: 4px;
-    height: 40px; /* Um pouco mais alto para facilitar o clique */
-    color: #fff;
-    padding: 0 12px;
-    outline: none;
-    width: 100%;
-    font-family: "Inter", Arial, sans-serif;
-    transition: border 0.2s;
-}
-
-#ModalCompartilhamentoOverlay input:focus {
-    border: 1px solid #b8b8b8; /* Cor de destaque do tema areasTrabalho */
-}
-
-/* 5. Botões (Estilo login.css) */
-#ModalCompartilhamentoOverlay .btn {
-    background-color: #111;
-    color: #fff;
-    border: none;
-    margin-top: 25px;
-    padding: 12px 0;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background 0.2s;
-    width: 100%;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-#ModalCompartilhamentoOverlay .btn:hover {
-    background-color: #000;
-}
-
-#ModalCompartilhamentoOverlay .btn.secundario {
-    background-color: #2a2a2a; /* Fundo igual ao modal */
-    border: 1px solid #444;
-    margin-top: 10px;
-}
-
-#ModalCompartilhamentoOverlay .btn.secundario:hover {
-    background-color: #333;
 }

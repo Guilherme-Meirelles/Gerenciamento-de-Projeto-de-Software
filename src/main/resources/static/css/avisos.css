@@ -47,3 +47,117 @@ input.campo-invalido:focus {
     border-color: #c0504d;
     box-shadow: 0 0 0 1px rgba(192, 80, 77, 0.35);
 }
+
+
+/* ===== Aviso flutuante e confirmação (substituem alert() e confirm() do navegador) ===== */
+/* Usa as mesmas cores dos .aviso acima; só muda a posição (fixo no topo da tela). */
+.aviso.aviso-flutuante {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(440px, calc(100vw - 32px));
+    box-sizing: border-box;
+    margin: 0;
+    z-index: 20000;
+    cursor: pointer;
+    user-select: text;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    animation: aviso-entrada 0.2s ease-out;
+}
+
+@keyframes aviso-entrada {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -8px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.aviso-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
+.aviso-caixa {
+    background-color: #3a3a3a;
+    border-radius: 16px;
+    padding: 25px 30px;
+    width: 90%;
+    max-width: 420px;
+    color: #ffffff;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    font-family: inherit;
+}
+
+.aviso-titulo {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: #ffffff;
+}
+
+.aviso-texto {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #d0d0d0;
+    margin: 0;
+    white-space: pre-line; /* respeita as quebras de linha da mensagem */
+}
+
+.aviso-botoes {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    justify-content: flex-end;
+}
+
+.aviso-btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: inherit;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.aviso-btn.cancelar {
+    background-color: #2e2e2e;
+}
+
+.aviso-btn.cancelar:hover {
+    background-color: #252525;
+}
+
+.aviso-btn.confirmar {
+    background-color: #4a4a4a;
+}
+
+.aviso-btn.confirmar:hover {
+    background-color: #555;
+}
+
+.aviso-btn.confirmar.perigo {
+    background-color: #d32f2f;
+}
+
+.aviso-btn.confirmar.perigo:hover {
+    background-color: #c62828;
+}
+
+.aviso-btn:focus-visible {
+    outline: 2px solid #b8b8b8;
+    outline-offset: 2px;
+}

@@ -1,6 +1,7 @@
 package com.example.demo.Serviços.EnvioDeEmail;
 
 import com.example.demo.Entidades.AreaTrabalho;
+import com.example.demo.Entidades.PermissaoArea;
 import com.example.demo.Entidades.Tarefa;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import com.example.demo.Entidades.Usuario;
 import java.io.IOException;
@@ -69,7 +71,10 @@ public class EmailService {
         }
     }
 
-    public void enviarEmailCompartilharAreaTrabalho(Usuario destinatario, String nomeUsuario, AreaTrabalho area, String token) {
+    // Assíncrono: o envio pelo SMTP leva vários segundos e não deve segurar a resposta da tela.
+    // Se falhar, o erro fica registrado no log do servidor.
+    @Async
+    public void enviarEmailCompartilharAreaTrabalho(Usuario destinatario, String nomeUsuario, AreaTrabalho area, String token, PermissaoArea permissao) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -87,6 +92,9 @@ public class EmailService {
             template = template.replace("{area}", area.getNome());
             template = template.replace("{areaID}", area.getId().toString());
             template = template.replace("{destID}", destinatario.getId().toString());
+            template = template.replace("{permissao}", permissao == PermissaoArea.OBSERVADOR
+                    ? "Observador (apenas visualiza)"
+                    : "Editor (visualiza, cria e edita tarefas)");
 
             helper.setText(template, true);
 

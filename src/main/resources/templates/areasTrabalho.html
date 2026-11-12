@@ -63,7 +63,7 @@
             <form class="formulario-nova-area" onsubmit="salvarArea(event)">
                 <input type="hidden" id="areaIdEdicao">
                 <div class="campo-modal">
-                    <label>Nome da área:*</label>
+                    <label>Nome da área:</label>
                     <input type="text" id="inputNomeArea" placeholder="Ex: Projetos Pessoais" autofocus required />
                 </div>
 
@@ -85,6 +85,29 @@
                 <!-- As áreas serão geradas pelo JS -->
             </div>
 
+            <!-- Nível de permissão do convite (vale para e-mail e para link) -->
+            <div class="secao-permissao-convite">
+                <h3>Nível de permissão:</h3>
+
+                <div class="opcoes-permissao opcoes-permissao-convite">
+                    <div class="opcao-permissao" onclick="selecionarPermissaoConvite('OBSERVADOR')">
+                        <input type="radio" name="permissaoConvite" id="convite-observador" value="OBSERVADOR">
+                        <label for="convite-observador">
+                            <span class="titulo-permissao">Observador</span>
+                            <span class="desc-permissao">Apenas visualiza as tarefas, sem editar</span>
+                        </label>
+                    </div>
+
+                    <div class="opcao-permissao selecionada" onclick="selecionarPermissaoConvite('EDITOR')">
+                        <input type="radio" name="permissaoConvite" id="convite-editor" value="EDITOR" checked>
+                        <label for="convite-editor">
+                            <span class="titulo-permissao">Editor</span>
+                            <span class="desc-permissao">Visualiza, cria e edita tarefas</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <!-- Métodos de compartilhamento -->
             <div class="secao-metodos-compartilhamento">
                 <h3>Compartilhar via:</h3>
@@ -101,15 +124,6 @@
                     </button>
                 </div>
 
-                <div class="campo-permissao-link">
-                    <label for="permissaoLink">Nível de permissão do link:</label>
-                    <select id="permissaoLink">
-                        <option value="OBSERVADOR">Observador (só visualiza)</option>
-                        <option value="EDITOR" selected>Editor (cria e edita tarefas)</option>
-                        <option value="ADMIN">Administrador (controle total da área)</option>
-                    </select>
-                </div>
-
                 <div class="botoes-modal">
                     <button type="button" class="btn-cancelar-modal" onclick="fecharModalCompartilhar()">Fechar</button>
                 </div>
@@ -117,20 +131,29 @@
         </div>
     </div>
 
+    <!-- Modal de convite por e-mail -->
+    <div id="ModalCompartilhamentoOverlay" class="overlay-modal" style="display: none;" onclick="fecharModalEmail()">
+        <div class="modal-nova-area modal-email" onclick="event.stopPropagation()">
+            <h2 class="titulo-modal">Compartilhar por e-mail</h2>
+            <p class="descricao-modal">
+                Informe o e-mail do usuário que receberá o convite com permissão de
+                <strong id="rotuloPermissaoEmail">Editor</strong>.
+            </p>
 
-    <div id="ModalCompartilhamentoOverlay" style="display: none">
-        <div class="login-container">
-            <h4>Insira o email do usuário <br> para compartilhar area de trabalho</h4>
+            <form id="emailForm" class="formulario-nova-area" novalidate onsubmit="enviarViaAjax(); return false;">
+                <div class="campo-modal">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" required>
+                </div>
 
-            <p id="msgFeedback" style="text-align:center; display:none;"></p>
-
-            <form id="emailForm" onsubmit="return false;">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" required>
-
-                <button type="button" class="btn" onclick="enviarViaAjax()">CONFIRMAR</button>
-                <button type="button" class="btn secundario" onclick="fecharModalEmail()">VOLTAR</button>
+                <div class="botoes-modal">
+                    <button type="submit" class="btn-criar">Confirmar</button>
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalEmail()">Voltar</button>
+                </div>
             </form>
+
+            <!-- Aviso (erro/sucesso) no mesmo padrão das telas de login e cadastro -->
+            <p id="msgFeedback" class="aviso" hidden></p>
         </div>
     </div>
 
@@ -168,6 +191,7 @@
             <!-- Etapa 1: Seleção de área -->
             <div id="etapaSelecaoArea" style="display: block;">
                 <h2 class="titulo-modal">Gerenciar Áreas de Trabalho</h2>
+                <p class="descricao-modal">Escolha uma área para ver e gerenciar os membros.</p>
 
                 <div class="lista-areas-gerenciar">
                     <!-- JS vai preencher as áreas aqui -->
@@ -188,7 +212,10 @@
                     <button class="btn-voltar-gerenciar" onclick="voltarParaSelecao()">
                         <i data-lucide="arrow-left"></i>
                     </button>
-                    <h3 id="tituloAreaDetalhes">Área de Trabalho</h3>
+                    <div class="titulo-detalhes">
+                        <h3 id="tituloAreaDetalhes">Área de Trabalho</h3>
+                        <span class="subtitulo-detalhes" id="subtituloAreaDetalhes"></span>
+                    </div>
                 </div>
 
                 <div class="menu-detalhes-area">
@@ -197,12 +224,14 @@
                             <i data-lucide="users"></i>
                             <div class="texto-item">
                                 <span class="titulo-item">Membros</span>
-                                <span class="subtitulo-item">Gerencie quem tem acesso</span>
+                                <span class="subtitulo-item" id="subtituloMembrosItem">Gerencie quem tem acesso</span>
                             </div>
                         </div>
+                        <span class="badge-contador" id="contadorMembros"></span>
                     </button>
 
-                    <button class="item-menu-detalhes" onclick="abrirSolicitacoes()">
+                    <!-- Ainda não implementado: aparece desativado em vez de abrir um aviso -->
+                    <button class="item-menu-detalhes" disabled title="Funcionalidade em desenvolvimento">
                         <div class="info-item">
                             <i data-lucide="mail"></i>
                             <div class="texto-item">
@@ -210,6 +239,7 @@
                                 <span class="subtitulo-item">Pedidos de acesso pendentes</span>
                             </div>
                         </div>
+                        <span class="badge-contador">Em breve</span>
                     </button>
                 </div>
 
@@ -224,7 +254,10 @@
                     <button class="btn-voltar-gerenciar" onclick="voltarParaDetalhes()">
                         <i data-lucide="arrow-left"></i>
                     </button>
-                    <h3>Membros</h3>
+                    <div class="titulo-detalhes">
+                        <h3>Membros</h3>
+                        <span class="subtitulo-detalhes" id="subtituloMembros"></span>
+                    </div>
                 </div>
 
                 <div class="lista-membros" id="listaMembros">
@@ -285,6 +318,7 @@
 <div th:replace="~{sidebar :: scripts}"></div>
 
 <script src="https://unpkg.com/lucide@latest"></script>
+<script src="/js/validacao.js"></script>
 <script src="/js/areasTrabalho.js"></script>
 <script>
     // Verifica se a variável existe para evitar erros

@@ -156,7 +156,7 @@ class AreaTrabalhoControllerTest {
     }
 
     @Test
-    void gerarLink_editorPedindoNivelAdmin_ehRebaixadoParaEditor() {
+    void gerarLink_editorPedindoNivelAdmin_retorna400ENaoGeraToken() {
         Usuario dono = criarUsuario("dono-link2@teste.com");
         AreaTrabalho area = new AreaTrabalho();
         area.setNome("Área");
@@ -167,15 +167,15 @@ class AreaTrabalhoControllerTest {
         Long areaId = area.getId();
         entityManager.clear();
 
-        controller.gerarLink(areaId, "ADMIN", requestAutenticado(editor.getId()));
+        ResponseEntity<?> resposta = controller.gerarLink(areaId, "ADMIN", requestAutenticado(editor.getId()));
 
-        List<Token> tokens = tokenRepository.findAll();
-        assertThat(tokens).hasSize(1);
-        assertThat(tokens.get(0).getPermissao()).isEqualTo(PermissaoArea.EDITOR); // rebaixado
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(tokenRepository.findAll()).isEmpty();
     }
 
     @Test
-    void gerarLink_adminPedindoNivelAdmin_mantemAdmin() {
+    void gerarLink_adminPedindoNivelAdmin_retorna400ENaoGeraToken() {
+        // Convite não concede Administrador: esse papel é só do dono da área.
         Usuario dono = criarUsuario("dono-link3@teste.com");
         AreaTrabalho area = new AreaTrabalho();
         area.setNome("Área");
@@ -186,11 +186,29 @@ class AreaTrabalhoControllerTest {
         Long areaId = area.getId();
         entityManager.clear();
 
-        controller.gerarLink(areaId, "ADMIN", requestAutenticado(admin.getId()));
+        ResponseEntity<?> resposta = controller.gerarLink(areaId, "ADMIN", requestAutenticado(admin.getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(tokenRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void gerarLink_adminPedindoObservador_gravaNivelObservadorNoToken() {
+        Usuario dono = criarUsuario("dono-link4@teste.com");
+        AreaTrabalho area = new AreaTrabalho();
+        area.setNome("Área");
+        area.setDono(dono);
+        entityManager.persistAndFlush(area);
+        Usuario admin = criarUsuario("admin-link4@teste.com");
+        entityManager.persistAndFlush(new ParticipacaoArea(admin, area, PermissaoArea.ADMIN));
+        Long areaId = area.getId();
+        entityManager.clear();
+
+        controller.gerarLink(areaId, "OBSERVADOR", requestAutenticado(admin.getId()));
 
         List<Token> tokens = tokenRepository.findAll();
         assertThat(tokens).hasSize(1);
-        assertThat(tokens.get(0).getPermissao()).isEqualTo(PermissaoArea.ADMIN);
+        assertThat(tokens.get(0).getPermissao()).isEqualTo(PermissaoArea.OBSERVADOR);
     }
 
     // ---------- removerMembro (só admin) ----------

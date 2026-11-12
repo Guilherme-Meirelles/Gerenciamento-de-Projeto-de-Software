@@ -64,6 +64,13 @@ public class CompartilharAreadeTrabalho {
                 return ResponseEntity.status(401).body(Map.of("success", false, "message", "Não autenticado"));
             }
 
+            // Nível concedido pelo convite (Observador ou Editor); sem valor, assume Editor.
+            Object permissaoBruta = dados.get("permissao");
+            PermissaoArea nivel = permissaoBruta == null ? EDITOR : PermissaoArea.doConvite(String.valueOf(permissaoBruta));
+            if (nivel == null) {
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Nível de permissão inválido. Use OBSERVADOR ou EDITOR."));
+            }
+
             AreaTrabalho area = areaTrabalhoRepository.findById(idArea).get();
             Usuario destinatario = usuarioRepository.findByEmail(email);
             if (area == null) {
@@ -85,6 +92,7 @@ public class CompartilharAreadeTrabalho {
                 token.setToken(tokenString);
                 token.setEmail(destinatario.getEmail());
                 token.setAreaId(idArea);
+                token.setPermissao(nivel);
                 token.setExpiraEm(LocalDateTime.now().plusMinutes(1440)); //1 dia
                 token.setUsado(false);
 
@@ -92,7 +100,7 @@ public class CompartilharAreadeTrabalho {
 
                 String nomeUsuario = remetente.getNome();
 
-                emailService.enviarEmailCompartilharAreaTrabalho(destinatario, nomeUsuario, area ,tokenString);
+                emailService.enviarEmailCompartilharAreaTrabalho(destinatario, nomeUsuario, area, tokenString, nivel);
 
                 System.out.println("Acerto");
             }
@@ -121,7 +129,7 @@ public class CompartilharAreadeTrabalho {
                 return "login";
             }
             else if (destinatario == null || area == null) {
-                model.addAttribute("erro", "Destinatario e area não encontrados");
+                model.addAttribute("erro", "Destinatário e área não encontrados");
                 return "login";
             }
             else if (!areaID.equals(token.getAreaId()) || !destinatario.getEmail().equalsIgnoreCase(token.getEmail())) {
@@ -130,11 +138,16 @@ public class CompartilharAreadeTrabalho {
                 return "login";
             }
             else{
-                ParticipacaoArea participacaoArea = new ParticipacaoArea(destinatario, area, EDITOR);
-                participacaoAreaRepository.save(participacaoArea);
+                // Quem já participa da área mantém o nível que tem (sem duplicar a participação).
+                if (!participacaoAreaRepository.existsByUsuarioIdAndAreaId(destinatario.getId(), areaID)) {
+                    // Aplica o nível escolhido no convite; tokens antigos (sem nível) viram Editor.
+                    PermissaoArea nivelConvite = token.getPermissao() == null || token.getPermissao() == ADMIN
+                            ? EDITOR : token.getPermissao();
+                    participacaoAreaRepository.save(new ParticipacaoArea(destinatario, area, nivelConvite));
+                }
                 token.setUsado(true);
                 tokenRepository.save(token);
-                model.addAttribute("mensagem", "Area compartilhada com sucesso");
+                model.addAttribute("mensagem", "Área compartilhada com sucesso");
                 return "login";
             }
 

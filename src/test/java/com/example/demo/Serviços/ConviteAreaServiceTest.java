@@ -118,7 +118,7 @@ class ConviteAreaServiceTest {
         Usuario dono = criarUsuario("dono-ok@teste.com");
         AreaTrabalho area = criarArea(dono);
         Usuario usuario = criarUsuario("convidado-ok@teste.com");
-        Token token = criarTokenLink(area.getId(), PermissaoArea.ADMIN, LocalDateTime.now().plusDays(1));
+        Token token = criarTokenLink(area.getId(), PermissaoArea.OBSERVADOR, LocalDateTime.now().plusDays(1));
 
         var resultado = conviteAreaService.aceitarLinkGenerico(token.getToken(), usuario);
 
@@ -126,7 +126,23 @@ class ConviteAreaServiceTest {
         assertThat(resultado.area().getId()).isEqualTo(area.getId());
 
         List<ParticipacaoArea> participacoes = participacaoAreaRepository.findByUsuario(usuario);
-        assertThat(participacoes).extracting(ParticipacaoArea::getPermissao).containsExactly(PermissaoArea.ADMIN);
+        assertThat(participacoes).extracting(ParticipacaoArea::getPermissao).containsExactly(PermissaoArea.OBSERVADOR);
+    }
+
+    @Test
+    void tokenComPermissaoAdmin_legado_viraEditor() {
+        // Links gerados antes de o convite deixar de oferecer Administrador ainda podem
+        // estar válidos (7 dias): quem entra por eles vira Editor, nunca Administrador.
+        Usuario dono = criarUsuario("dono-legado@teste.com");
+        AreaTrabalho area = criarArea(dono);
+        Usuario usuario = criarUsuario("convidado-legado@teste.com");
+        Token token = criarTokenLink(area.getId(), PermissaoArea.ADMIN, LocalDateTime.now().plusDays(1));
+
+        var resultado = conviteAreaService.aceitarLinkGenerico(token.getToken(), usuario);
+
+        assertThat(resultado.sucesso()).isTrue();
+        List<ParticipacaoArea> participacoes = participacaoAreaRepository.findByUsuario(usuario);
+        assertThat(participacoes).extracting(ParticipacaoArea::getPermissao).containsExactly(PermissaoArea.EDITOR);
     }
 
     @Test

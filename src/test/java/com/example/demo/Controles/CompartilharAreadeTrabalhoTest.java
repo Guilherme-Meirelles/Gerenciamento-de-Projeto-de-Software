@@ -14,6 +14,7 @@ import com.example.demo.Serviços.EnvioDeEmail.EmailService;
 import com.example.demo.Serviços.PermissaoAreaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -106,7 +107,7 @@ class CompartilharAreadeTrabalhoTest {
 
         assertThat(resposta.getStatusCode().value()).isEqualTo(403);
         verify(tokenRepository, never()).save(any());
-        verify(emailService, never()).enviarEmailCompartilharAreaTrabalho(any(), anyString(), any(), anyString());
+        verify(emailService, never()).enviarEmailCompartilharAreaTrabalho(any(), anyString(), any(), anyString(), any());
     }
 
     @Test
@@ -127,7 +128,46 @@ class CompartilharAreadeTrabalhoTest {
 
         assertThat(resposta.getStatusCode().is2xxSuccessful()).isTrue();
         verify(tokenRepository).save(any(Token.class));
-        verify(emailService).enviarEmailCompartilharAreaTrabalho(eq(destinatario), eq(remetente.getNome()), eq(area), anyString());
+        verify(emailService).enviarEmailCompartilharAreaTrabalho(eq(destinatario), eq(remetente.getNome()), eq(area), anyString(), eq(PermissaoArea.EDITOR));
+    }
+
+    @Test
+    void enviarNotificacao_comNivelObservador_gravaNoTokenEEnviaNoEmail() {
+        Usuario remetente = usuario(1L, "dono@teste.com");
+        Usuario destinatario = usuario(2L, "convidado@teste.com");
+        AreaTrabalho area = area(10L);
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(remetente));
+        when(areaTrabalhoRepository.findById(10L)).thenReturn(Optional.of(area));
+        when(usuarioRepository.findByEmail("convidado@teste.com")).thenReturn(destinatario);
+        when(permissaoAreaService.podeEditar(1L, 10L)).thenReturn(true);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        SessaoUtil.autenticar(request, 1L);
+        Map<String, Object> dados = Map.of("email", "convidado@teste.com", "id_area", 10, "permissao", "OBSERVADOR");
+
+        ResponseEntity<?> resposta = controller.enviarNotificacao(dados, request);
+
+        assertThat(resposta.getStatusCode().is2xxSuccessful()).isTrue();
+        ArgumentCaptor<Token> captor = ArgumentCaptor.forClass(Token.class);
+        verify(tokenRepository).save(captor.capture());
+        assertThat(captor.getValue().getPermissao()).isEqualTo(PermissaoArea.OBSERVADOR);
+        verify(emailService).enviarEmailCompartilharAreaTrabalho(eq(destinatario), eq(remetente.getNome()), eq(area), anyString(), eq(PermissaoArea.OBSERVADOR));
+    }
+
+    @Test
+    void enviarNotificacao_nivelAdmin_retorna400ENaoGeraConvite() {
+        Usuario remetente = usuario(1L, "dono@teste.com");
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(remetente));
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        SessaoUtil.autenticar(request, 1L);
+        Map<String, Object> dados = Map.of("email", "convidado@teste.com", "id_area", 10, "permissao", "ADMIN");
+
+        ResponseEntity<?> resposta = controller.enviarNotificacao(dados, request);
+
+        assertThat(resposta.getStatusCode().value()).isEqualTo(400);
+        verify(tokenRepository, never()).save(any());
+        verify(emailService, never()).enviarEmailCompartilharAreaTrabalho(any(), anyString(), any(), anyString(), any());
     }
 
     // ---------- compartilhamentoArea (aceitar convite por e-mail) ----------
@@ -202,5 +242,37 @@ class CompartilharAreadeTrabalhoTest {
         assertThat(token.isUsado()).isTrue();
         verify(participacaoAreaRepository).save(any(ParticipacaoArea.class));
         verify(tokenRepository).save(token);
+    }
+
+    @Test
+    void aceitarConvite_tokenObservador_criaParticipacaoObservador() {
+        Token token = new Token("tok", "convidado@teste.com", LocalDateTime.now().plusMinutes(10), false);
+        token.setAreaId(10L);
+        token.setPermissao(PermissaoArea.OBSERVADOR);
+        when(tokenRepository.findByToken("tok")).thenReturn(token);
+        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(usuario(2L, "convidado@teste.com")));
+        when(areaTrabalhoRepository.findById(10L)).thenReturn(Optional.of(area(10L)));
+
+        controller.compartilhamentoArea("tok", "2", "10", new ExtendedModelMap());
+
+        ArgumentCaptor<ParticipacaoArea> captor = ArgumentCaptor.forClass(ParticipacaoArea.class);
+        verify(participacaoAreaRepository).save(captor.capture());
+        assertThat(captor.getValue().getPermissao()).isEqualTo(PermissaoArea.OBSERVADOR);
+    }
+
+    @Test
+    void aceitarConvite_usuarioJaParticipa_naoDuplicaParticipacao() {
+        Token token = new Token("tok", "convidado@teste.com", LocalDateTime.now().plusMinutes(10), false);
+        token.setAreaId(10L);
+        token.setPermissao(PermissaoArea.EDITOR);
+        when(tokenRepository.findByToken("tok")).thenReturn(token);
+        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(usuario(2L, "convidado@teste.com")));
+        when(areaTrabalhoRepository.findById(10L)).thenReturn(Optional.of(area(10L)));
+        when(participacaoAreaRepository.existsByUsuarioIdAndAreaId(2L, 10L)).thenReturn(true);
+
+        controller.compartilhamentoArea("tok", "2", "10", new ExtendedModelMap());
+
+        verify(participacaoAreaRepository, never()).save(any());
+        assertThat(token.isUsado()).isTrue();
     }
 }

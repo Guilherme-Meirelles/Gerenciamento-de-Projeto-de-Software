@@ -54,7 +54,9 @@ public class ConviteAreaService {
                 .anyMatch(p -> p.getUsuario().getId().equals(usuario.getId()));
 
         if (!jaParticipa) {
-            PermissaoArea permissao = token.getPermissao() != null ? token.getPermissao() : PermissaoArea.EDITOR;
+            // Convite nunca concede Administrador (dono da área); links antigos com esse nível viram Editor.
+            PermissaoArea permissao = token.getPermissao() == null || token.getPermissao() == PermissaoArea.ADMIN
+                    ? PermissaoArea.EDITOR : token.getPermissao();
             participacaoAreaRepository.save(new ParticipacaoArea(usuario, area, permissao));
         }
 

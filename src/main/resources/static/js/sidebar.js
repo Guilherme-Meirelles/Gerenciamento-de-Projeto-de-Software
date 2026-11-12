@@ -297,7 +297,7 @@ window.confirmarCriacaoLista = async function () {
     const areaId = window.areaAtualId; // ID da área carregada na página
     
     if (!nome) {
-        alert("O nome da lista é obrigatório!");
+        Aviso.mostrar("O nome da lista é obrigatório!", 'erro');
         return;
     }
 
@@ -322,7 +322,7 @@ window.confirmarEdicaoLista = async function () {
     const desc = document.getElementById("descricao-lista-edit").value.trim();
 
     if (!nome) {
-        alert("O nome é obrigatório!");
+        Aviso.mostrar("O nome é obrigatório!", 'erro');
         return;
     }
 

@@ -256,16 +256,10 @@ public class AreaTrabalhoController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Você não tem permissão para convidar pessoas nesta área"));
         }
 
-        PermissaoArea nivel;
-        try {
-            nivel = PermissaoArea.valueOf(permissao.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            nivel = PermissaoArea.EDITOR;
-        }
-
-        // Só Admin pode gerar um link que concede nível Admin; Editor gerando link cai pra Editor.
-        if (nivel == PermissaoArea.ADMIN && !permissaoAreaService.podeAdministrar(usuario.getId(), id)) {
-            nivel = PermissaoArea.EDITOR;
+        // Convite só concede Observador ou Editor: Administrador é o dono da área.
+        PermissaoArea nivel = PermissaoArea.doConvite(permissao);
+        if (nivel == null) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Nível de permissão inválido. Use OBSERVADOR ou EDITOR."));
         }
 
         // Gera e salva um token de convite real (link genérico: sem e-mail associado,

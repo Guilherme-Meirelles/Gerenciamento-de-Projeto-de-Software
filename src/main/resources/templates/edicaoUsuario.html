@@ -16,7 +16,7 @@
 <div class="cadastro-container largo">
     <h2>Edição Usuario</h2>
 
-    <p th:text="${mensagem}" style="color: lightgreen; text-align:center;"></p>
+    <p class="aviso sucesso" th:if="${mensagem != null}" th:text="${mensagem}"></p>
 
     <form id="cadastroForm" action="/edicaoUsuario" method="post" novalidate onsubmit="return validarFormulario()" th:object="${usuario}">
 

@@ -1,6 +1,8 @@
 let areaAtualContexto = { id: null, nome: null };
 let modoEdicao = false; // false = criar, true = renomear
 let areaSelecionadaCompartilhar = null;
+// Nível de permissão do convite (vale para o convite por e-mail e para o link)
+let permissaoConviteSelecionada = 'EDITOR';
 let areasSelecionadasExcluir = [];
 let areaSelecionadaGerenciar = null;
 let nomeAreaGerenciar = null;
@@ -63,7 +65,7 @@ window.salvarArea = function (event) {
     const id = document.getElementById("areaIdEdicao").value;
     const nome = document.getElementById("inputNomeArea").value.trim();
     if (!nome) {
-        alert("Nome inválido");
+        Aviso.mostrar('Nome inválido.', 'erro');
         return;
     }
 
@@ -76,7 +78,6 @@ window.salvarArea = function (event) {
         .then(res => res.text())
         .then(newId => {
             if (newId === "NOT_LOGGED") {
-                alert("Você precisa estar logado.");
                 window.location.href = "/login";
                 return;
             }
@@ -108,9 +109,9 @@ window.salvarArea = function (event) {
         document.getElementById("areaIdEdicao").value = "";
     })
     .catch(err => {
-        if (err.message === "NOT_FOUND") alert("Área não encontrada.");
-        else if (err.message === "NOT_OWNER") alert("Você não tem permissão para renomear esta área.");
-        else alert("Erro ao renomear área.");
+        if (err.message === "NOT_FOUND") Aviso.mostrar("Área não encontrada.", 'erro');
+        else if (err.message === "NOT_OWNER") Aviso.mostrar("Você não tem permissão para renomear esta área.", 'erro');
+        else Aviso.mostrar("Erro ao renomear área.", 'erro');
         fecharModalArea();
     });
 }
@@ -190,9 +191,47 @@ window.carregarAreasCompartilhamento = function (areas) {
     });
 }
 
+const ROTULOS_PERMISSAO_CONVITE = { OBSERVADOR: 'Observador', EDITOR: 'Editor' };
+
+window.selecionarPermissaoConvite = function (permissao) {
+    permissaoConviteSelecionada = permissao;
+
+    const radio = document.querySelector(`input[name="permissaoConvite"][value="${permissao}"]`);
+    if (radio) {
+        radio.checked = true;
+    }
+
+    document.querySelectorAll('.opcoes-permissao-convite .opcao-permissao').forEach(opcao => {
+        opcao.classList.remove('selecionada');
+    });
+    if (radio) {
+        radio.closest('.opcao-permissao').classList.add('selecionada');
+    }
+}
+
 window.abrirModalEmail = function(){
-    // Atualizado para o ID sem espaço
+    const campo = document.getElementById('email');
+    const aviso = document.getElementById('msgFeedback');
+
+    // Some o aviso/marcação de erro assim que o usuário volta a digitar (registra uma vez só)
+    if (!campo.dataset.ouvindo) {
+        campo.dataset.ouvindo = '1';
+        campo.addEventListener('input', () => {
+            Validacao.marcar(campo, false);
+            if (aviso.classList.contains('erro')) {
+                Validacao.mostrarAviso(aviso, '');
+            }
+        });
+    }
+
+    Validacao.marcar(campo, false);
+    Validacao.mostrarAviso(aviso, '');
+    campo.value = '';
+    document.getElementById('rotuloPermissaoEmail').textContent =
+        ROTULOS_PERMISSAO_CONVITE[permissaoConviteSelecionada] || permissaoConviteSelecionada;
+
     document.getElementById('ModalCompartilhamentoOverlay').style.display = 'flex';
+    setTimeout(() => campo.focus(), 10);
 }
 
 window.fecharModalEmail = function(){
@@ -200,64 +239,73 @@ window.fecharModalEmail = function(){
 }
 
 function enviarViaAjax() {
-    // 1. Pega os valores
-    var emailInput = document.getElementById('email').value;
-    var msgFeedback = document.getElementById('msgFeedback');
+    const campo = document.getElementById('email');
+    const aviso = document.getElementById('msgFeedback');
+    const botao = document.querySelector('#emailForm .btn-criar');
+    const email = campo.value.trim();
 
-    // Validação básica
-    if (!emailInput) {
-        alert("Por favor, preencha o email.");
+    function avisar(texto, tipo) {
+        aviso.className = 'aviso ' + tipo;
+        Validacao.mostrarAviso(aviso, texto);
+    }
+
+    // Validação no padrão das telas de login e cadastro (sem o balão nativo do navegador)
+    if (!email) {
+        Validacao.marcar(campo, true);
+        avisar('Informe o e-mail do usuário que receberá o convite.', 'erro');
+        campo.focus();
+        return;
+    }
+    if (!Validacao.emailValido(email)) {
+        Validacao.marcar(campo, true);
+        avisar('Digite um e-mail válido, como nome@exemplo.com.', 'erro');
+        campo.focus();
+        return;
+    }
+    if (!areaSelecionadaCompartilhar) {
+        avisar('Erro: ID da área não identificado.', 'erro');
         return;
     }
 
-    // Verifica a variável global do ID da Área
-    if (typeof areaSelecionadaCompartilhar === 'undefined' || !areaSelecionadaCompartilhar) {
-        alert("Erro: ID da área não identificado.");
-        return;
-    }
+    Validacao.marcar(campo, false);
+    const textoBotao = botao.textContent;
+    botao.disabled = true;
+    botao.textContent = 'Enviando...';
 
-    // 2. Monta o objeto para enviar (JSON)
-    var dadosParaEnviar = {
-        email: emailInput,
-        id_area: areaSelecionadaCompartilhar
-    };
-
-    // 3. Faz o POST via Fetch (Sem recarregar a página)
     fetch('/notificacaoArea', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(dadosParaEnviar)
+        body: JSON.stringify({
+            email: email,
+            id_area: areaSelecionadaCompartilhar,
+            permissao: permissaoConviteSelecionada
+        })
     })
-        .then(response => response.json()) // Converte a resposta do Java para objeto JS
+        .then(response => response.json())
         .then(data => {
-            // 4. Trata o sucesso ou erro visualmente
-            msgFeedback.style.display = 'block';
-            msgFeedback.innerText = data.message;
-
             if (data.success) {
-                msgFeedback.style.color = 'lightgreen';
-                // Opcional: Limpar o campo de email
-                document.getElementById('email').value = '';
-
-                // Se quiser fechar o modal automaticamente após 2 segundos:
-                // setTimeout(fecharModalEmail, 2000);
+                avisar(data.message, 'sucesso');
+                campo.value = '';
             } else {
-                msgFeedback.style.color = '#ff6b6b';
+                avisar(data.message || 'Erro ao processar.', 'erro');
             }
         })
         .catch(error => {
             console.error('Erro:', error);
-            msgFeedback.style.display = 'block';
-            msgFeedback.innerText = "Erro de conexão com o servidor.";
-            msgFeedback.style.color = '#ff6b6b';
+            avisar('Erro de conexão com o servidor.', 'erro');
+        })
+        .finally(() => {
+            botao.disabled = false;
+            botao.textContent = textoBotao;
         });
 }
 
 window.abrirModalCompartilhar = function () {
     document.getElementById('modalCompartilhar').style.display = 'flex';
     areaSelecionadaCompartilhar = null;
+    selecionarPermissaoConvite('EDITOR'); // nível padrão a cada abertura do modal
 
     // AQUI ESTÁ A MUDANÇA PRINCIPAL
     const areas = Array.from(document.querySelectorAll('.area-card'))
@@ -272,7 +320,7 @@ window.abrirModalCompartilhar = function () {
 
     // Se a lista estiver vazia, pode ser útil avisar o usuário
     if (areas.length === 0) {
-        alert("Você não possui permissão de administrador em nenhuma área para compartilhar.");
+        Aviso.mostrar('Você não possui permissão de administrador em nenhuma área para compartilhar.', 'alerta');
         fecharModalCompartilhar();
         return;
     }
@@ -328,27 +376,27 @@ window.atualizarSelecaoArea = function () {
 
 window.gerarLinkCompartilhamento = function () {
     if (!areaSelecionadaCompartilhar) {
-        alert('Selecione uma área para compartilhar');
+        Aviso.mostrar('Selecione uma área para compartilhar.', 'alerta');
         return;
     }
 
-    const permissao = document.getElementById('permissaoLink').value;
+    const permissao = permissaoConviteSelecionada;
 
     fetch(`/areasTrabalho/gerar-link/${areaSelecionadaCompartilhar}?permissao=${permissao}`)
         .then(res => res.json())
         .then(data => {
             if (data.link) {
                 navigator.clipboard.writeText(data.link)
-                    .then(() => alert('Link copiado para a área de transferência!'))
-                    .catch(() => alert('Link gerado: ' + data.link));
+                    .then(() => Aviso.mostrar('Link copiado para a área de transferência!', 'sucesso'))
+                    .catch(() => Aviso.mostrar('Não foi possível copiar automaticamente. Link gerado: ' + data.link, 'alerta', 20000));
                 fecharModalCompartilhar();
             } else {
-                alert('Erro ao gerar o link.');
+                Aviso.mostrar('Erro ao gerar o link.', 'erro');
             }
         })
         .catch(err => {
             console.error(err);
-            alert('Erro ao gerar o link. Tente novamente.');
+            Aviso.mostrar('Erro ao gerar o link. Tente novamente.', 'erro');
         });
 }
 
@@ -401,10 +449,14 @@ window.atualizarSelecaoExclusao = function () {
     // Atualiza texto do botão
     if (areasSelecionadasExcluir.length > 0) {
         const q = areasSelecionadasExcluir.length;
-        const soSaida = areasSelecionadasExcluir.every(id => !areaEhAdmin(id));
-        btnExcluir.innerHTML = soSaida
-            ? `<i data-lucide="log-out"></i> Sair de ${q} ${q === 1 ? 'Área' : 'Áreas'}`
-            : `<i data-lucide="trash-2"></i> Excluir ${q} ${q === 1 ? 'Área' : 'Áreas'}`;
+        const qtdAdmin = areasSelecionadasExcluir.filter(areaEhAdmin).length;
+        if (qtdAdmin === 0) {
+            btnExcluir.innerHTML = `<i data-lucide="log-out"></i> ${q === 1 ? 'Sair da área' : `Sair de ${q} áreas`}`;
+        } else if (qtdAdmin === q) {
+            btnExcluir.innerHTML = `<i data-lucide="trash-2"></i> ${q === 1 ? 'Excluir área' : `Excluir ${q} áreas`}`;
+        } else {
+            btnExcluir.innerHTML = `<i data-lucide="trash-2"></i> Excluir ou sair de ${q} áreas`;
+        }
     } else {
         btnExcluir.innerHTML = '<i data-lucide="trash-2"></i> Excluir Selecionadas';
     }
@@ -417,9 +469,29 @@ function areaEhAdmin(areaId) {
     return !!card && card.dataset.permissao === 'ADMIN';
 }
 
-window.confirmarExclusao = function () {
+function nomeDaArea(areaId) {
+    const card = document.querySelector(`.area-card[data-id="${areaId}"]`);
+    return card ? card.dataset.nome : '';
+}
+
+// "Teste" | "Teste" e "Outra" | "A", "B" e "C"
+function listarNomes(ids) {
+    const nomes = ids.map(id => `"${nomeDaArea(id)}"`);
+    return nomes.length > 1
+        ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1]
+        : nomes[0];
+}
+
+// Evita que nomes com < > & " ' quebrem o HTML (ou injetem código) ao montar listas com innerHTML
+function escaparHtml(texto) {
+    return String(texto == null ? '' : texto).replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+}
+
+window.confirmarExclusao = async function () {
     if (areasSelecionadasExcluir.length === 0) {
-        alert('Selecione pelo menos uma área para excluir');
+        Aviso.mostrar('Selecione pelo menos uma área para excluir.', 'alerta');
         return;
     }
 
@@ -427,12 +499,31 @@ window.confirmarExclusao = function () {
     const idsSaida = areasSelecionadasExcluir.filter(id => !areaEhAdmin(id));
     let aviso = '';
     if (idsAdmin.length > 0) {
-        aviso += `Você é administrador de ${idsAdmin.length} ${idsAdmin.length === 1 ? 'área' : 'áreas'}: ${idsAdmin.length === 1 ? 'ela será excluída' : 'elas serão excluídas'} para todos os membros.\n`;
+        const um = idsAdmin.length === 1;
+        aviso += `Você é administrador de ${listarNomes(idsAdmin)}: ${um ? 'ela será excluída' : 'elas serão excluídas'} para todos os membros.\n`;
     }
     if (idsSaida.length > 0) {
-        aviso += `Em ${idsSaida.length} ${idsSaida.length === 1 ? 'área' : 'áreas'} você não é administrador: você apenas sairá ${idsSaida.length === 1 ? 'dela' : 'delas'}, e ${idsSaida.length === 1 ? 'ela continuará' : 'elas continuarão'} existindo para os outros membros.\n`;
+        const um = idsSaida.length === 1;
+        aviso += `Você não é administrador de ${listarNomes(idsSaida)}: você apenas sairá ${um ? 'dela' : 'delas'}, e ${um ? 'ela continuará' : 'elas continuarão'} existindo para os outros membros.\n`;
     }
-    const confirmacao = confirm(`${aviso}\nDeseja continuar?`);
+
+    const soSaida = idsAdmin.length === 0;
+    const soExclusao = idsSaida.length === 0;
+    const varias = areasSelecionadasExcluir.length > 1;
+
+    // Nomes guardados antes de a requisição remover os cards da tela
+    const resumo = [];
+    if (idsAdmin.length > 0) resumo.push(idsAdmin.length === 1 ? `${listarNomes(idsAdmin)} foi excluída` : `${idsAdmin.length} áreas excluídas`);
+    if (idsSaida.length > 0) resumo.push(idsSaida.length === 1 ? `você saiu de ${listarNomes(idsSaida)}` : `você saiu de ${idsSaida.length} áreas`);
+
+    const confirmacao = await Aviso.confirmar({
+        titulo: soSaida ? (varias ? 'Sair das áreas' : 'Sair da área')
+            : soExclusao ? (varias ? 'Excluir áreas' : 'Excluir área')
+            : 'Excluir ou sair das áreas',
+        mensagem: `${aviso}\nDeseja continuar?`,
+        confirmar: soSaida ? 'Sair' : soExclusao ? 'Excluir' : 'Continuar',
+        perigo: idsAdmin.length > 0
+    });
 
     if (!confirmacao) return;
 
@@ -451,14 +542,11 @@ window.confirmarExclusao = function () {
             const card = document.querySelector(`.area-card[data-id="${areaId}"]`);
             if (card) card.remove();
         });
-        const partes = [];
-        if (idsAdmin.length > 0) partes.push(`${idsAdmin.length} ${idsAdmin.length === 1 ? 'área excluída' : 'áreas excluídas'}`);
-        if (idsSaida.length > 0) partes.push(`você saiu de ${idsSaida.length} ${idsSaida.length === 1 ? 'área' : 'áreas'}`);
-        alert(`Concluído: ${partes.join(' e ')}.`);
+        Aviso.mostrar(`Concluído: ${resumo.join(' e ')}.`, 'sucesso');
         fecharModalExcluir();
     })
     .catch(err => {
-        alert(err.message);
+        Aviso.mostrar(err.message, 'erro');
     });
 }
 
@@ -527,24 +615,47 @@ window.abrirModalGerenciamento = function () {
         .filter(card => card.dataset.id && card.dataset.nome)
         .map(card => ({
             id: card.dataset.id,
-            nome: card.dataset.nome
+            nome: card.dataset.nome,
+            permissao: (card.dataset.permissao || '').toLowerCase()
     }));
+
+    if (areas.length === 0) {
+        const vazio = document.createElement('p');
+        vazio.className = 'descricao-modal';
+        vazio.textContent = 'Você ainda não participa de nenhuma área de trabalho.';
+        listaAreas.appendChild(vazio);
+    }
 
     areas.forEach(area => {
         const div = document.createElement('div');
         div.classList.add('area-item-gerenciar');
         div.onclick = () => selecionarAreaGerenciar(area.id);
 
-        div.innerHTML = `
-            <div class="info-area">
-                <input type="radio" name="areaGerenciar" id="gerenciar-${area.id}" value="${area.id}" onchange="atualizarSelecaoGerenciar()">
-                <label for="gerenciar-${area.id}">${area.nome}</label>
-                ${area.compartilhado ? `<div class="badge-compartilhado-mini"><i data-lucide="share-2"></i></div>` : ''}
-            </div>
-        `;
+        const info = document.createElement('div');
+        info.className = 'info-area';
+
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'areaGerenciar';
+        radio.id = 'gerenciar-' + area.id;
+        radio.value = area.id;
+        radio.onchange = atualizarSelecaoGerenciar;
+
+        const label = document.createElement('label');
+        label.htmlFor = radio.id;
+        label.textContent = area.nome;
+
+        // Papel do usuário nesta área (Administrador, Editor ou Observador)
+        const badge = document.createElement('span');
+        badge.className = 'badge-permissao ' + area.permissao;
+        badge.textContent = rotuloPermissao(area.permissao);
+
+        info.appendChild(radio);
+        info.appendChild(label);
+        info.appendChild(badge);
+        div.appendChild(info);
         listaAreas.appendChild(div);
     });
-
 
     setTimeout(() => lucide.createIcons(), 10);
 }
@@ -591,21 +702,42 @@ window.atualizarSelecaoGerenciar = function () {
 
 window.avancarParaDetalhes = function () {
     if (!areaSelecionadaGerenciar) {
-        alert('Selecione uma área para gerenciar');
+        Aviso.mostrar('Selecione uma área para gerenciar.', 'alerta');
         return;
     }
 
     console.log('Carregando detalhes da área:', areaSelecionadaGerenciar);
     // Aqui você faria a chamada ao backend para carregar os dados da área
 
-    // Atualiza título
+    // Atualiza título, o papel do usuário e o que ele pode fazer em "Membros"
+    const souAdmin = areaEhAdmin(areaSelecionadaGerenciar);
+    const papel = (document.querySelector(`.area-card[data-id="${areaSelecionadaGerenciar}"]`)?.dataset.permissao || '').toLowerCase();
     document.getElementById('tituloAreaDetalhes').textContent = nomeAreaGerenciar;
+    document.getElementById('subtituloAreaDetalhes').textContent = `Você é ${rotuloPermissao(papel)}`;
+    document.getElementById('subtituloMembrosItem').textContent = souAdmin ? 'Gerencie quem tem acesso' : 'Veja quem tem acesso';
+    atualizarContadorMembros();
 
     // Troca de etapa
     document.getElementById('etapaSelecaoArea').style.display = 'none';
     document.getElementById('etapaDetalhesArea').style.display = 'block';
 
     setTimeout(() => lucide.createIcons(), 10);
+}
+
+// Mostra quantos membros a área tem no item "Membros"
+function atualizarContadorMembros() {
+    const contador = document.getElementById('contadorMembros');
+    const areaId = areaSelecionadaGerenciar;
+    contador.textContent = '';
+
+    fetch(`/areasTrabalho/${encodeURIComponent(areaId)}/membros`)
+        .then(res => res.ok ? res.json() : [])
+        .then(membros => {
+            if (Array.isArray(membros) && areaId === areaSelecionadaGerenciar) {
+                contador.textContent = membros.length;
+            }
+        })
+        .catch(() => {});
 }
 
 window.voltarParaSelecao = function () {
@@ -625,6 +757,10 @@ window.abrirMembros = function () {
 
     const listaMembros = document.getElementById('listaMembros');
     listaMembros.innerHTML = ''; // limpa lista
+    document.getElementById('subtituloMembros').textContent = nomeAreaGerenciar;
+
+    // Só o administrador altera permissões e remove membros (o servidor também exige isso)
+    const souAdmin = areaEhAdmin(areaSelecionadaGerenciar);
     
     fetch(`/areasTrabalho/${areaSelecionadaGerenciar}/membros`)
         .then(res => res.json())
@@ -645,38 +781,36 @@ window.abrirMembros = function () {
                 div.classList.add('membro-item');
                 div.setAttribute('data-membro-id', membro.id);
 
-                const btnAlterar =  membro.permissao !== 'admin'?
-                    `<button class="btn-acao-membro" onclick="abrirModalPermissao('${membro.id}','${membro.nome}','${membro.permissao}')">
-                        <i data-lucide="shield"></i> Alterar Permissão
-                    </button>` :
-                    `<button class="btn-acao-membro" disabled title="Administradores não têm a permissão alterada por aqui">
-                        <i data-lucide="shield"></i> Alterar Permissão
-                    </button>`;
+                const ehAdmin = membro.permissao === 'admin';
+                const dadosMembro = `data-id="${escaparHtml(membro.id)}" data-nome="${escaparHtml(membro.nome)}"`;
 
-                const btnRemover = membro.permissao !== 'admin'  ?
-                    `<button class="btn-acao-membro remover" onclick="removerMembro('${membro.id}','${membro.nome}','${areaSelecionadaGerenciar}')">
-                        <i data-lucide="user-minus"></i> Remover
-                    </button>` :
-                    `<button class="btn-acao-membro remover" disabled title="O administrador não pode ser removido">
-                        <i data-lucide="user-minus"></i> Remover
-                    </button>`;
+                const acoes = souAdmin ? `
+                    <div class="membro-acoes">
+                        <button class="btn-acao-membro" ${dadosMembro} data-permissao="${escaparHtml(membro.permissao)}"
+                                onclick="abrirModalPermissao(this.dataset.id, this.dataset.nome, this.dataset.permissao)"
+                                ${ehAdmin ? 'disabled title="Administradores não têm a permissão alterada por aqui"' : ''}>
+                            <i data-lucide="shield"></i> Alterar Permissão
+                        </button>
+                        <button class="btn-acao-membro remover" ${dadosMembro} data-area="${escaparHtml(areaSelecionadaGerenciar)}"
+                                onclick="removerMembro(this.dataset.id, this.dataset.nome, this.dataset.area)"
+                                ${ehAdmin ? 'disabled title="O administrador não pode ser removido"' : ''}>
+                            <i data-lucide="user-minus"></i> Remover
+                        </button>
+                    </div>` : '';
 
                 div.innerHTML = `
                     <div class="membro-header">
                         <div class="membro-info">
-                            <div class="membro-nome">${membro.nome}</div>
-                            <div class="membro-email">${membro.email}</div>
+                            <div class="membro-nome">${escaparHtml(membro.nome)}</div>
+                            <div class="membro-email">${escaparHtml(membro.email)}</div>
                         </div>
                         <div class="membro-badges">
-                            <span class="badge-permissao ${membro.permissao}" data-permissao="${membro.permissao}">
+                            <span class="badge-permissao ${escaparHtml(membro.permissao)}" data-permissao="${escaparHtml(membro.permissao)}">
                                 ${rotuloPermissao(membro.permissao)}
                             </span>
                         </div>
                     </div>
-                    <div class="membro-acoes">
-                        ${btnAlterar}
-                        ${btnRemover}
-                    </div>
+                    ${acoes}
                 `;
                 listaMembros.appendChild(div);
             });
@@ -702,7 +836,7 @@ window.voltarParaDetalhes = function () {
 window.abrirSolicitacoes = function () {
     console.log('Carregando solicitações da área:', areaSelecionadaGerenciar);
     // Aqui você implementaria a tela de solicitações
-    alert('Funcionalidade de Solicitações em desenvolvimento');
+    Aviso.mostrar('Funcionalidade de Solicitações em desenvolvimento.', 'alerta');
 }
 
 // Gerenciamento de permissões de membros
@@ -740,7 +874,7 @@ window.selecionarPermissao = function (permissao) {
         radio.checked = true;
 
         // Remove seleção visual de todos
-        document.querySelectorAll('.opcao-permissao').forEach(opcao => {
+        document.querySelectorAll('#modalPermissao .opcao-permissao').forEach(opcao => {
             opcao.classList.remove('selecionada');
         });
 
@@ -753,7 +887,7 @@ window.salvarPermissao = function () {
     const permissaoSelecionada = document.querySelector('input[name="permissaoMembro"]:checked');
 
     if (!permissaoSelecionada) {
-        alert('Selecione uma permissão');
+        Aviso.mostrar('Selecione uma permissão.', 'alerta');
         return;
     }
 
@@ -771,7 +905,7 @@ window.salvarPermissao = function () {
         .then(async resposta => {
             const dados = await resposta.json().catch(() => ({}));
             if (!resposta.ok || dados.success === false) {
-                alert(dados.message || 'Não foi possível alterar a permissão.');
+                Aviso.mostrar(dados.message || 'Não foi possível alterar a permissão.', 'erro');
                 return;
             }
             // Atualiza a UI
@@ -789,21 +923,26 @@ window.salvarPermissao = function () {
                 // Atualiza o botão de alterar permissão para refletir nova permissão
                 const btnAlterar = membroCard.querySelector('.btn-acao-membro:not(.remover)');
                 if (btnAlterar) {
-                    btnAlterar.setAttribute('onclick', `abrirModalPermissao('${membro.id}', '${membro.nome}', '${novoNivel}')`);
+                    btnAlterar.dataset.permissao = novoNivel;
                 }
             }
 
-            alert(`Permissão de ${membro.nome} alterada para "${rotuloPermissao(novoNivel)}"`);
+            Aviso.mostrar(`Permissão de ${membro.nome} alterada para "${rotuloPermissao(novoNivel)}".`, 'sucesso');
             fecharModalPermissao();
         })
-        .catch(() => alert('Erro de conexão ao alterar a permissão.'));
+        .catch(() => Aviso.mostrar('Erro de conexão ao alterar a permissão.', 'erro'));
 }
 
 // Adicionamos 'async' para poder esperar a resposta do servidor
 window.removerMembro = async function (membroId, membroNome, idArea) {
 
     // Confirmação antes de qualquer coisa
-    const confirmacao = confirm(`Tem certeza que deseja remover ${membroNome} desta área?\n\nEle perderá acesso a todas as tarefas e informações.`);
+    const confirmacao = await Aviso.confirmar({
+        titulo: 'Remover membro',
+        mensagem: `Tem certeza que deseja remover ${membroNome} desta área?\n\nEle perderá acesso a todas as tarefas e informações.`,
+        confirmar: 'Remover',
+        perigo: true
+    });
 
     if (!confirmacao) return; // Se cancelar, para aqui.
 
@@ -850,12 +989,12 @@ window.removerMembro = async function (membroId, membroNome, idArea) {
             }, 300); // Espera a animação terminar
         }
 
-        alert(`${membroNome} foi removido da área de trabalho.`);
+        Aviso.mostrar(`${membroNome} foi removido da área de trabalho.`, 'sucesso');
 
     } catch (erro) {
         // --- 3. Tratamento de Erro ---
         console.error('Falha ao remover:', erro);
-        alert('Ocorreu um erro ao tentar remover o membro. Tente novamente. ' + erro);
+        Aviso.mostrar('Ocorreu um erro ao tentar remover o membro. Tente novamente.', 'erro');
     }
 };
 

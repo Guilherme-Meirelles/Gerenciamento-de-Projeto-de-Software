@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ToDaily - Redefinição de Senha</title>
     <link rel="stylesheet" href="/css/login.css" />
+    <link rel="stylesheet" href="/css/avisos.css" />
 </head>
 <body>
 <div class="logo">
@@ -15,56 +16,55 @@
 <div class="login-container">
     <h4>Redefinição de Senha</h4>
 
-    <p th:if="${erro != null}" th:text="${erro}" style="color: red; text-align:center;"></p>
+    <p class="aviso erro" th:if="${erro != null}" th:text="${erro}"></p>
+    <p class="aviso erro" id="avisoRedefinicao" hidden></p>
 
-    <form action = "/redefinirSenha" method="post" onsubmit="return validarSenha()">
+    <form id="redefinicaoForm" action="/redefinirSenha" method="post" novalidate onsubmit="return validarSenha()">
 
         <input type="hidden" name="token" th:value="${token}">
         <label for="senha">Senha:</label>
         <input type="password" id="senha" name="senha" required />
 
-        <label for="senha">Confirmar Senha:</label>
+        <label for="confirmarSenha">Confirmar Senha:</label>
         <input type="password" id="confirmarSenha" name="confirmarSenha" required />
-        <!-- Link "Esqueci a Senha" -->
 
         <button type="submit" class="btn">Confirmar</button>
 
-
     </form>
 </div>
+<script src="/js/validacao.js"></script>
 <script>
+    const avisoRedefinicao = document.getElementById("avisoRedefinicao");
+    Validacao.limparAoDigitar(document.getElementById("redefinicaoForm"), avisoRedefinicao);
+
     function validarSenha() {
-        const senha = document.getElementById("senha").value.trim();
-        const confirmar = document.getElementById("confirmarSenha").value.trim();
-        const erroElement = document.querySelector('p[style*="color: red"]');
+        const senha = document.getElementById("senha");
+        const confirmar = document.getElementById("confirmarSenha");
+        [senha, confirmar].forEach(c => Validacao.marcar(c, false));
 
-        // Criar elemento de erro se não existir
-        let erro = erroElement;
-        if (!erro) {
-            erro = document.createElement('p');
-            erro.style.color = 'red';
-            erro.style.textAlign = 'center';
-            document.querySelector('form').insertBefore(erro, document.querySelector('form').firstChild);
+        let mensagem = "";
+        let primeiro = null;
+        if (!senha.value.trim() || !confirmar.value.trim()) {
+            [senha, confirmar].filter(c => !c.value.trim()).forEach(c => Validacao.marcar(c, true));
+            primeiro = !senha.value.trim() ? senha : confirmar;
+            mensagem = "Preencha os campos destacados.";
+        } else if (senha.value.length < 8) {
+            Validacao.marcar(senha, true);
+            primeiro = senha;
+            mensagem = "A senha deve ter pelo menos 8 caracteres.";
+        } else if (senha.value !== confirmar.value) {
+            Validacao.marcar(confirmar, true);
+            primeiro = confirmar;
+            mensagem = "As senhas não coincidem.";
         }
 
-        if (senha.length < 8) {
-            erro.textContent = "A senha deve ter pelo menos 8 caracteres.";
+        if (primeiro) {
+            Validacao.mostrarAviso(avisoRedefinicao, mensagem);
+            primeiro.focus();
             return false;
         }
-
-        if (confirmar.length < 8) {
-            erro.textContent = "A senha deve ter pelo menos 8 caracteres.";
-            return false;
-        }
-
-        if (senha !== confirmar) {
-            erro.textContent = "As senhas não coincidem.";
-            return false;
-        }
-
-        erro.textContent = ""; // Limpa mensagem de erro
         return true;
     }
-    </script>
+</script>
 </body>
 </html>

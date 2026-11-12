@@ -1212,7 +1212,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            alert('Erro ao adicionar o item.');
+            Aviso.mostrar('Erro ao adicionar o item.', 'erro');
             return;
         }
 
@@ -1245,7 +1245,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            alert('Erro ao atualizar o item.');
+            Aviso.mostrar('Erro ao atualizar o item.', 'erro');
             return;
         }
 
@@ -1274,7 +1274,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            alert('Erro ao renomear o item.');
+            Aviso.mostrar('Erro ao renomear o item.', 'erro');
             return;
         }
 
@@ -1493,7 +1493,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            alert('Erro ao adicionar o anexo.');
+            Aviso.mostrar('Erro ao adicionar o anexo.', 'erro');
             return;
         }
 
@@ -1605,22 +1605,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Aviso no padrão do projeto (substitui o alert do navegador)
-    let aoFecharAviso = null;
+    // Aviso no padrão do projeto (componente compartilhado Aviso, de avisos.js)
     function mostrarAviso(mensagem, aoFechar) {
-        document.getElementById('avisoMensagem').textContent = mensagem;
-        aoFecharAviso = aoFechar || null;
-        document.getElementById('modalAviso').style.display = 'flex';
-        document.getElementById('btnOkAviso').focus();
+        Aviso.mostrar(mensagem, 'alerta');
+        if (aoFechar) aoFechar();
     }
-    function fecharAviso() {
-        document.getElementById('modalAviso').style.display = 'none';
-        if (aoFecharAviso) { const f = aoFecharAviso; aoFecharAviso = null; f(); }
-    }
-    document.getElementById('btnOkAviso').addEventListener('click', fecharAviso);
-    document.getElementById('modalAviso').addEventListener('click', function (e) {
-        if (e.target === this) fecharAviso();
-    });
 
     // ===== SISTEMA DE CATEGORIAS =====
     let categoriaSelecionada = null;
@@ -1679,7 +1668,7 @@ document.addEventListener('DOMContentLoaded', function() {
     btnCategoria.addEventListener('click', async function() {
         areaIdCategoriaAtual = resolverAreaIdParaCategorias();
         if (!areaIdCategoriaAtual) {
-            alert('Escolha uma lista para a tarefa antes de gerenciar categorias.');
+            Aviso.mostrar('Escolha uma lista para a tarefa antes de gerenciar categorias.', 'alerta');
             return;
         }
         await recarregarCategoriasDaAreaAtual();
@@ -1827,7 +1816,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (!resposta.ok) {
-            alert('Erro ao salvar a categoria.');
+            Aviso.mostrar('Erro ao salvar a categoria.', 'erro');
             return;
         }
 

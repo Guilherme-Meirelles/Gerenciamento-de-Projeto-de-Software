@@ -534,6 +534,7 @@ i {
 .campo-tarefa input,
 .campo-tarefa textarea,
 .campo-tarefa select {
+    color-scheme: dark; /* lista aberta do select no tema escuro */
     background-color: #4a4a4a;
     border: 1px solid #555;
     padding: 10px 14px;
@@ -1074,7 +1075,8 @@ i {
     flex: 1;
     padding: 12px;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
+    font-family: inherit;
     font-size: 16px;
     font-weight: 500;
     cursor: pointer;
