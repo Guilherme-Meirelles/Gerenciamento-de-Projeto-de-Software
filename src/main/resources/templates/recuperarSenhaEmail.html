@@ -20,7 +20,7 @@
     <form id="emailForm" method="post" action="/recuperar-senha" novalidate>
 
 
-        <label for="email">E-mail:</label>
+        <label for="email">E-mail</label>
         <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" th:classappend="${erro != null} ? 'campo-invalido'" required>
         <button type="submit" class="btn">CONFIRMAR</button>
         <button type="button" class="btn secundario" onclick="window.location.href='/login'">Voltar</button>

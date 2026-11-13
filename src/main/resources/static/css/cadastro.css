@@ -45,7 +45,7 @@ body {
 
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1);
 
-    min-width: 360px;
+    min-width: 400px;
     display: flex;
     flex-direction: column;
 }
@@ -70,7 +70,7 @@ label {
     margin-top: 15px;
     margin-bottom: 8px;
     font-size: 14px;
-    color: #b0b0b0;
+    color: #d6d6d6;
     font-weight: 500;
 }
 
@@ -155,32 +155,7 @@ input[type="date"]:invalid {
 }
 
 
-/* ===== Botão voltar (Secundário) ===== */
-.voltar {
-    color: #ccc;
-    text-decoration: none;
-    background-color: #333333;
-    width: 46px;
-    height: 41px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    transition: background 0.2s, color 0.2s;
-    border: 1px solid #444;
-}
-
-.voltar:hover {
-    background-color: #444444;
-    color: #fff;
-    border-color: #555;
-}
-
-/* ===== Edição de usuário: caixa mais larga e botões separados ===== */
-.cadastro-container.largo {
-    min-width: 440px;
-}
-
+/* ===== Botões separados (Voltar/Cancelar + ação principal) ===== */
 .botoes-dupla {
     gap: 12px;
 }

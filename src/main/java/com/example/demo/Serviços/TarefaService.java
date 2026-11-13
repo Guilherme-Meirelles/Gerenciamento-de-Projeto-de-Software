@@ -1,6 +1,7 @@
 package com.example.demo.Serviços;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -156,6 +157,34 @@ public class TarefaService {
         } catch (IllegalArgumentException e) {
             return Repeticao.NENHUMA;
         }
+    }
+
+    // Ordenação manual: recebe os ids na nova ordem em que o usuário os deixou na tela e
+    // redistribui entre eles as posições que já ocupavam. Assim as tarefas que estavam
+    // escondidas por filtro (ou em outras listas) mantêm a posição relativa que tinham.
+    public List<Tarefa> reordenar(List<Long> ids) {
+        List<Tarefa> tarefas = new ArrayList<>();
+        for (Long id : ids) {
+            tarefas.add(tarefaRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Tarefa não encontrada")));
+        }
+
+        List<Long> posicoes = new ArrayList<>();
+        for (Tarefa t : tarefas) {
+            posicoes.add(t.getOrdem() != null ? t.getOrdem() : t.getId());
+        }
+        java.util.Collections.sort(posicoes);
+        // Garante posições distintas (uma tarefa nova sem ordem pode coincidir com outra).
+        for (int i = 1; i < posicoes.size(); i++) {
+            if (posicoes.get(i) <= posicoes.get(i - 1)) {
+                posicoes.set(i, posicoes.get(i - 1) + 1);
+            }
+        }
+
+        for (int i = 0; i < tarefas.size(); i++) {
+            tarefas.get(i).setOrdem(posicoes.get(i));
+        }
+        return tarefaRepository.saveAll(tarefas);
     }
 
     public List<Tarefa> listarTarefasPorLista(Long listaId) {

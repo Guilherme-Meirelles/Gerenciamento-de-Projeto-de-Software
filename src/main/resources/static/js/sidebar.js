@@ -7,6 +7,45 @@ let listaSelecionada = null;  // lista escolhida para editar
 let listaParaRemoverId = null; // id da lista para remover
 
 /**
+ * Recolhe/expande a barra lateral. Recolhida, mostra só os ícones, e cada um ganha uma dica
+ * com o nome. O estado fica guardado só enquanto a aba está aberta (sessionStorage): ela
+ * continua recolhida ao navegar entre as telas, mas numa visita nova abre expandida.
+ */
+function aplicarEstadoSidebar(recolhida) {
+    const sidebar = document.querySelector('.sidebar');
+    const botao = document.getElementById('btnRecolherSidebar');
+
+    botao.title = recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral';
+    botao.innerHTML = '<i data-lucide="' + (recolhida ? 'panel-left-open' : 'panel-left-close') + '"></i>';
+
+    // Com o texto escondido, a dica passa a ser a única forma de saber o que o ícone faz
+    sidebar.querySelectorAll('.menu-item, .lista, .nova-lista, .btn-sair-sidebar, .area-atual').forEach(el => {
+        const rotulo = el.querySelector('span');
+        if (!rotulo) return;
+        if (recolhida) {
+            el.title = rotulo.textContent.trim();
+        } else {
+            el.removeAttribute('title');
+        }
+    });
+
+    lucide.createIcons();
+}
+
+window.alternarSidebar = function () {
+    const recolhida = document.querySelector('.sidebar').classList.toggle('recolhida');
+    try { sessionStorage.setItem('sidebarRecolhida', recolhida ? '1' : '0'); } catch (e) { /* sem armazenamento: vale só nesta tela */ }
+    aplicarEstadoSidebar(recolhida);
+}
+
+// A classe "recolhida" já vem aplicada pelo sidebar.html (antes da primeira pintura, para a
+// barra não abrir e fechar de novo); aqui só acertam o ícone e as dicas.
+if (document.querySelector('.sidebar')?.classList.contains('recolhida')) {
+    aplicarEstadoSidebar(true);
+}
+
+
+/**
  * Abre um modal pelo ID
  */
 window.abrirModalPerfil = function (nomeModal) {
@@ -206,6 +245,9 @@ window.abrirModalAcao = function (tipo) {
         form.action = '/removerConta';
     }
 
+    // Remover conta é destrutivo: ícone em vermelho
+    modal.querySelector('.verificacao').classList.toggle('perigo', tipo === 'remover');
+
     // Limpa o campo de senha (e o aviso de senha incorreta) e mostra o modal
     document.getElementById('senhaConfirmacao').value = '';
     document.getElementById('senhaConfirmacao').classList.remove('campo-invalido');
@@ -237,6 +279,7 @@ window.adicionarListaNaTela = function (lista) {
         <i data-lucide="list"></i>
         <span>${lista.nome}</span>
     `;
+    if (document.querySelector('.sidebar.recolhida')) btn.title = lista.nome;
 
     container.appendChild(btn);
     lucide.createIcons(); // recarrega ícones
@@ -360,6 +403,7 @@ window.abrirModalLogout = function () {
 
 // Confirma o logout e redireciona
 window.confirmarLogout = function () {
+    try { sessionStorage.removeItem('sidebarRecolhida'); } catch (e) { /* sem armazenamento */ }
     window.location.href = "/logout";
 }
 

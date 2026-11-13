@@ -24,6 +24,10 @@ public class Tarefa {
     private Boolean notificacoes;
     private Boolean lembreteEnviado;
 
+    // Posição na ordenação manual (arrastar e soltar). Nula enquanto ninguém reordenou:
+    // nesse caso vale o id (ordem de criação).
+    private Long ordem;
+
     // Repetição automática (dia/mês/ano): ao concluir uma tarefa repetitiva, o
     // TarefaService avança a dataFim em vez de deixar a tarefa marcada como concluída.
     @Enumerated(EnumType.STRING)
@@ -79,6 +83,9 @@ public class Tarefa {
     // Evita mandar o e-mail de lembrete mais de uma vez pra mesma tarefa.
     public Boolean getLembreteEnviado() { return lembreteEnviado; }
     public void setLembreteEnviado(Boolean lembreteEnviado) { this.lembreteEnviado = lembreteEnviado; }
+
+    public Long getOrdem() { return ordem; }
+    public void setOrdem(Long ordem) { this.ordem = ordem; }
 
     public Repeticao getRepeticao() { return repeticao; }
     public void setRepeticao(Repeticao repeticao) { this.repeticao = repeticao; }

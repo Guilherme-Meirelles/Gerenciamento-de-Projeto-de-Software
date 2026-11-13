@@ -1,6 +1,8 @@
 package com.example.demo.Controles;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -128,6 +130,30 @@ public class TarefaController {
         return ResponseEntity.ok(tarefaParaJson(tarefa, responsavelId));
     }
 
+    // Ordenação manual (arrastar e soltar): recebe {"ids": [...]} na nova ordem.
+    @PutMapping("/ordem")
+    public ResponseEntity<?> reordenar(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        List<Long> ids = extrairIds(body.get("ids"));
+        if (ids == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        for (Long id : ids) {
+            if (usuarioComAcessoATarefa(id, request, true) == null) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
+
+        List<Map<String, Object>> resposta = new ArrayList<>();
+        for (Tarefa t : tarefaService.reordenar(ids)) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", t.getId());
+            item.put("ordem", t.getOrdem());
+            resposta.add(item);
+        }
+        return ResponseEntity.ok(resposta);
+    }
+
     @PutMapping("/{id}/toggle")
     public ResponseEntity<?> toggleTarefa(
             @PathVariable Long id,
@@ -165,6 +191,18 @@ public class TarefaController {
         }
         tarefaService.remover(id);
         return ResponseEntity.ok().build();
+    }
+
+    private List<Long> extrairIds(Object bruto) {
+        if (!(bruto instanceof List<?> lista)) return null;
+        try {
+            // LinkedHashSet descarta ids repetidos sem mudar a ordem
+            return new ArrayList<>(lista.stream()
+                    .map(o -> Long.valueOf(o.toString()))
+                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @SuppressWarnings("unchecked")

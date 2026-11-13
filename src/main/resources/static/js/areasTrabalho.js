@@ -20,10 +20,25 @@ window.abrirModalNovaArea = function () {
     document.getElementById('inputNomeArea').value = '';
     document.getElementById('inputNomeArea').placeholder = 'Ex: Projetos Pessoais';
     document.querySelector('.btn-criar').textContent = 'Criar';
+    configurarModalArea('briefcase', 'Dê um nome para a sua nova área.');
     document.getElementById('modalArea').style.display = 'flex';
     document.getElementById('inputNomeArea').focus();
     setTimeout(() => lucide.createIcons(), 10);
 }
+
+// Ícone e frase do topo do modal (muda entre "Nova área" e "Renomear") e botão sem nome fica desabilitado
+function configurarModalArea(icone, descricao) {
+    document.getElementById('iconeModalArea').innerHTML = `<i data-lucide="${icone}"></i>`;
+    document.getElementById('descricaoModalArea').textContent = descricao;
+    atualizarBotaoSalvarArea();
+}
+
+function atualizarBotaoSalvarArea() {
+    document.querySelector('#modalArea .btn-criar').disabled =
+        document.getElementById('inputNomeArea').value.trim() === '';
+}
+
+document.getElementById('inputNomeArea').addEventListener('input', atualizarBotaoSalvarArea);
 
 window.fecharModalArea = function () {
     document.getElementById('modalArea').style.display = 'none';
@@ -44,7 +59,13 @@ window.adicionarCardArea = function (id, nome) {
     const h3 = document.createElement("h3");
     h3.textContent = nome;
 
+    // Quem cria a área é o administrador
+    const badge = document.createElement("span");
+    badge.className = "badge-permissao admin";
+    badge.textContent = "Administrador";
+
     card.appendChild(h3);
+    card.appendChild(badge);
     grid.insertBefore(card, grid.lastElementChild); // insere antes do "+"
 
     lucide.createIcons(); // atualiza ícones se necessário
@@ -153,6 +174,7 @@ window.renomearAreaContexto = function () {
     document.getElementById('inputNomeArea').value = areaAtualContexto.nome;
     document.getElementById('inputNomeArea').placeholder = areaAtualContexto.nome;
     document.querySelector('.btn-criar').textContent = 'Salvar';
+    configurarModalArea('pencil', 'Escolha o novo nome da área.');
     document.getElementById('areaIdEdicao').value = areaAtualContexto.id;
     document.getElementById('modalArea').style.display = 'flex';
 
@@ -327,7 +349,8 @@ window.abrirModalCompartilhar = function () {
 
     carregarAreasCompartilhamento(areas);
 
-    // ... (resto da função de limpar radios e botões permanece igual)
+    // Nenhuma área marcada ao abrir: desabilita E-mail e Copiar Link de novo
+    atualizarSelecaoArea();
 }
 
 window.fecharModalCompartilhar = function () {
@@ -362,15 +385,21 @@ window.atualizarSelecaoArea = function () {
         // Adiciona classe selecionada ao item clicado
         radioSelecionado.closest('.area-item-compartilhar').classList.add('selecionada');
 
-        // Habilita os botões de compartilhamento
-        document.getElementById('btnEmail').disabled = false;
-        document.getElementById('btnLink').disabled = false;
+        // Habilita os botões de compartilhamento (e tira a dica de "selecione uma área")
+        ['btnEmail', 'btnLink'].forEach(id => {
+            const botao = document.getElementById(id);
+            botao.disabled = false;
+            botao.removeAttribute('title');
+        });
     } else {
         areaSelecionadaCompartilhar = null;
 
-        // Desabilita os botões de compartilhamento
-        document.getElementById('btnEmail').disabled = true;
-        document.getElementById('btnLink').disabled = true;
+        // Desabilita os botões de compartilhamento e explica o motivo ao passar o mouse
+        ['btnEmail', 'btnLink'].forEach(id => {
+            const botao = document.getElementById(id);
+            botao.disabled = true;
+            botao.title = 'Selecione uma área para compartilhar';
+        });
     }
 }
 
@@ -568,7 +597,13 @@ window.popularListaAreasExcluir = function (areas) {
 
         const label = document.createElement('label');
         label.setAttribute('for', 'excluir-' + area.id);
-        label.textContent = area.permissao === 'ADMIN' ? area.nome : `${area.nome} (você só sairá da área)`;
+        label.textContent = area.nome;
+
+        // O que vai acontecer com a área: administrador exclui, os demais só saem
+        const dica = document.createElement('span');
+        const admin = area.permissao === 'ADMIN';
+        dica.className = 'dica-area-excluir' + (admin ? ' exclui' : '');
+        dica.textContent = admin ? 'Será excluída' : 'Você sairá';
 
         // Clique no item ignora label e checkbox
         item.onclick = (event) => {
@@ -580,6 +615,7 @@ window.popularListaAreasExcluir = function (areas) {
 
         item.appendChild(checkbox);
         item.appendChild(label);
+        item.appendChild(dica);
         lista.appendChild(item);
     });
 }
@@ -590,23 +626,10 @@ window.abrirModalGerenciamento = function () {
     areaSelecionadaGerenciar = null;
     nomeAreaGerenciar = null;
 
-    // Mostra etapa de seleção
+    // Começa pela escolha da área (modal compacto; os membros precisam de mais largura)
+    document.querySelector('.modal-gerenciamento').classList.add('compacto');
     document.getElementById('etapaSelecaoArea').style.display = 'block';
-    document.getElementById('etapaDetalhesArea').style.display = 'none';
     document.getElementById('etapaMembros').style.display = 'none';
-
-    // Desmarca todos os radios
-    document.querySelectorAll('input[name="areaGerenciar"]').forEach(radio => {
-        radio.checked = false;
-    });
-
-    // Remove seleção visual de todos
-    document.querySelectorAll('.area-item-gerenciar').forEach(item => {
-        item.classList.remove('selecionada');
-    });
-
-    // Desabilita botão de avançar
-    document.getElementById('btnAvancarGerenciar').disabled = true;
 
     const listaAreas = document.querySelector('.lista-areas-gerenciar');
     listaAreas.innerHTML = ''; // limpa antes de preencher
@@ -626,34 +649,40 @@ window.abrirModalGerenciamento = function () {
         listaAreas.appendChild(vazio);
     }
 
+    // Só dá pra escolher uma área, então clicar nela já abre os membros (sem "Avançar")
     areas.forEach(area => {
         const div = document.createElement('div');
         div.classList.add('area-item-gerenciar');
-        div.onclick = () => selecionarAreaGerenciar(area.id);
+        div.setAttribute('role', 'button');
+        div.tabIndex = 0;
+        div.onclick = () => abrirMembros(area.id, area.nome);
+        div.onkeydown = (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                abrirMembros(area.id, area.nome);
+            }
+        };
 
         const info = document.createElement('div');
         info.className = 'info-area';
 
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.name = 'areaGerenciar';
-        radio.id = 'gerenciar-' + area.id;
-        radio.value = area.id;
-        radio.onchange = atualizarSelecaoGerenciar;
-
-        const label = document.createElement('label');
-        label.htmlFor = radio.id;
-        label.textContent = area.nome;
+        const nome = document.createElement('span');
+        nome.className = 'nome-area';
+        nome.textContent = area.nome;
 
         // Papel do usuário nesta área (Administrador, Editor ou Observador)
         const badge = document.createElement('span');
         badge.className = 'badge-permissao ' + area.permissao;
         badge.textContent = rotuloPermissao(area.permissao);
 
-        info.appendChild(radio);
-        info.appendChild(label);
+        const seta = document.createElement('i');
+        seta.setAttribute('data-lucide', 'chevron-right');
+        seta.className = 'seta-area';
+
+        info.appendChild(nome);
         info.appendChild(badge);
         div.appendChild(info);
+        div.appendChild(seta);
         listaAreas.appendChild(div);
     });
 
@@ -666,98 +695,29 @@ window.fecharModalGerenciamento = function () {
     nomeAreaGerenciar = null;
 }
 
-window.selecionarAreaGerenciar = function (areaId) {
-    const radio = document.getElementById('gerenciar-' + areaId);
-    if (radio) {
-        radio.checked = true;
-        atualizarSelecaoGerenciar();
-    }
-}
-
-window.atualizarSelecaoGerenciar = function () {
-    const radioSelecionado = document.querySelector('input[name="areaGerenciar"]:checked');
-
-    // Remove seleção visual de todos
-    document.querySelectorAll('.area-item-gerenciar').forEach(item => {
-        item.classList.remove('selecionada');
-    });
-
-    if (radioSelecionado) {
-        areaSelecionadaGerenciar = radioSelecionado.value;
-        nomeAreaGerenciar = radioSelecionado.nextElementSibling.textContent;
-
-        // Adiciona classe selecionada ao item clicado
-        radioSelecionado.closest('.area-item-gerenciar').classList.add('selecionada');
-
-        // Habilita botão de avançar
-        document.getElementById('btnAvancarGerenciar').disabled = false;
-    } else {
-        areaSelecionadaGerenciar = null;
-        nomeAreaGerenciar = null;
-
-        // Desabilita botão de avançar
-        document.getElementById('btnAvancarGerenciar').disabled = true;
-    }
-}
-
-window.avancarParaDetalhes = function () {
-    if (!areaSelecionadaGerenciar) {
-        Aviso.mostrar('Selecione uma área para gerenciar.', 'alerta');
-        return;
-    }
-
-    console.log('Carregando detalhes da área:', areaSelecionadaGerenciar);
-    // Aqui você faria a chamada ao backend para carregar os dados da área
-
-    // Atualiza título, o papel do usuário e o que ele pode fazer em "Membros"
-    const souAdmin = areaEhAdmin(areaSelecionadaGerenciar);
-    const papel = (document.querySelector(`.area-card[data-id="${areaSelecionadaGerenciar}"]`)?.dataset.permissao || '').toLowerCase();
-    document.getElementById('tituloAreaDetalhes').textContent = nomeAreaGerenciar;
-    document.getElementById('subtituloAreaDetalhes').textContent = `Você é ${rotuloPermissao(papel)}`;
-    document.getElementById('subtituloMembrosItem').textContent = souAdmin ? 'Gerencie quem tem acesso' : 'Veja quem tem acesso';
-    atualizarContadorMembros();
-
-    // Troca de etapa
-    document.getElementById('etapaSelecaoArea').style.display = 'none';
-    document.getElementById('etapaDetalhesArea').style.display = 'block';
-
-    setTimeout(() => lucide.createIcons(), 10);
-}
-
-// Mostra quantos membros a área tem no item "Membros"
-function atualizarContadorMembros() {
-    const contador = document.getElementById('contadorMembros');
-    const areaId = areaSelecionadaGerenciar;
-    contador.textContent = '';
-
-    fetch(`/areasTrabalho/${encodeURIComponent(areaId)}/membros`)
-        .then(res => res.ok ? res.json() : [])
-        .then(membros => {
-            if (Array.isArray(membros) && areaId === areaSelecionadaGerenciar) {
-                contador.textContent = membros.length;
-            }
-        })
-        .catch(() => {});
-}
-
-window.voltarParaSelecao = function () {
-    document.getElementById('etapaDetalhesArea').style.display = 'none';
-    document.getElementById('etapaSelecaoArea').style.display = 'block';
-
-    setTimeout(() => lucide.createIcons(), 10);
-}
-
 // Nível real de permissão (admin/editor/observador) -> rótulo exibido
 function rotuloPermissao(permissao) {
     return { admin: 'Administrador', editor: 'Editor', observador: 'Observador' }[permissao] || permissao;
 }
 
-window.abrirMembros = function () {
-    if (!areaSelecionadaGerenciar) return;
+// Mostra "Nome da área · N membros" abaixo do título da tela de membros
+function atualizarSubtituloMembros(total) {
+    const subtitulo = document.getElementById('subtituloMembros');
+    if (total === null || total === undefined) {
+        subtitulo.textContent = nomeAreaGerenciar;
+        return;
+    }
+    subtitulo.textContent = `${nomeAreaGerenciar} · ${total} ${total === 1 ? 'membro' : 'membros'}`;
+}
+
+window.abrirMembros = function (areaId, nomeArea) {
+    document.querySelector('.modal-gerenciamento').classList.remove('compacto');
+    areaSelecionadaGerenciar = areaId;
+    nomeAreaGerenciar = nomeArea;
 
     const listaMembros = document.getElementById('listaMembros');
     listaMembros.innerHTML = ''; // limpa lista
-    document.getElementById('subtituloMembros').textContent = nomeAreaGerenciar;
+    atualizarSubtituloMembros(null);
 
     // Só o administrador altera permissões e remove membros (o servidor também exige isso)
     const souAdmin = areaEhAdmin(areaSelecionadaGerenciar);
@@ -815,20 +775,23 @@ window.abrirMembros = function () {
                 listaMembros.appendChild(div);
             });
 
-            // Atualiza contador de membros
-            document.getElementById('contadorMembros').textContent = membros.length;
+            // Quantidade de membros no subtítulo
+            atualizarSubtituloMembros(membros.length);
             setTimeout(() => lucide.createIcons(), 10);
         })
         .catch(err => console.error(err));
 
     // Troca de etapa
-    document.getElementById('etapaDetalhesArea').style.display = 'none';
+    document.getElementById('etapaSelecaoArea').style.display = 'none';
     document.getElementById('etapaMembros').style.display = 'block';
 }
 
-window.voltarParaDetalhes = function () {
+window.voltarParaSelecao = function () {
+    document.querySelector('.modal-gerenciamento').classList.add('compacto');
     document.getElementById('etapaMembros').style.display = 'none';
-    document.getElementById('etapaDetalhesArea').style.display = 'block';
+    document.getElementById('etapaSelecaoArea').style.display = 'block';
+    areaSelecionadaGerenciar = null;
+    nomeAreaGerenciar = null;
 
     setTimeout(() => lucide.createIcons(), 10);
 }
@@ -974,12 +937,8 @@ window.removerMembro = async function (membroId, membroNome, idArea) {
             setTimeout(() => {
                 membroCard.remove();
 
-                // Atualiza contador de membros
-                const contador = document.getElementById('contadorMembros');
-                if (contador) {
-                    const numeroAtual = parseInt(contador.textContent) || 0;
-                    contador.textContent = Math.max(0, numeroAtual - 1);
-                }
+                // Atualiza a quantidade de membros no subtítulo
+                atualizarSubtituloMembros(document.querySelectorAll('#listaMembros .membro-item').length);
             }, 300); // Espera a animação terminar
         }
 

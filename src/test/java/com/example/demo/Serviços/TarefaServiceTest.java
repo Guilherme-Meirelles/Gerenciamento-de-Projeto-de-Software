@@ -240,4 +240,44 @@ class TarefaServiceTest {
         assertThat(categoriaRepository.findById(categoria.getId())).isPresent();
         assertThat(usuarioRepository.findById(usuario.getId())).isPresent();
     }
+
+    @Test
+    void reordenar_redistribuiPosicoesEntreAsTarefasInformadas() {
+        montarCenarioBasico();
+        Tarefa a = tarefaService.criarTarefa(lista.getId(), "A", null, null, null, null, null, null, null);
+        Tarefa b = tarefaService.criarTarefa(lista.getId(), "B", null, null, null, null, null, null, null);
+        Tarefa c = tarefaService.criarTarefa(lista.getId(), "C", null, null, null, null, null, null, null);
+        entityManager.flush();
+        entityManager.clear();
+
+        // C passa para o começo; A e B ficam atrás dela
+        tarefaService.reordenar(List.of(c.getId(), a.getId(), b.getId()));
+        entityManager.flush();
+        entityManager.clear();
+
+        Tarefa recarregadaA = tarefaRepository.findById(a.getId()).orElseThrow();
+        Tarefa recarregadaB = tarefaRepository.findById(b.getId()).orElseThrow();
+        Tarefa recarregadaC = tarefaRepository.findById(c.getId()).orElseThrow();
+        assertThat(recarregadaC.getOrdem()).isLessThan(recarregadaA.getOrdem());
+        assertThat(recarregadaA.getOrdem()).isLessThan(recarregadaB.getOrdem());
+    }
+
+    @Test
+    void reordenar_naoMexeNaPosicaoDeTarefasForaDaLista() {
+        montarCenarioBasico();
+        Tarefa a = tarefaService.criarTarefa(lista.getId(), "A", null, null, null, null, null, null, null);
+        Tarefa escondida = tarefaService.criarTarefa(lista.getId(), "Escondida", null, null, null, null, null, null, null);
+        Tarefa c = tarefaService.criarTarefa(lista.getId(), "C", null, null, null, null, null, null, null);
+        entityManager.flush();
+        entityManager.clear();
+
+        tarefaService.reordenar(List.of(c.getId(), a.getId()));
+        entityManager.flush();
+        entityManager.clear();
+
+        // a tarefa que não participou continua entre as duas posições originais
+        assertThat(tarefaRepository.findById(escondida.getId()).orElseThrow().getOrdem()).isNull();
+        assertThat(tarefaRepository.findById(c.getId()).orElseThrow().getOrdem()).isEqualTo(a.getId());
+        assertThat(tarefaRepository.findById(a.getId()).orElseThrow().getOrdem()).isEqualTo(c.getId());
+    }
 }

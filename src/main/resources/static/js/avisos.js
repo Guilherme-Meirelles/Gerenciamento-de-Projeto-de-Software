@@ -44,7 +44,7 @@
             overlay.className = 'aviso-overlay';
 
             const caixa = document.createElement('div');
-            caixa.className = 'aviso-caixa';
+            caixa.className = 'aviso-caixa' + (config.perigo ? ' perigo' : '');
             caixa.setAttribute('role', 'dialog');
             caixa.setAttribute('aria-modal', 'true');
 

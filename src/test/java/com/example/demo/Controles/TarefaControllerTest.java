@@ -273,4 +273,70 @@ class TarefaControllerTest {
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(tarefaRepository.findById(tarefa.getId()).orElseThrow().getStatus()).isTrue();
     }
+
+    private Tarefa criarTarefaPersistida(Lista lista, String titulo) {
+        Tarefa tarefa = new Tarefa();
+        tarefa.setTitulo(titulo);
+        tarefa.setListaOrigem(lista);
+        tarefa.setStatus(false);
+        return entityManager.persistAndFlush(tarefa);
+    }
+
+    private Map<String, Object> corpoOrdem(Long... ids) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("ids", java.util.List.of(ids));
+        return body;
+    }
+
+    @Test
+    void reordenar_editor_salvaNovaOrdem() {
+        Cenario cenario = montarCenario();
+        Tarefa a = criarTarefaPersistida(cenario.lista(), "A");
+        Tarefa b = criarTarefaPersistida(cenario.lista(), "B");
+        entityManager.clear();
+
+        ResponseEntity<?> resposta = controller.reordenar(
+                corpoOrdem(b.getId(), a.getId()), requestAutenticado(cenario.editor().getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        entityManager.flush();
+        entityManager.clear();
+        assertThat(tarefaRepository.findById(b.getId()).orElseThrow().getOrdem())
+                .isLessThan(tarefaRepository.findById(a.getId()).orElseThrow().getOrdem());
+    }
+
+    @Test
+    void reordenar_observador_retorna403() {
+        Cenario cenario = montarCenario();
+        Tarefa a = criarTarefaPersistida(cenario.lista(), "A");
+        Tarefa b = criarTarefaPersistida(cenario.lista(), "B");
+        entityManager.clear();
+
+        ResponseEntity<?> resposta = controller.reordenar(
+                corpoOrdem(b.getId(), a.getId()), requestAutenticado(cenario.observador().getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+        assertThat(tarefaRepository.findById(a.getId()).orElseThrow().getOrdem()).isNull();
+    }
+
+    @Test
+    void reordenar_naoParticipante_retorna403() {
+        Cenario cenario = montarCenario();
+        Tarefa a = criarTarefaPersistida(cenario.lista(), "A");
+        entityManager.clear();
+
+        ResponseEntity<?> resposta = controller.reordenar(
+                corpoOrdem(a.getId()), requestAutenticado(cenario.naoParticipante().getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void reordenar_semListaDeIds_retorna400() {
+        Cenario cenario = montarCenario();
+        ResponseEntity<?> resposta = controller.reordenar(
+                new HashMap<>(), requestAutenticado(cenario.editor().getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
 }

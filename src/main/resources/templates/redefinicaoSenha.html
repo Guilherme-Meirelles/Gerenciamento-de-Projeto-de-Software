@@ -22,10 +22,10 @@
     <form id="redefinicaoForm" action="/redefinirSenha" method="post" novalidate onsubmit="return validarSenha()">
 
         <input type="hidden" name="token" th:value="${token}">
-        <label for="senha">Senha:</label>
+        <label for="senha">Senha</label>
         <input type="password" id="senha" name="senha" required />
 
-        <label for="confirmarSenha">Confirmar Senha:</label>
+        <label for="confirmarSenha">Confirmar Senha</label>
         <input type="password" id="confirmarSenha" name="confirmarSenha" required />
 
         <button type="submit" class="btn">Confirmar</button>

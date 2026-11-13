@@ -24,10 +24,10 @@
         <button type="submit" class="btn secundario">Reenviar e-mail de confirmação</button>
     </form>
     <form id="loginForm" action="/login" method="post" novalidate>
-        <label for="login">Login:</label>
+        <label for="login">Login</label>
         <input type="text" id="login" name="email" th:classappend="${credenciaisInvalidas != null} ? 'campo-invalido'" required />
 
-        <label for="senha">Senha:</label>
+        <label for="senha">Senha</label>
         <input type="password" id="senha" name="senha" th:classappend="${credenciaisInvalidas != null} ? 'campo-invalido'" required />
         <p class="forgot-password-link" style="text-align: right;">
             <a href="/recuperarSenhaEmail">

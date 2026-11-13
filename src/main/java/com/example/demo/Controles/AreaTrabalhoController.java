@@ -435,6 +435,7 @@ public class AreaTrabalhoController {
             mapa.put("listaNome", t.getListaOrigem().getNome());
             mapa.put("areaNome", t.getListaOrigem().getArea().getNome());
             mapa.put("concluida", t.getStatus());
+            mapa.put("ordem", t.getOrdem());
             if (!t.getResponsaveis().isEmpty()) {
                 mapa.put("responsavel", t.getResponsaveis().iterator().next().getId());
                 mapa.put("responsavelNome", t.getResponsaveis().iterator().next().getNome());
@@ -499,6 +500,7 @@ public class AreaTrabalhoController {
             mapa.put("listaNome", t.getListaOrigem().getNome());
             mapa.put("areaNome", t.getListaOrigem().getArea().getNome());
             mapa.put("concluida", t.getStatus());
+            mapa.put("ordem", t.getOrdem());
             if (!t.getResponsaveis().isEmpty()) {
                 mapa.put("responsavel", t.getResponsaveis().iterator().next().getId());
                 mapa.put("responsavelNome", t.getResponsaveis().iterator().next().getNome());

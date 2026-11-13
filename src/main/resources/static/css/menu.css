@@ -64,15 +64,19 @@ i {
 /* --- Ações do Título (Filtro e Ordenação) --- */
 .titulo-acoes {
     display: flex;
-    gap: 10px;
+    gap: 2px;
     margin-left: auto;
+    padding: 3px;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 999px;
 }
 
 .btn-filtro,
 .btn-ordenar {
-    width: 45px;
-    height: 45px;
-    background-color: #2a2a2a;
+    width: 40px;
+    height: 40px;
+    background-color: transparent;
     border: none;
     color: #ccc;
     border-radius: 50%;
@@ -80,17 +84,14 @@ i {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s, color 0.2s;
     padding: 0;
 }
 
 .btn-filtro:hover,
 .btn-ordenar:hover {
-    background-color: #3a3a3a;
+    background-color: #2e2e2e;
     color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .btn-filtro i,
@@ -104,10 +105,17 @@ i {
     position: fixed;
     z-index: 10000;
     background-color: #2a2a2a;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
     padding: 6px;
-    width: 220px;
+    width: 240px;
+    animation: menu-entrada 0.12s ease-out;
+}
+
+@keyframes menu-entrada {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .campo-filtro {
@@ -198,14 +206,27 @@ i {
     color: #4caf50;
 }
 
-.menu-filtro-item.active svg circle {
-    fill: currentColor;
+.menu-filtro-item span {
+    white-space: nowrap;
+}
+
+/* Marca (✓) à direita da opção escolhida; clicar de novo na opção desmarca */
+.menu-filtro-item .menu-filtro-marca {
+    margin-left: auto;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.menu-filtro-item.active .menu-filtro-marca {
+    opacity: 1;
 }
 
 /* --- Adicionar Tarefa --- */
 .add-tarefa {
-    background-color: #2a2a2a;
-    border-radius: 25px;
+    background-color: transparent;
+    border: 2px dashed #3a3a3a;
+    color: #aaa;
+    border-radius: 14px;
     margin-top: 30px;
     padding: 12px 20px;
     display: flex;
@@ -214,12 +235,44 @@ i {
     width: 70%;
     max-width: 500px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
     align-self: flex-start;
 }
 
 .add-tarefa:hover {
-    background-color: #383838;
+    background-color: #1a1a1a;
+    border-color: #666;
+    color: #fff;
+}
+
+/* Estado vazio das listas (mesmo estilo tracejado) */
+.estado-vazio-tarefas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 36px 20px;
+    border: 2px dashed #2f2f2f;
+    border-radius: 14px;
+    color: #888;
+    text-align: center;
+}
+
+.estado-vazio-tarefas i {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 4px;
+    color: #666;
+}
+
+.estado-vazio-tarefas strong {
+    color: #ccc;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.estado-vazio-tarefas span {
+    font-size: 13px;
 }
 
 /* --- Container de Tarefas --- */
@@ -232,18 +285,35 @@ i {
 
 .tarefa-item {
     background-color: #2a2a2a;
-    border-radius: 12px;
+    border: 1px solid #333;
+    border-radius: 14px;
     padding: 16px 20px;
     display: flex;
     align-items: flex-start;
     gap: 15px;
-    transition: background 0.2s;
+    transition: background-color 0.2s, border-color 0.2s;
     position: relative;
     overflow: hidden;
 }
 
 .tarefa-item:hover {
-    background-color: #333;
+    background-color: #303030;
+    border-color: #4a4a4a;
+}
+
+/* Ordenação manual: a tarefa pode ser segurada e arrastada */
+.tarefa-item.arrastavel {
+    cursor: grab;
+}
+
+.tarefa-item.arrastavel:active {
+    cursor: grabbing;
+}
+
+.tarefa-item.arrastando {
+    opacity: 0.45;
+    outline: 2px dashed #4caf50;
+    outline-offset: -2px;
 }
 
 .tarefa-checkbox {
@@ -527,8 +597,8 @@ i {
 
 .campo-tarefa label {
     font-size: 14px;
-    color: #d0d0d0;
-    font-weight: 400;
+    color: #d6d6d6;
+    font-weight: 500;
 }
 
 .campo-tarefa input,
@@ -603,7 +673,7 @@ i {
 
 .campo-tarefa-checkbox label {
     font-size: 13px;
-    color: #d0d0d0;
+    color: #d6d6d6;
 }
 
 .btn-checklist,
@@ -775,8 +845,8 @@ i {
 
 .campo-info label {
     font-size: 14px;
-    color: #ccc;
-    font-weight: 400;
+    color: #d6d6d6;
+    font-weight: 500;
 }
 
 .campo-info p {
@@ -865,7 +935,7 @@ i {
 
 .campo-senha label {
     font-size: 14px;
-    color: #d0d0d0;
+    color: #d6d6d6;
 }
 
 .campo-senha input {
@@ -958,8 +1028,8 @@ i {
 
 .campo-lista label {
     font-size: 14px;
-    color: #d0d0d0;
-    font-weight: 400;
+    color: #d6d6d6;
+    font-weight: 500;
 }
 
 .campo-lista input,
@@ -1021,11 +1091,13 @@ i {
     position: absolute;
     z-index: 10000;
     background-color: #2a2a2a;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
     display: none;
-    padding: 4px;
-    width: 160px;
+    padding: 5px;
+    width: 170px;
+    animation: menu-entrada 0.12s ease-out;
 }
 
 .context-menu-item {
@@ -1035,9 +1107,9 @@ i {
     display: block;
     width: 100%;
     text-align: left;
-    padding: 8px 12px;
+    padding: 9px 12px;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 7px;
     font-size: 14px;
     transition: background-color 0.2s;
 }
@@ -1271,8 +1343,8 @@ a.checklist-nome:hover {
 
 .campo-checklist label {
     font-size: 14px;
-    color: #d0d0d0;
-    font-weight: 400;
+    color: #d6d6d6;
+    font-weight: 500;
 }
 
 .campo-checklist input {

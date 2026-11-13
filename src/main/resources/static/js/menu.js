@@ -310,6 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <i data-lucide="list"></i>
             <span>${lista.nome}</span>
         `;
+        if (document.querySelector('.sidebar.recolhida')) btn.title = lista.nome;
 
         container.appendChild(btn);
 
@@ -381,11 +382,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Aplicar filtros
     document.querySelectorAll('#menuFiltro .menu-filtro-item').forEach(item => {
         item.addEventListener('click', function() {
-            filtroAtivo = this.dataset.filtro;
+            const desmarcar = this.classList.contains('active');
             document.querySelectorAll('#menuFiltro .menu-filtro-item').forEach(btn => {
                 btn.classList.remove('active');
             });
-            this.classList.add('active');
+            // Clicar de novo na opção já marcada desmarca (volta ao filtro padrão)
+            filtroAtivo = desmarcar ? 'todas' : this.dataset.filtro;
+            if (!desmarcar) this.classList.add('active');
 
             if(listaAtual == "hoje"){
                 carregarTarefasHoje();
@@ -404,12 +407,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Aplicar ordenação
     document.querySelectorAll('#menuOrdenar .menu-filtro-item').forEach(item => {
-        item.addEventListener('click', function() {
-            ordenacaoAtiva = this.dataset.ordem;
+        item.addEventListener('click', async function() {
+            const desmarcar = this.classList.contains('active');
+
+            // Primeira vez no modo manual: começa da ordem que está na tela em vez de pular
+            // para a ordem de criação, que reembaralharia a lista antes de qualquer arraste.
+            if (!desmarcar && this.dataset.ordem === 'manual' && window.podeEditar !== false) {
+                const idsVisiveis = idsNaTela();
+                const jaTemOrdem = tarefas.some(t => idsVisiveis.includes(t.id) && t.ordem != null);
+                if (idsVisiveis.length > 1 && !jaTemOrdem) {
+                    await salvarOrdemManual(idsVisiveis);
+                }
+            }
+
             document.querySelectorAll('#menuOrdenar .menu-filtro-item').forEach(btn => {
                 btn.classList.remove('active');
             });
-            this.classList.add('active');
+            // Clicar de novo na opção já marcada desmarca (volta à ordem padrão)
+            ordenacaoAtiva = desmarcar ? null : this.dataset.ordem;
+            if (!desmarcar) this.classList.add('active');
 
             // MARKDOWN
             if(listaAtual == "hoje"){
@@ -606,7 +622,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .forEach(el => el.disabled = false);
         document.getElementById("btnAnexo").disabled = false;
         document.getElementById("btnChecklist").disabled = false;
-        document.getElementById("btnChecklist").title = "";
         document.getElementById("btnCategoria").disabled = false;
 
         document.getElementById('tarefaLista').disabled = false;
@@ -652,7 +667,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .forEach(el => el.disabled = false);
         document.getElementById("btnAnexo").disabled = false;
         document.getElementById("btnChecklist").disabled = false;
-        document.getElementById("btnChecklist").title = "";
         document.getElementById("btnCategoria").disabled = false;
 
         const selectLista = document.getElementById("tarefaLista");
@@ -720,7 +734,6 @@ document.addEventListener('DOMContentLoaded', function() {
         // checklist, anexos e categorias — só os campos da tarefa ficam travados.
         document.getElementById("btnAnexo").disabled = false;
         document.getElementById("btnChecklist").disabled = false;
-        document.getElementById("btnChecklist").title = "";
         document.getElementById("btnCategoria").disabled = false;
 
         document.querySelector(".titulo-modal-tarefa").textContent = "Detalhes da Tarefa";
@@ -814,6 +827,9 @@ document.addEventListener('DOMContentLoaded', function() {
             tarefasFiltradas.sort((a, b) => a.id - b.id);
         } else if (ordenacaoAtiva === 'status') {
             tarefasFiltradas.sort((a, b) => a.concluida - b.concluida);
+        } else if (ordenacaoAtiva === 'manual') {
+            // Posição escolhida arrastando; tarefas nunca reordenadas usam o id
+            tarefasFiltradas.sort((a, b) => ((a.ordem ?? a.id) - (b.ordem ?? b.id)) || (a.id - b.id));
         } else if (ordenacaoAtiva === 'titulo') {
             tarefasFiltradas.sort((a, b) => a.titulo.localeCompare(b.titulo));
         } else if (ordenacaoAtiva === 'responsavel') {
@@ -826,7 +842,36 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        if (tarefasFiltradas.length === 0) return;
+        if (tarefasFiltradas.length === 0) {
+            // Estado vazio no mesmo estilo dos cartões tracejados de "Áreas de Trabalho"
+            const buscando = !!textoFiltro || (filtroAtivo && !['titulo', 'responsavel'].includes(filtroAtivo));
+            let icone = 'clipboard-list';
+            let titulo = 'Nenhuma tarefa por aqui';
+            let texto = window.podeEditar === false
+                ? 'Ainda não há tarefas nesta lista.'
+                : 'Use "Adicionar Tarefa" para criar a primeira.';
+            if (buscando) {
+                icone = 'search-x';
+                titulo = 'Nada encontrado';
+                texto = 'Nenhuma tarefa corresponde ao filtro escolhido.';
+            } else if (listaFiltro === 'hoje') {
+                icone = 'calendar-check';
+                titulo = 'Nada para hoje';
+                texto = 'Nenhuma tarefa com prazo para hoje.';
+            } else if (listaFiltro === 'agendadas') {
+                icone = 'calendar-clock';
+                titulo = 'Nada agendado';
+                texto = 'Nenhuma tarefa com prazo em outro dia.';
+            }
+            const vazio = document.createElement('div');
+            vazio.className = 'estado-vazio-tarefas';
+            vazio.innerHTML = `<i data-lucide="${icone}"></i><strong></strong><span></span>`;
+            vazio.querySelector('strong').textContent = titulo;
+            vazio.querySelector('span').textContent = texto;
+            containerTarefas.appendChild(vazio);
+            lucide.createIcons();
+            return;
+        }
 
         tarefasFiltradas.forEach(tarefa => {
             const tarefaEl = document.createElement('div');
@@ -974,10 +1019,80 @@ document.addEventListener('DOMContentLoaded', function() {
                 tarefaEl.appendChild(btnEditar);
                 tarefaEl.appendChild(btnExcluir);
             }
+            if (ordenacaoAtiva === 'manual' && window.podeEditar !== false) {
+                habilitarArrastar(tarefaEl);
+            }
             containerTarefas.appendChild(tarefaEl);
         });
 
         lucide.createIcons();
+    }
+
+    // --- Ordenação manual: segurar a tarefa com o mouse e arrastar até a posição desejada ---
+    let tarefaArrastada = null;
+    let ordemAntesDoArraste = [];
+
+    function idsNaTela() {
+        return Array.from(containerTarefas.querySelectorAll('.tarefa-item')).map(el => Number(el.dataset.id));
+    }
+
+    function habilitarArrastar(tarefaEl) {
+        tarefaEl.draggable = true;
+        tarefaEl.classList.add('arrastavel');
+
+        tarefaEl.addEventListener('dragstart', function(e) {
+            tarefaArrastada = tarefaEl;
+            ordemAntesDoArraste = idsNaTela();
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', tarefaEl.dataset.id);
+            // adia a classe para o navegador tirar a "foto" do arraste ainda com a aparência normal
+            setTimeout(() => tarefaEl.classList.add('arrastando'), 0);
+        });
+
+        tarefaEl.addEventListener('dragover', function(e) {
+            if (!tarefaArrastada || tarefaArrastada === tarefaEl) return;
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const caixa = tarefaEl.getBoundingClientRect();
+            const depois = e.clientY > caixa.top + caixa.height / 2;
+            const referencia = depois ? tarefaEl.nextSibling : tarefaEl;
+            if (referencia !== tarefaArrastada) {
+                containerTarefas.insertBefore(tarefaArrastada, referencia);
+            }
+        });
+
+        tarefaEl.addEventListener('drop', function(e) {
+            e.preventDefault();
+        });
+
+        tarefaEl.addEventListener('dragend', function() {
+            tarefaEl.classList.remove('arrastando');
+            tarefaArrastada = null;
+            const novaOrdem = idsNaTela();
+            if (novaOrdem.join(',') !== ordemAntesDoArraste.join(',')) {
+                salvarOrdemManual(novaOrdem);
+            }
+        });
+    }
+
+    async function salvarOrdemManual(ids) {
+        try {
+            const resposta = await fetch('/tarefas/ordem', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids })
+            });
+            if (!resposta.ok) throw new Error('Falha ao salvar a ordem');
+            const salvas = await resposta.json();
+            salvas.forEach(s => {
+                const t = tarefas.find(x => x.id === s.id);
+                if (t) t.ordem = s.ordem;
+            });
+        } catch (erro) {
+            console.error(erro);
+            Aviso.mostrar('Não foi possível salvar a nova ordem das tarefas.', 'erro');
+            renderizarTarefas(listaAtual); // volta para a ordem que está salva
+        }
     }
 
     btnParaHoje.addEventListener('click', function() {
@@ -1376,6 +1491,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const btnExcluirItem = document.createElement('button');
             btnExcluirItem.className = 'btn-excluir-checklist';
+            btnExcluirItem.title = 'Remover item';
             btnExcluirItem.innerHTML = '<i data-lucide="trash-2"></i>';
             btnExcluirItem.addEventListener('click', function() {
                 itemChecklistParaRemover = item;
@@ -1582,6 +1698,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const btnExcluirAnexo = document.createElement('button');
             btnExcluirAnexo.className = 'btn-excluir-checklist';
+            btnExcluirAnexo.title = 'Remover anexo';
             btnExcluirAnexo.innerHTML = '<i data-lucide="trash-2"></i>';
             btnExcluirAnexo.addEventListener('click', function() {
                 anexoParaRemover = anexo;
@@ -1915,10 +2032,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="checklist-nome">${categoria.nome}</div>
                 </div>
                 <div class="checklist-acoes">
-                    <button class="btn-editar-checklist" data-id="${categoria.id}">
+                    <button class="btn-editar-checklist" data-id="${categoria.id}" title="Editar categoria">
                         <i data-lucide="edit-2"></i>
                     </button>
-                    <button class="btn-excluir-checklist" data-id="${categoria.id}">
+                    <button class="btn-excluir-checklist" data-id="${categoria.id}" title="Excluir categoria">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>

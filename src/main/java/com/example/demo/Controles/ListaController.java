@@ -106,6 +106,7 @@ public class ListaController {
             mapa.put("dataFim", t.getDataFim() != null ? t.getDataFim().toString() : null);
             mapa.put("listaId", t.getListaOrigem().getId());
             mapa.put("concluida", t.getStatus());
+            mapa.put("ordem", t.getOrdem());
             if (!t.getResponsaveis().isEmpty()) {
                 mapa.put("responsavel", t.getResponsaveis().iterator().next().getId());
                 mapa.put("responsavelNome", t.getResponsaveis().iterator().next().getNome());

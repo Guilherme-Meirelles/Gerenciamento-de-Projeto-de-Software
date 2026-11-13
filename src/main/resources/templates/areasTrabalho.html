@@ -32,10 +32,14 @@
                  oncontextmenu="abrirMenuContexto(event, this)">
 
                 <h3 th:text="${participacao.area.nome}"></h3>
+                <span class="badge-permissao"
+                      th:classappend="${#strings.toLowerCase(participacao.permissao.name())}"
+                      th:text="${participacao.permissao.name() == 'ADMIN' ? 'Administrador' : (participacao.permissao.name() == 'EDITOR' ? 'Editor' : 'Observador')}"></span>
             </div>
 
             <div class="area-card area-add" onclick="abrirModalNovaArea()">
-                <i data-lucide="plus-circle" data-size="52"></i>
+                <i data-lucide="plus"></i>
+                <span>Nova área</span>
             </div>
         </div>
         <!-- Botões de ação flutuantes -->
@@ -58,12 +62,16 @@
     <!-- Modal para criar/renomear área -->
     <div id="modalArea" class="overlay-modal" style="display: none;" onclick="fecharModalArea()">
         <div class="modal-nova-area" onclick="event.stopPropagation()">
+            <div class="icone-modal-area" id="iconeModalArea">
+                <i data-lucide="briefcase"></i>
+            </div>
             <h2 class="titulo-modal" id="tituloModalArea">Nova Área de Trabalho</h2>
+            <p class="descricao-modal" id="descricaoModalArea">Dê um nome para a sua nova área.</p>
 
             <form class="formulario-nova-area" onsubmit="salvarArea(event)">
                 <input type="hidden" id="areaIdEdicao">
                 <div class="campo-modal">
-                    <label>Nome da área:</label>
+                    <label>Nome da área</label>
                     <input type="text" id="inputNomeArea" placeholder="Ex: Projetos Pessoais" autofocus required />
                 </div>
 
@@ -87,7 +95,7 @@
 
             <!-- Nível de permissão do convite (vale para e-mail e para link) -->
             <div class="secao-permissao-convite">
-                <h3>Nível de permissão:</h3>
+                <h3>Nível de permissão</h3>
 
                 <div class="opcoes-permissao opcoes-permissao-convite">
                     <div class="opcao-permissao" onclick="selecionarPermissaoConvite('OBSERVADOR')">
@@ -110,7 +118,7 @@
 
             <!-- Métodos de compartilhamento -->
             <div class="secao-metodos-compartilhamento">
-                <h3>Compartilhar via:</h3>
+                <h3>Compartilhar via</h3>
 
                 <div class="metodos-compartilhamento">
                     <button class="btn-metodo-compartilhar" id="btnEmail" onclick="abrirModalEmail()" disabled>
@@ -160,7 +168,8 @@
     <!-- Modal de Exclusão -->
     <div id="modalExcluir" class="overlay-modal" style="display: none;" onclick="fecharModalExcluir()">
         <div class="modal-excluir" onclick="event.stopPropagation()">
-            <h2 class="titulo-modal">Excluir ou sair de Áreas de Trabalho</h2>
+            <h2 class="titulo-modal">Excluir ou sair de áreas</h2>
+            <p class="descricao-modal">Marque as áreas que deseja excluir. Nas áreas que você não administra, você apenas sairá.</p>
 
             <!-- Lista de áreas para excluir -->
             <div class="lista-areas-excluir" id="listaAreasExcluir">
@@ -188,7 +197,7 @@
     <!-- Modal de Gerenciamento -->
     <div id="modalGerenciamento" class="overlay-modal" style="display: none;" onclick="fecharModalGerenciamento()">
         <div class="modal-gerenciamento" onclick="event.stopPropagation()">
-            <!-- Etapa 1: Seleção de área -->
+            <!-- Etapa 1: Escolha da área (clicar numa área já abre os membros dela) -->
             <div id="etapaSelecaoArea" style="display: block;">
                 <h2 class="titulo-modal">Gerenciar Áreas de Trabalho</h2>
                 <p class="descricao-modal">Escolha uma área para ver e gerenciar os membros.</p>
@@ -198,49 +207,14 @@
                 </div>
 
                 <div class="botoes-modal">
-                    <button type="button" class="btn-avancar-gerenciar" id="btnAvancarGerenciar" onclick="avancarParaDetalhes()" disabled>
-                        Avançar
-                        <i data-lucide="arrow-right"></i>
-                    </button>
                     <button type="button" class="btn-cancelar-modal" onclick="fecharModalGerenciamento()">Cancelar</button>
                 </div>
             </div>
 
-            <!-- Etapa 2: Detalhes da área -->
-            <div id="etapaDetalhesArea" style="display: none;">
-                <div class="detalhes-area-header">
-                    <button class="btn-voltar-gerenciar" onclick="voltarParaSelecao()">
-                        <i data-lucide="arrow-left"></i>
-                    </button>
-                    <div class="titulo-detalhes">
-                        <h3 id="tituloAreaDetalhes">Área de Trabalho</h3>
-                        <span class="subtitulo-detalhes" id="subtituloAreaDetalhes"></span>
-                    </div>
-                </div>
-
-                <div class="menu-detalhes-area">
-                    <button class="item-menu-detalhes" onclick="abrirMembros()">
-                        <div class="info-item">
-                            <i data-lucide="users"></i>
-                            <div class="texto-item">
-                                <span class="titulo-item">Membros</span>
-                                <span class="subtitulo-item" id="subtituloMembrosItem">Gerencie quem tem acesso</span>
-                            </div>
-                        </div>
-                        <span class="badge-contador" id="contadorMembros"></span>
-                    </button>
-
-                </div>
-
-                <div class="botoes-modal">
-                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalGerenciamento()">Fechar</button>
-                </div>
-            </div>
-
-            <!-- Etapa 3: Lista de membros -->
+            <!-- Etapa 2: Membros da área escolhida (quantidade no subtítulo) -->
             <div id="etapaMembros" style="display: none;">
                 <div class="detalhes-area-header">
-                    <button class="btn-voltar-gerenciar" onclick="voltarParaDetalhes()">
+                    <button class="btn-voltar-gerenciar" title="Voltar" onclick="voltarParaSelecao()">
                         <i data-lucide="arrow-left"></i>
                     </button>
                     <div class="titulo-detalhes">

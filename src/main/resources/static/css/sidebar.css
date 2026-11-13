@@ -24,6 +24,9 @@ body {
 .sidebar {
     background-color: #1e1e1e;
     width: 240px;
+    flex-shrink: 0;
+    overflow-x: hidden;
+    transition: width 0.2s ease, padding 0.2s ease;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -246,6 +249,82 @@ body {
     height: 18px;
 }
 
+/* ===== Botão de recolher/expandir a barra lateral ===== */
+.btn-recolher-sidebar {
+    background: none;
+    border: none;
+    color: #aaa;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-recolher-sidebar:hover {
+    background-color: #2a2a2a;
+    color: #fff;
+}
+
+.btn-recolher-sidebar i,
+.btn-recolher-sidebar svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ===== Barra lateral recolhida: só os ícones ===== */
+.sidebar.recolhida {
+    width: 68px;
+    padding: 15px 10px;
+}
+
+.sidebar.recolhida .header-sidebar {
+    justify-content: center;
+    padding: 5px 0 15px 0;
+}
+
+.sidebar.recolhida .app-title,
+.sidebar.recolhida .info {
+    display: none;
+}
+
+.sidebar.recolhida .perfil {
+    justify-content: center;
+    padding: 8px 0;
+}
+
+/* Os textos ficam só escondidos visualmente (continuam lidos por leitores de tela e pelo
+   innerText usado para trocar o título da página) */
+.sidebar.recolhida span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.sidebar.recolhida .menu-item,
+.sidebar.recolhida .lista,
+.sidebar.recolhida .nova-lista,
+.sidebar.recolhida .btn-sair-sidebar,
+.sidebar.recolhida .area-atual {
+    justify-content: center;
+}
+
+.sidebar.recolhida .listas {
+    padding-left: 0;
+    border-left: none;
+}
+
+.sidebar.recolhida .btn-sair-sidebar {
+    padding-left: 0;
+}
+
 /* ===== Modal de Perfil ===== */
 .overlay-perfil {
     position: fixed;
@@ -333,8 +412,8 @@ body {
 
 .campo-perfil label {
     font-size: 14px;
-    color: #d0d0d0;
-    font-weight: 400;
+    color: #d6d6d6;
+    font-weight: 500;
 }
 
 .campo-perfil input {
@@ -598,8 +677,8 @@ body {
 
 .campo-perfil label {
     font-size: 14px;
-    color: #d0d0d0;
-    font-weight: 400;
+    color: #d6d6d6;
+    font-weight: 500;
 }
 
 /* Campos só de leitura: mais escuros que os inputs editáveis do resto do sistema */
@@ -737,12 +816,14 @@ body {
     background-color: #252525;
 }
 
+/* Vermelho, como os outros botões destrutivos do sistema (Excluir, Excluir conta) */
 .btn-confirmar-sair {
-    background-color: #4a4a4a;
+    background-color: #d32f2f;
+    font-weight: 600;
 }
 
 .btn-confirmar-sair:hover {
-    background-color: #555;
+    background-color: #c62828;
 }
 
 #modalConfirmarLogout {

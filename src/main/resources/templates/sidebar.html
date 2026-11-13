@@ -13,6 +13,9 @@
 <aside class="sidebar" th:fragment="sidebar">
     <div class="header-sidebar">
         <h1 class="app-title" onclick="navegarPara(this, '/menu')" style="cursor: pointer;" title="Menu Principal">ToDaily</h1>
+        <button class="btn-recolher-sidebar" id="btnRecolherSidebar" onclick="alternarSidebar()" title="Recolher barra lateral">
+            <i data-lucide="panel-left-close"></i>
+        </button>
     </div>
 
     <!-- Perfil -->
@@ -22,27 +25,27 @@
             <img class="foto-img" alt="" />
         </div>
         <div class="info">
-            <p class="nome" th:text="${nome}">Generic User</p>
-            <p class="email" th:text="${email}">genericemail@gmail.com</p>
+            <p class="nome" th:text="${nome}" th:title="${nome}">Generic User</p>
+            <p class="email" th:text="${email}" th:title="${email}">genericemail@gmail.com</p>
         </div>
     </div>
 
     <!-- Menu de Navegação -->
     <nav class="menu">
         <button class="menu-item active">
-            <i data-lucide="sun"></i> Para Hoje
+            <i data-lucide="sun"></i> <span>Para Hoje</span>
         </button>
         <button class="menu-item">
-            <i data-lucide="calendar"></i> Agendadas
+            <i data-lucide="calendar"></i> <span>Agendadas</span>
         </button>
         <button class="menu-item">
-            <i data-lucide="list-checks"></i> Todas as Tarefas
+            <i data-lucide="list-checks"></i> <span>Todas as Tarefas</span>
         </button>
-        <button class="menu-item" id="btnCalendario" title="Calendário">
-            <i data-lucide="calendar-days"></i> Calendário
+        <button class="menu-item" id="btnCalendario">
+            <i data-lucide="calendar-days"></i> <span>Calendário</span>
         </button>
         <button class="menu-item" onclick="navegarPara(this, '/areasTrabalho')">
-            <i data-lucide="briefcase"></i> Áreas de Trabalho
+            <i data-lucide="briefcase"></i> <span>Áreas de Trabalho</span>
         </button>
     </nav>
 
@@ -55,7 +58,7 @@
 
         <!-- Botão Nova Lista -->
         <button class="nova-lista" onclick="abrirModalPerfil('modalAddLista')">
-            <i data-lucide="plus"></i> Nova Lista
+            <i data-lucide="plus"></i> <span>Nova Lista</span>
         </button>
 
         <!-- Listas da Área de Trabalho -->
@@ -72,9 +75,18 @@
     </div>
 
     <!-- Botão Sair -->
-    <button class="btn-sair-sidebar" onclick="abrirModalLogout()" title="Sair">
-        <i data-lucide="log-out"></i> Sair
+    <button class="btn-sair-sidebar" onclick="abrirModalLogout()">
+        <i data-lucide="log-out"></i> <span>Sair</span>
     </button>
+
+    <!-- Se a barra estava recolhida nesta aba, já nasce recolhida (antes da primeira pintura) -->
+    <script>
+        try {
+            if (sessionStorage.getItem('sidebarRecolhida') === '1') {
+                document.currentScript.parentElement.classList.add('recolhida');
+            }
+        } catch (e) { /* sem armazenamento: abre expandida */ }
+    </script>
 </aside>
 
 
@@ -111,15 +123,15 @@
             <!-- Informações do usuário -->
             <div class="perfil-campos">
                 <div class="campo-perfil">
-                    <label>Nome:</label>
+                    <label>Nome</label>
                     <p class="valor-perfil" th:text="${nome}">Generic User</p>
                 </div>
                 <div class="campo-perfil">
-                    <label>E-mail:</label>
+                    <label>E-mail</label>
                     <p class="valor-perfil" th:text="${email}">genericemail@gmail.com</p>
                 </div>
                 <div class="campo-perfil">
-                    <label>Data de Nascimento:</label>
+                    <label>Data de Nascimento</label>
                     <p class="valor-perfil" th:text="${dataNascimento}">01/01/2000</p>
                 </div>
             </div>
@@ -137,7 +149,7 @@
 
     <!-- Modal: Verificação (Confirmar Ação) -->
     <div id="modalVerificacao" class="confirma-acao" th:style="${abrirModal} == 'verificacao' ? 'display:flex;' : 'display:none;'" onclick="fecharModalPerfil('modalVerificacao')">
-        <div class="verificacao" onclick="event.stopPropagation()">
+        <div class="verificacao" th:classappend="${acaoConta == 'remover'} ? 'perigo'" onclick="event.stopPropagation()">
             <h3 class="mensagem-verificacao" id="mensagemVerificacao"
                 th:text="${acaoConta == 'remover'} ? 'Deseja realmente remover sua conta?' : (${acaoConta == 'editar'} ? 'Deseja realmente editar sua conta?' : 'Deseja realmente executar esta ação?')">
                 Deseja realmente executar esta ação?
@@ -147,7 +159,7 @@
             <form id="formConfirmacao" method="post"
                   th:attr="action=${acaoConta == 'remover'} ? '/removerConta' : (${acaoConta == 'editar'} ? '/editarConta' : null)">
                 <div class="campo-senha">
-                    <label for="senhaConfirmacao">Digite sua senha para confirmar:</label>
+                    <label for="senhaConfirmacao">Digite sua senha para confirmar</label>
                     <input type="password" id="senhaConfirmacao" name="senha" placeholder="Sua senha"
                            th:classappend="${erro} ? 'campo-invalido'" required />
                     <p th:if="${erro}" class="mensagem-erro" th:text="${erro}"></p>
@@ -171,7 +183,7 @@
                     <input type="text" id="nome-lista" placeholder="Nova Lista" />
                 </div>
                 <div class="campo-lista">
-                    <label for="descricao-lista">Descrição:</label>
+                    <label for="descricao-lista">Descrição</label>
                     <textarea id="descricao-lista" rows="4" placeholder="Adicione uma descrição (opcional)"></textarea>
                 </div>
                 <div class="botoes-acao-lista">
@@ -192,7 +204,7 @@
                     <input type="text" id="nome-lista-edit" value="RENOMEADA" />
                 </div>
                 <div class="campo-lista">
-                    <label for="descricao-lista-edit">Descrição:</label>
+                    <label for="descricao-lista-edit">Descrição</label>
                     <textarea id="descricao-lista-edit" rows="4" placeholder="Adicione uma descrição (opcional)"></textarea>
                 </div>
                 <div class="botoes-acao-lista">

@@ -21,25 +21,23 @@
 
     <form id="cadastroForm" action="/cadastro" method="post" novalidate>
 
-        <label for="nome">Nome*:</label>
+        <label for="nome">Nome</label>
         <input type="text" id="nome" name="nome" placeholder="Maria Silva" required />
 
-        <label for="email">E-mail*:</label>
+        <label for="email">E-mail</label>
         <input type="email" id="email" name="email" placeholder="maria.silva@exemplo.com" required />
 
-        <label for="dataNasc">Data de Nascimento*:</label>
+        <label for="dataNasc">Data de Nascimento</label>
         <input type="date" id="dataNasc" name="dataNascimento" required />
 
-        <label for="senha">Senha*:</label>
+        <label for="senha">Senha</label>
         <input type="password" id="senha" name="senha" placeholder="Mínimo de 8 caracteres" required />
 
-        <label for="confirmar">Confirmar Senha*:</label>
+        <label for="confirmar">Confirmar Senha</label>
         <input type="password" id="confirmar" name="confirmarSenha" placeholder="Repita a senha" required />
 
-        <div class="botoes">
-            <a href="/login" class="voltar" title="Voltar para Login" aria-label="Voltar para Login">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
-            </a>
+        <div class="botoes botoes-dupla">
+            <button type="button" class="btn secundario" onclick="window.location.href='/login'">Voltar</button>
             <button type="submit" class="btn">Cadastrar-se</button>
         </div>
     </form>
