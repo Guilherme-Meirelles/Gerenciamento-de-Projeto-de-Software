@@ -36,11 +36,25 @@ Se preferir usar outro host, porta, usuário, senha ou nome de banco, edite dire
 
 ## Configuração de e-mail
 
-O envio de e-mails (confirmação de cadastro, recuperação de senha, convites de área de trabalho) usa SMTP do Gmail, configurado em `src/main/resources/application.properties`:
+O envio de e-mails (confirmação de cadastro, recuperação de senha, convites de área de trabalho) usa SMTP do Gmail, configurado em `src/main/resources/application.properties`. O usuário fica no próprio arquivo, mas **a senha não é escrita nele**: o arquivo apenas lê a variável de ambiente `MAIL_PASSWORD`, para que a senha nunca seja commitada.
 
 ```properties
 spring.mail.username=<seu-email>@gmail.com
-spring.mail.password=<senha-de-app-do-gmail>
+spring.mail.password=${MAIL_PASSWORD}
+```
+
+Cada pessoa que roda o projeto precisa criar a variável `MAIL_PASSWORD` na própria máquina, com a senha de app do Gmail (pode ser sem espaços). Sem ela o envio de e-mail falha, e como o envio é assíncrono o erro só aparece no log.
+
+No Windows (PowerShell), depois feche e reabra o terminal e a IDE, porque a variável só vale para processos novos:
+
+```powershell
+setx MAIL_PASSWORD "sua-senha-de-app"
+```
+
+No Linux/macOS:
+
+```bash
+export MAIL_PASSWORD="sua-senha-de-app"
 ```
 
 > **Atenção:** use uma [senha de app](https://myaccount.google.com/apppasswords) do Gmail, nunca a senha normal da conta. O Gmail rejeita/reescreve o remetente quando ele não é a própria conta autenticada, então o `From` dos e-mails enviados é sempre esse mesmo endereço.
