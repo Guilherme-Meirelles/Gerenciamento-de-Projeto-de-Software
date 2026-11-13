@@ -833,12 +833,6 @@ window.voltarParaDetalhes = function () {
     setTimeout(() => lucide.createIcons(), 10);
 }
 
-window.abrirSolicitacoes = function () {
-    console.log('Carregando solicitações da área:', areaSelecionadaGerenciar);
-    // Aqui você implementaria a tela de solicitações
-    Aviso.mostrar('Funcionalidade de Solicitações em desenvolvimento.', 'alerta');
-}
-
 // Gerenciamento de permissões de membros
 window.abrirModalPermissao = function (membroId, membroNome, permissaoAtual) {
     membroAtualPermissao = { id: membroId, nome: membroNome, permissaoAtual: permissaoAtual };

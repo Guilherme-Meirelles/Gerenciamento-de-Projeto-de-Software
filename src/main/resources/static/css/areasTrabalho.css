@@ -1007,15 +1007,6 @@
     margin-top: 2px;
 }
 
-.item-menu-detalhes:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.item-menu-detalhes:disabled:hover {
-    background-color: #4a4a4a;
-}
-
 .badge-contador:empty {
     display: none;
 }
