@@ -1,5 +1,9 @@
 package com.example.demo.Controles;
 
+import com.example.demo.Serviços.Idioma.Idioma;
+import com.example.demo.Serviços.Idioma.IdiomaLocaleResolver;
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import org.springframework.web.util.UriUtils;
 import java.nio.charset.StandardCharsets;
 import com.example.demo.Entidades.Token;
@@ -61,29 +65,28 @@ public class LoginCadastroControle {
     public String cadastroUsuario(@ModelAttribute Usuario usuario, BindingResult result, Model model) {
 
         if (result.hasErrors()) {
-            model.addAttribute("mensagem", "Erro ao cadastrar!");
+            model.addAttribute("mensagem", Mensagens.get("msg.cadastro.erro"));
             return "cadastro";
         }
 
         if (usuario.getSenha().length() < 8) {
-            model.addAttribute("mensagem", "A senha deve ter pelo menos 8 caracteres!");
+            model.addAttribute("mensagem", Mensagens.get("msg.senha.curta"));
             return "cadastro";
         }
 
         if (!senhaForte(usuario.getSenha())) {
-            model.addAttribute("mensagem",
-                    "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
+            model.addAttribute("mensagem", Mensagens.get("msg.senha.fraca"));
             return "cadastro";
         }
 
         if (Long.parseLong(usuario.getDataNascimento().substring(0, 4)) > Year.now().getValue()) {
-            model.addAttribute("mensagem", "Ano inserido inválido");
+            model.addAttribute("mensagem", Mensagens.get("msg.ano.invalido"));
             return "cadastro";
 
         }
 
         if (ur.findByEmail(usuario.getEmail()) != null) {
-            model.addAttribute("mensagem", "Este e-mail já está cadastrado!");
+            model.addAttribute("mensagem", Mensagens.get("msg.email.jaCadastrado"));
             return "cadastro";
         }
 
@@ -103,9 +106,9 @@ public class LoginCadastroControle {
 
             emailService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), tokenString);
 
-            model.addAttribute("mensagem", "Cadastro realizado! Verifique seu e-mail para confirmar a conta.");
+            model.addAttribute("mensagem", Mensagens.get("msg.cadastro.sucesso"));
         } catch (Exception e) {
-            model.addAttribute("mensagem", "Cadastro realizado, mas houve um erro ao enviar o e-mail de confirmação.");
+            model.addAttribute("mensagem", Mensagens.get("msg.cadastro.erroEmail"));
         }
 
         return "login";
@@ -117,13 +120,13 @@ public class LoginCadastroControle {
         Token t = tokenRepository.findByToken(token);
 
         if (t == null || t.isUsado() || t.getExpiraEm().isBefore(LocalDateTime.now())) {
-            model.addAttribute("erro", "Link de confirmação expirado ou inválido");
+            model.addAttribute("erro", Mensagens.get("msg.link.confirmacaoInvalido"));
             return "login";
         }
 
         Usuario usuario = ur.findByEmail(t.getEmail());
         if (usuario == null) {
-            model.addAttribute("erro", "Usuário não encontrado");
+            model.addAttribute("erro", Mensagens.get("msg.usuario.naoEncontrado"));
             return "login";
         }
 
@@ -133,7 +136,7 @@ public class LoginCadastroControle {
         t.setUsado(true);
         tokenRepository.save(t);
 
-        model.addAttribute("mensagem", "E-mail confirmado com sucesso! Faça login para continuar.");
+        model.addAttribute("mensagem", Mensagens.get("msg.email.confirmado"));
         return "login";
     }
 
@@ -145,12 +148,12 @@ public class LoginCadastroControle {
             Usuario usuario = ur.findByEmail(email);
 
             if (usuario == null) {
-                model.addAttribute("erro", "Este e-mail não está cadastrado");
+                model.addAttribute("erro", Mensagens.get("msg.email.naoCadastrado"));
                 return "login";
             }
 
             if (usuario.isEmailVerificado()) {
-                model.addAttribute("mensagem", "Este e-mail já está verificado. Faça login.");
+                model.addAttribute("mensagem", Mensagens.get("msg.email.jaVerificado"));
                 return "login";
             }
 
@@ -165,10 +168,10 @@ public class LoginCadastroControle {
 
             emailService.enviarEmailVerificacao(usuario.getEmail(), usuario.getNome(), tokenString);
 
-            model.addAttribute("mensagem", "Novo e-mail de confirmação enviado! Verifique sua caixa de entrada.");
+            model.addAttribute("mensagem", Mensagens.get("msg.email.reenviado"));
 
         } catch (Exception e) {
-            model.addAttribute("erro", "Erro ao enviar e-mail! " + e.getMessage());
+            model.addAttribute("erro", Mensagens.get("msg.email.erroEnvio", e.getMessage()));
         }
 
         return "login";
@@ -184,12 +187,23 @@ public class LoginCadastroControle {
 
         if (senhaValida) {
             if (!usuarioLogado.isEmailVerificado()) {
-                model.addAttribute("erro", "Confirme seu e-mail antes de fazer login. Verifique sua caixa de entrada.");
+                model.addAttribute("erro", Mensagens.get("msg.login.confirmeEmail"));
                 model.addAttribute("emailNaoVerificado", usuarioLogado.getEmail());
                 return "login";
             }
 
+            // O idioma que a pessoa está usando neste navegador (escolhido na tela de login ou lembrado do último uso)
+            // vale a partir do login e é guardado no perfil. Só em um navegador sem escolha nenhuma vale o do perfil.
+            Idioma escolhido = IdiomaLocaleResolver.sessao(request);
+            if (escolhido == null) escolhido = IdiomaLocaleResolver.cookie(request);
             SessaoUtil.autenticar(request, usuarioLogado.getId());
+            Idioma doPerfil = Idioma.de(usuarioLogado.getIdioma());
+            Idioma valido = escolhido != null ? escolhido : (doPerfil != null ? doPerfil : Idioma.PADRAO);
+            if (doPerfil != valido) {
+                usuarioLogado.setIdioma(valido.codigo());
+                ur.save(usuarioLogado);
+            }
+            request.getSession().setAttribute(IdiomaLocaleResolver.ATRIBUTO_SESSAO, valido.codigo());
 
             // Se o login veio de um link de convite de área de trabalho, aceita agora
             // (guardado na sessão por AreaTrabalhoController.entrarPorLink).
@@ -206,7 +220,7 @@ public class LoginCadastroControle {
             return "redirect:/menu";
         }
 
-        model.addAttribute("erro", "E-mail ou senha incorretos. Confira os dados e tente novamente.");
+        model.addAttribute("erro", Mensagens.get("msg.login.incorreto"));
         model.addAttribute("credenciaisInvalidas", true);
         return "login";
 

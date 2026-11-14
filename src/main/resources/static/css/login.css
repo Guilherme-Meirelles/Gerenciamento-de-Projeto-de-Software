@@ -49,6 +49,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 400px;
     min-width: 400px;
     transition: transform 0.3s ease;
 }
@@ -59,6 +60,17 @@ body {
     font-weight: 700;
     color: #ffffff;
     letter-spacing: 0.5px;
+}
+
+/* Título das telas de recuperação e redefinição de senha */
+.login-container h4 {
+    align-self: stretch;
+    margin: 0 0 25px;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: center;
+    color: #ffffff;
 }
 
 /* ===== Mensagens de status ===== */

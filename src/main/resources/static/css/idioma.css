@@ -1,0 +1,36 @@
+/* Seletor de idioma: canto superior direito das telas de acesso e campo do perfil */
+.idioma-seletor {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    color: #ccc;
+}
+
+.idioma-seletor label {
+    margin: 0;
+    font-weight: 400;
+}
+
+.idioma-seletor select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #1e1e1e;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cccccc' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    color: #fff;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 6px 34px 6px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+}

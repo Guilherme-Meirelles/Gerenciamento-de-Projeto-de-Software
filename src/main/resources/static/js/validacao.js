@@ -24,17 +24,17 @@
     // Retorna os itens que faltam na senha (lista vazia = senha forte).
     function requisitosFaltando(senha) {
         const faltando = [];
-        if (senha.length < 8) faltando.push('pelo menos 8 caracteres');
-        if (!/\p{Lu}/u.test(senha)) faltando.push('uma letra maiúscula');
-        if (!/\p{Ll}/u.test(senha)) faltando.push('uma letra minúscula');
-        if (!/\d/.test(senha)) faltando.push('um número');
-        if (!/[^\p{L}\p{N}\s]/u.test(senha)) faltando.push('um caractere especial (como ! @ # $ %)');
+        if (senha.length < 8) faltando.push(t('js.senha.tamanho'));
+        if (!/\p{Lu}/u.test(senha)) faltando.push(t('js.senha.maiuscula'));
+        if (!/\p{Ll}/u.test(senha)) faltando.push(t('js.senha.minuscula'));
+        if (!/\d/.test(senha)) faltando.push(t('js.senha.numero'));
+        if (!/[^\p{L}\p{N}\s]/u.test(senha)) faltando.push(t('js.senha.especial'));
         return faltando;
     }
 
     function juntar(itens) {
         return itens.length > 1
-            ? itens.slice(0, -1).join(', ') + ' e ' + itens[itens.length - 1]
+            ? itens.slice(0, -1).join(', ') + ' ' + t('js.juntar.e') + ' ' + itens[itens.length - 1]
             : itens[0];
     }
 

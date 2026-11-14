@@ -1,32 +1,35 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" th:lang="${#locale.toLanguageTag()}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ToDaily - Recuperação de Senha</title>
+    <title th:text="#{recuperar.titulo}">ToDaily - Recuperação de Senha</title>
     <link rel="stylesheet" href="/css/login.css">
     <link rel="stylesheet" href="/css/avisos.css">
+    <link rel="stylesheet" href="/css/idioma.css" />
     <link rel="stylesheet" href="/css/acessibilidade-temas.css" />
     <link rel="stylesheet" href="/css/acessibilidade.css" />
+    <script src="/idioma/mensagens.js"></script>
     <script src="/js/acessibilidade.js"></script>
 </head>
 <body>
+<div th:replace="~{idiomaSeletor :: seletor}"></div>
 <div class="logo">
-    <img src="/img/logo.png" alt="ToDaily logo" />
+    <img src="/img/logo.png" alt="ToDaily logo" th:alt="#{comum.logoAlt}" />
 </div>
 
 <div class="login-container">
-    <h4>Insira o seu e-mail para<br>recuperar sua senha</h4>
+    <h4 th:text="#{recuperar.cabecalho}">Insira o seu e-mail para recuperar sua senha</h4>
     <p class="aviso sucesso" th:if="${mensagem != null}" th:text="${mensagem}"></p>
     <p class="aviso erro" th:if="${erro != null}" th:text="${erro}"></p>
     <p class="aviso erro" id="avisoEmail" hidden></p>
     <form id="emailForm" method="post" action="/recuperar-senha" novalidate>
 
 
-        <label for="email">E-mail</label>
-        <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" th:classappend="${erro != null} ? 'campo-invalido'" required>
-        <button type="submit" class="btn">CONFIRMAR</button>
-        <button type="button" class="btn secundario" onclick="window.location.href='/login'">Voltar</button>
+        <label for="email" th:text="#{comum.email}">E-mail</label>
+        <input type="email" id="email" name="email" placeholder="email@exemplo.com" th:placeholder="#{recuperar.phEmail}" th:classappend="${erro != null} ? 'campo-invalido'" required>
+        <button type="submit" class="btn" th:text="#{recuperar.botao}">CONFIRMAR</button>
+        <button type="button" class="btn secundario" onclick="window.location.href='/login'" th:text="#{comum.voltar}">Voltar</button>
     </form>
 </div>
 
@@ -42,12 +45,12 @@
         if (!valor) {
             e.preventDefault();
             Validacao.marcar(email, true);
-            Validacao.mostrarAviso(aviso, "Informe o seu e-mail para receber o link de recuperação.");
+            Validacao.mostrarAviso(aviso, t("js.recuperar.informeEmail"));
             email.focus();
         } else if (!Validacao.emailValido(valor)) {
             e.preventDefault();
             Validacao.marcar(email, true);
-            Validacao.mostrarAviso(aviso, "Digite um e-mail válido, como nome@exemplo.com.");
+            Validacao.mostrarAviso(aviso, t("js.form.emailInvalido"));
             email.focus();
         }
     });

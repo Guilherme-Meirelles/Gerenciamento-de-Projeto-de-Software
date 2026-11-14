@@ -1,48 +1,51 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" th:lang="${#locale.toLanguageTag()}">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ToDaily - Editar Conta</title>
+    <title th:text="#{edicao.titulo}">ToDaily - Editar Conta</title>
     <link rel="stylesheet" href="/css/cadastro.css" />
     <link rel="stylesheet" href="/css/avisos.css" />
+    <link rel="stylesheet" href="/css/idioma.css" />
     <link rel="stylesheet" href="/css/acessibilidade-temas.css" />
     <link rel="stylesheet" href="/css/acessibilidade.css" />
+    <script src="/idioma/mensagens.js"></script>
     <script src="/js/acessibilidade.js"></script>
 </head>
 <body>
+<div th:replace="~{idiomaSeletor :: seletor}"></div>
 <div class="logo">
-    <img src="/img/logo.png" alt="ToDaily logo" />
+    <img src="/img/logo.png" alt="ToDaily logo" th:alt="#{comum.logoAlt}" />
 
 </div>
 
 <div class="cadastro-container">
-    <h2>Editar Conta</h2>
+    <h2 th:text="#{edicao.cabecalho}">Editar Conta</h2>
 
     <p class="aviso sucesso" th:if="${mensagem != null}" th:text="${mensagem}"></p>
 
     <form id="cadastroForm" action="/edicaoUsuario" method="post" novalidate onsubmit="return validarFormulario()" th:object="${usuario}">
 
-        <label for="nome">Nome<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
+        <label for="nome"><span th:text="#{comum.nome}">Nome</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
         <input type="text" id="nome" name="nome" th:value="*{nome}" required />
 
-        <label for="email">E-mail</label>
+        <label for="email" th:text="#{comum.email}">E-mail</label>
         <input type="email" id="email" name="email" th:value="*{email}" readonly tabindex="-1"
-               title="O e-mail é o seu login e não pode ser alterado" />
-        <p class="info">O e-mail é o seu login e não pode ser alterado.</p>
+               title="O e-mail é o seu login e não pode ser alterado" th:title="#{edicao.emailTitulo}" />
+        <p class="info" th:text="#{edicao.emailDica}">O e-mail é o seu login e não pode ser alterado.</p>
 
-        <label for="dataNasc">Data de Nascimento<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
+        <label for="dataNasc"><span th:text="#{comum.dataNascimento}">Data de Nascimento</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
         <input type="date" id="dataNasc" name="dataNascimento" th:value="*{dataNascimento}" required />
 
-        <label for="senha">Nova Senha</label>
-        <input type="password" id="senha" name="senha" minlength="8" placeholder="Deixe em branco para manter a senha atual" />
+        <label for="senha" th:text="#{edicao.novaSenha}">Nova Senha</label>
+        <input type="password" id="senha" name="senha" minlength="8" placeholder="Deixe em branco para manter a senha atual" th:placeholder="#{edicao.phSenha}" />
 
-        <label for="confirmar">Confirmar Nova Senha</label>
-        <input type="password" id="confirmar" name="confirmarSenha" minlength="8" placeholder="Deixe em branco para manter a senha atual" />
+        <label for="confirmar" th:text="#{edicao.confirmarNovaSenha}">Confirmar Nova Senha</label>
+        <input type="password" id="confirmar" name="confirmarSenha" minlength="8" placeholder="Deixe em branco para manter a senha atual" th:placeholder="#{edicao.phSenha}" />
 
         <div class="botoes botoes-dupla">
-            <button type="button" class="btn secundario" onclick="window.location.href='/menu'">Cancelar</button>
-            <button type="submit" class="btn">Confirmar</button>
+            <button type="button" class="btn secundario" onclick="window.location.href='/menu'" th:text="#{comum.cancelar}">Cancelar</button>
+            <button type="submit" class="btn" th:text="#{comum.confirmar}">Confirmar</button>
         </div>
     </form>
 
@@ -75,19 +78,19 @@
         if (vazios.length) {
             vazios.forEach(c => Validacao.marcar(c, true));
             primeiro = vazios[0];
-            mensagem = vazios.length === 1 ? "Preencha o campo destacado." : "Preencha os campos destacados.";
+            mensagem = t(vazios.length === 1 ? "js.form.preenchaCampo" : "js.form.preenchaCampos");
         } else {
             if (!Validacao.emailValido(email.value.trim())) {
-                falha(email, "Digite um e-mail válido, como nome@exemplo.com.");
+                falha(email, t("js.form.emailInvalido"));
             }
             // Só valida a senha se o usuário decidiu trocá-la
             if (senha.value.length > 0 || confirmar.value.length > 0) {
                 const faltando = Validacao.requisitosFaltando(senha.value);
                 if (faltando.length) {
-                    falha(senha, "A senha precisa ter " + Validacao.juntar(faltando) + ".");
+                    falha(senha, t("js.form.senhaPrecisa", Validacao.juntar(faltando)));
                 }
                 if (senha.value !== confirmar.value) {
-                    falha(confirmar, "As senhas não coincidem.");
+                    falha(confirmar, t("js.form.senhasDiferentes"));
                 }
             }
         }

@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Atualiza o subtítulo (só mostra data para "Para Hoje")
         if (subtituloSpan) {
-            if (novoTitulo === "Para Hoje") {
+            if (elementoClicado.dataset.visao === 'hoje') {
                 const hoje = new Date();
                 const dia = String(hoje.getDate()).padStart(2, "0");
                 const mes = String(hoje.getMonth() + 1).padStart(2, "0");
@@ -834,7 +834,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.atualizarTituloPagina = function (listaId) {
         const tituloPrincipal = document.getElementById('titulo-principal');
-        tituloPrincipal.textContent = nomesListas[listaId] || 'Para Hoje';
+        tituloPrincipal.textContent = nomesListas[listaId] || t('js.menu.paraHoje');
     }
 
     window.renderizarTarefas = function (listaFiltro) {

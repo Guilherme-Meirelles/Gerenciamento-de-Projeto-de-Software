@@ -16,6 +16,7 @@ html.acess-zoom .aviso.aviso-flutuante { width: min(440px, calc(calc(100vw / var
 html.acess-zoom body { height: calc(100vh / var(--az, 1)) !important; }
 /* calendario.css */
 html.acess-zoom .calendario-ano-grid { max-height: calc(60vh / var(--az, 1)) !important; }
+/* idioma.css */
 /* login.css */
 html.acess-zoom body { height: calc(100vh / var(--az, 1)) !important; }
 /* menu.css */
@@ -207,16 +208,20 @@ html.tema-claro .btn-hoje, html.tema-claro .btn-ver-ano { background-color: #e6e
 html.tema-claro .btn-hoje:hover, html.tema-claro .btn-ver-ano:hover { background-color: #e0e0e0 !important; border-color: #b5b5b5 !important; }
 html.tema-claro .btn-fechar-calendario { background-color: #d6d6d6 !important; border-color: #b5b5b5 !important; color: #1a1a1a !important; }
 html.tema-claro .btn-fechar-calendario:hover { background-color: #cdcdcd !important; border-color: #a5a5a5 !important; }
+/* idioma.css */
+html.tema-claro .idioma-seletor { color: #333333 !important; }
+html.tema-claro .idioma-seletor select { background-color: #efefef !important; color: #1a1a1a !important; border: 1px solid #c5c5c5 !important; }
 /* login.css */
 html.tema-claro body { background-color: #f5f5f5 !important; color: #1a1a1a !important; }
 html.tema-claro .login-container { background-color: #efefef !important; border: 1px solid #cccccc !important; }
 html.tema-claro .login-container h2 { color: #1a1a1a !important; }
-html.tema-claro p[th\\:if][style*="lightgreen"] { color: #008a39 !important !important; }
+html.tema-claro .login-container h4 { color: #1a1a1a !important; }
+html.tema-claro p[th\\:if][style*="lightgreen"] { color: #008a39 !important; }
 html.tema-claro label { color: #292929 !important; }
 html.tema-claro input { background-color: #e8e8e8 !important; border: 1px solid #c5c5c5 !important; color: #1a1a1a !important; }
 html.tema-claro input:focus { border-color: #777777 !important; background-color: #ebebeb !important; }
-html.tema-claro .forgot-password-link a { color: #333333 !important !important; }
-html.tema-claro .forgot-password-link a:hover { color: #1a1a1a !important !important; }
+html.tema-claro .forgot-password-link a { color: #333333 !important; }
+html.tema-claro .forgot-password-link a:hover { color: #1a1a1a !important; }
 html.tema-claro .btn { background-color: #737373 !important; color: #6e6e6e !important; }
 html.tema-claro .btn:hover { background-color: #848484 !important; }
 html.tema-claro .btn.secundario { background-color: #e6e6e6 !important; color: #222222 !important; border: 1px solid #c5c5c5 !important; }
@@ -455,6 +460,7 @@ html.tema-claro .texto-modal-sair { color: #2f2f2f !important; }
 html.tema-claro .btn-cancelar-sair, html.tema-claro .btn-confirmar-sair { color: #1a1a1a !important; }
 html.tema-claro .btn-cancelar-sair { background-color: #e6e6e6 !important; }
 html.tema-claro .btn-cancelar-sair:hover { background-color: #ebebeb !important; }
+html.tema-claro .campo-perfil select.idioma-select { background-color: #efefef !important; color: #1a1a1a !important; border: 1px solid #c5c5c5 !important; }
 
 /* ===== ALTO CONTRASTE ===== */
 /* areasTrabalho.css */
@@ -608,13 +614,16 @@ html.acess-contraste .btn-hoje, html.acess-contraste .btn-ver-ano { background-c
 html.acess-contraste .btn-hoje:hover, html.acess-contraste .btn-ver-ano:hover { background-color: #000000 !important; border-color: #ffffff !important; }
 html.acess-contraste .btn-fechar-calendario { background-color: #000000 !important; border-color: #ffffff !important; }
 html.acess-contraste .btn-fechar-calendario:hover { background-color: #000000 !important; border-color: #ffffff !important; }
+/* idioma.css */
+html.acess-contraste .idioma-seletor { color: #ffffff !important; }
+html.acess-contraste .idioma-seletor select { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
 /* login.css */
 html.acess-contraste body { background-color: #000000 !important; color: #ffffff !important; }
 html.acess-contraste .login-container { background-color: #000000 !important; border: 1px solid #ffffff !important; }
 html.acess-contraste label { color: #ffffff !important; }
 html.acess-contraste input { background-color: #000000 !important; border: 1px solid #ffffff !important; color: #ffffff !important; }
 html.acess-contraste input:focus { border-color: #ffffff !important; background-color: #000000 !important; }
-html.acess-contraste .forgot-password-link a { color: #ffffff !important !important; }
+html.acess-contraste .forgot-password-link a { color: #ffffff !important; }
 html.acess-contraste .btn.secundario { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }
 html.acess-contraste .btn.secundario:hover { background-color: #000000 !important; border-color: #ffffff !important; }
 /* menu.css */
@@ -827,3 +836,4 @@ html.acess-contraste .modal-sair { background-color: #000000 !important; }
 html.acess-contraste .texto-modal-sair { color: #ffffff !important; }
 html.acess-contraste .btn-cancelar-sair { background-color: #000000 !important; }
 html.acess-contraste .btn-cancelar-sair:hover { background-color: #000000 !important; }
+html.acess-contraste .campo-perfil select.idioma-select { background-color: #000000 !important; color: #ffffff !important; border: 1px solid #ffffff !important; }

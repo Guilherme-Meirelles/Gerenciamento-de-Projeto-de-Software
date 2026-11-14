@@ -1,5 +1,7 @@
 package com.example.demo.Controles;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import com.example.demo.ConsultasBD.FotoPerfilRepository;
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Entidades.FotoPerfil;
@@ -61,24 +63,24 @@ public class FotoPerfilController {
         }
 
         if (arquivo == null || arquivo.isEmpty()) {
-            return ResponseEntity.badRequest().body("Nenhuma imagem enviada.");
+            return ResponseEntity.badRequest().body(Mensagens.get("msg.foto.semImagem"));
         }
         if (arquivo.getSize() > TAMANHO_MAXIMO) {
-            return ResponseEntity.badRequest().body("A imagem deve ter no máximo 5 MB.");
+            return ResponseEntity.badRequest().body(Mensagens.get("msg.foto.grande"));
         }
 
         byte[] dados;
         try {
             dados = arquivo.getBytes();
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao ler a imagem.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Mensagens.get("msg.foto.leitura"));
         }
 
         // O tipo é deduzido do conteúdo do arquivo, não do que o cliente declara,
         // e só aceita formatos de imagem comuns (SVG fica de fora de propósito).
         String tipo = detectarTipoImagem(dados);
         if (tipo == null) {
-            return ResponseEntity.badRequest().body("Formato inválido. Use uma imagem JPG, PNG, GIF ou WebP.");
+            return ResponseEntity.badRequest().body(Mensagens.get("msg.foto.formato"));
         }
 
         Usuario usuario = usuarioRepository.findUsuarioById(usuarioId);

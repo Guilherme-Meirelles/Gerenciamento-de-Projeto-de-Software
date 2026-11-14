@@ -277,7 +277,10 @@ header = '''/* ARQUIVO GERADO a partir dos demais .css (não editar à mão).
  * Se algum .css do projeto mudar, o arquivo precisa ser gerado de novo.
  */
 '''
-open(OUT, 'w', encoding='utf-8').write(header + '\n/* ===== ZOOM ===== */\n' + '\n'.join(zoom) +
+texto = (header + '\n/* ===== ZOOM ===== */\n' + '\n'.join(zoom) +
     '\n\n/* ===== TEMA CLARO ===== */\n' + '\n'.join(claro) +
     '\n\n/* ===== ALTO CONTRASTE ===== */\n' + '\n'.join(hc) + '\n')
+# valores que já vinham com !important no CSS original não podem ficar com dois (a regra seria ignorada)
+texto = texto.replace('!important !important', '!important')
+open(OUT, 'w', encoding='utf-8').write(texto)
 print('ok', sum(1 for l in claro if l.startswith('html')), sum(1 for l in hc if l.startswith('html')), sum(1 for l in zoom if l.startswith('html')))

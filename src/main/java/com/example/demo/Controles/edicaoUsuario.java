@@ -1,5 +1,7 @@
 package com.example.demo.Controles;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Entidades.Usuario;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
@@ -47,22 +49,21 @@ public class edicaoUsuario {
         boolean vaiTrocarSenha = usuarioEditado.getSenha() != null && !usuarioEditado.getSenha().isBlank();
 
         if (result.hasErrors()) {
-            model.addAttribute("mensagem", "Erro na edição de usuário!");
+            model.addAttribute("mensagem", Mensagens.get("msg.edicao.erro"));
             return "edicaoUsuario";
 
         } else if (Long.parseLong(usuarioEditado.getDataNascimento().substring(0, 4)) > Year.now().getValue()) {
-            model.addAttribute("mensagem", "Ano inserido inválido");
+            model.addAttribute("mensagem", Mensagens.get("msg.ano.invalido"));
             return "cadastro";
         }
 
         else if (vaiTrocarSenha && usuarioEditado.getSenha().length() < 8) {
-            model.addAttribute("mensagem", "A senha deve ter pelo menos 8 caracteres!");
+            model.addAttribute("mensagem", Mensagens.get("msg.senha.curta"));
             return "edicaoUsuario";
         }
 
         else if (vaiTrocarSenha && !LoginCadastroControle.senhaForte(usuarioEditado.getSenha())) {
-            model.addAttribute("mensagem",
-                    "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
+            model.addAttribute("mensagem", Mensagens.get("msg.senha.fraca"));
             return "edicaoUsuario";
         } else {
 
@@ -86,13 +87,13 @@ public class edicaoUsuario {
 
                     ur.save(usuarioExistente);
 
-                    model.addAttribute("mensagem", "Dados atualizados com sucesso!");
+                    model.addAttribute("mensagem", Mensagens.get("msg.edicao.sucesso"));
                     model.addAttribute("usuario", usuarioExistente);
                     return "login";
                 }
             }
 
-            model.addAttribute("erro", "Usuário não encontrado ou não logado.");
+            model.addAttribute("erro", Mensagens.get("msg.edicao.naoLogado"));
             return "redirect:/login";
         }
     }

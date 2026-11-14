@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-br" th:lang="${#locale.toLanguageTag()}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,6 +10,7 @@
     <script src="/js/lucide.min.js"></script>
     <link rel="stylesheet" href="/css/acessibilidade-temas.css" />
     <link rel="stylesheet" href="/css/acessibilidade.css" />
+    <script src="/idioma/mensagens.js"></script>
     <script src="/js/acessibilidade.js"></script>
 </head>
 <body>
@@ -23,14 +24,14 @@
         <div class="titulo">
             <div class="titulo-info">
                 <div class="titulo-texto">
-                    <h2 id="titulo-principal">Para Hoje</h2>
+                    <h2 id="titulo-principal" th:text="#{sidebar.paraHoje}">Para Hoje</h2>
                     <span id="subtitulo-principal" th:text="${descricaoDaLista}" th:title="${descricaoDaLista}"></span>
                     <!-- Título da visão já na primeira pintura (evita mostrar "Para Hoje" antes de trocar) -->
                     <script>
                         (function () {
                             if (location.pathname !== '/menu') return;
                             var visao = new URLSearchParams(location.search).get('view');
-                            var titulo = visao === 'agendadas' ? 'Agendadas' : visao === 'todas' ? 'Todas as Tarefas' : null;
+                            var titulo = visao === 'agendadas' ? t('js.menu.agendadas') : visao === 'todas' ? t('js.menu.todas') : null;
                             if (titulo) document.getElementById('titulo-principal').textContent = titulo;
                         })();
                     </script>

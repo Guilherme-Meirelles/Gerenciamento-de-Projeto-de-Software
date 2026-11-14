@@ -15,7 +15,7 @@ function aplicarEstadoSidebar(recolhida) {
     const sidebar = document.querySelector('.sidebar');
     const botao = document.getElementById('btnRecolherSidebar');
 
-    botao.title = recolhida ? 'Expandir barra lateral' : 'Recolher barra lateral';
+    botao.title = recolhida ? t('js.sidebar.expandir') : t('js.sidebar.recolher');
     botao.innerHTML = '<i data-lucide="' + (recolhida ? 'panel-left-open' : 'panel-left-close') + '"></i>';
 
     // Com o texto escondido, a dica passa a ser a única forma de saber o que o ícone faz
@@ -71,9 +71,9 @@ function definirValorCampo(campo, valor) {
 // Botões "OK" de Adicionar/Editar Lista ficam apagados, com a mensagem, enquanto o nome estiver vazio
 document.addEventListener('DOMContentLoaded', function () {
     Aviso.exigirTexto(document.getElementById('nome-lista'), document.getElementById('btnOkAddLista'),
-        'Digite o nome da lista para continuar');
+        t('js.lista.digiteNome'));
     Aviso.exigirTexto(document.getElementById('nome-lista-edit'), document.getElementById('btnOkEditLista'),
-        'Digite o nome da lista para continuar');
+        t('js.lista.digiteNome'));
 });
 
 window.fecharModalPerfil = function (nomeModal) {
@@ -163,7 +163,7 @@ document.addEventListener('keydown', (e) => {
  * estão atrasadas. O servidor calcula a lista a cada consulta (nada fica guardado), então o contador
  * é atualizado ao abrir a tela, de minuto em minuto, ao voltar para a aba e quando uma tarefa muda.
  */
-const ROTULO_SITUACAO_NOTIFICACAO = { ATRASADA: 'Atrasada', HOJE: 'Vence hoje', AMANHA: 'Vence amanhã' };
+const CHAVE_SITUACAO_NOTIFICACAO = { ATRASADA: 'js.notif.atrasada', HOJE: 'js.notif.hoje', AMANHA: 'js.notif.amanha' };
 
 function atualizarSeloNotificacoes(total) {
     const selo = document.getElementById('seloNotificacoes');
@@ -172,8 +172,8 @@ function atualizarSeloNotificacoes(total) {
     selo.textContent = total > 99 ? '99+' : String(total);
     selo.hidden = total === 0;
     if (botao) {
-        botao.title = total === 0 ? 'Notificações'
-            : 'Notificações (' + total + (total === 1 ? ' nova)' : ' novas)');
+        botao.title = total === 0 ? t('js.notif.titulo')
+            : total === 1 ? t('js.notif.tituloUma') : t('js.notif.tituloVarias', total);
     }
 }
 
@@ -202,13 +202,13 @@ function desenharNotificacoes(itens, sistemaLigado) {
         const vazio = document.createElement('div');
         vazio.className = 'notificacoes-vazio';
         vazio.innerHTML = '<i data-lucide="bell-off"></i>';
-        const t = document.createElement('p');
-        t.textContent = sistemaLigado === false ? 'Avisos no sistema desligados' : 'Nenhuma notificação por enquanto';
+        const tituloVazio = document.createElement('p');
+        tituloVazio.textContent = sistemaLigado === false ? t('js.notif.sistemaDesligado') : t('js.notif.nenhuma');
         const d = document.createElement('span');
         d.textContent = sistemaLigado === false
-            ? 'Ligue "No sistema (sino)" abaixo para voltar a ver as tarefas que estão perto de vencer.'
-            : 'Ligue "Notificações" em uma tarefa sua para ser avisado quando ela estiver perto de vencer.';
-        vazio.append(t, d);
+            ? t('js.notif.dicaDesligado')
+            : t('js.notif.dicaLigado');
+        vazio.append(tituloVazio, d);
         lista.appendChild(vazio);
         return;
     }
@@ -217,7 +217,7 @@ function desenharNotificacoes(itens, sistemaLigado) {
         const botao = document.createElement('button');
         botao.type = 'button';
         botao.className = 'item-notificacao';
-        botao.title = 'Abrir a área de trabalho "' + item.areaNome + '"';
+        botao.title = t('js.notif.abrirArea', item.areaNome);
         botao.onclick = () => {
             window.location.href = '/areasTrabalho/' + item.areaId + '/' + encodeURIComponent(item.areaNome);
         };
@@ -235,8 +235,8 @@ function desenharNotificacoes(itens, sistemaLigado) {
         const selo = document.createElement('span');
         selo.className = 'selo-situacao ' + item.situacao.toLowerCase();
         selo.textContent = item.situacao === 'ATRASADA' && item.diasAtraso > 0
-            ? 'Atrasada ' + item.diasAtraso + (item.diasAtraso === 1 ? ' dia' : ' dias')
-            : ROTULO_SITUACAO_NOTIFICACAO[item.situacao];
+            ? (item.diasAtraso === 1 ? t('js.notif.atrasadaUmDia') : t('js.notif.atrasadaDias', item.diasAtraso))
+            : t(CHAVE_SITUACAO_NOTIFICACAO[item.situacao]);
 
         botao.append(texto, selo);
         lista.appendChild(botao);
@@ -252,7 +252,7 @@ window.abrirNotificacoes = async function () {
         document.getElementById('prefNotifSistema').checked = pref.sistema;
         desenharNotificacoes(dados.itens, pref.sistema);
     } else {
-        document.getElementById('listaNotificacoes').textContent = 'Não foi possível carregar as notificações agora.';
+        document.getElementById('listaNotificacoes').textContent = t('js.notif.erroCarregar');
     }
     setTimeout(() => lucide.createIcons(), 10);
 };
@@ -276,7 +276,7 @@ async function salvarPreferenciasNotificacao() {
             setTimeout(() => lucide.createIcons(), 10);
         }
     } catch (e) {
-        Aviso.mostrar('Não foi possível salvar a preferência agora. Tente novamente.');
+        Aviso.mostrar(t('js.notif.erroSalvar'));
     }
 }
 
@@ -306,6 +306,7 @@ window.navegarPara = function (elementoClicado, url) {
  */
 window.atualizarTituloMenu = function (elementoClicado) {
     const novoTitulo = elementoClicado.innerText.trim();
+    const ehParaHoje = elementoClicado.dataset.visao === 'hoje';
     const tituloH2 = document.getElementById('titulo-principal');
     const subtituloSpan = document.getElementById('subtitulo-principal');
 
@@ -316,7 +317,7 @@ window.atualizarTituloMenu = function (elementoClicado) {
 
     // Atualiza o subtítulo (só mostra data para "Para Hoje")
     if (subtituloSpan) {
-        if (novoTitulo === "Para Hoje") {
+        if (ehParaHoje) {
             const hoje = new Date();
             const dia = String(hoje.getDate()).padStart(2, "0");
             const mes = String(hoje.getMonth() + 1).padStart(2, "0");
@@ -392,10 +393,10 @@ window.abrirModalAcao = function (tipo) {
     const form = document.getElementById('formConfirmacao');
 
     if (tipo === 'editar') {
-        mensagem.textContent = 'Deseja realmente editar sua conta?';
+        mensagem.textContent = t('js.conta.editar');
         form.action = '/editarConta';
     } else if (tipo === 'remover') {
-        mensagem.textContent = 'Deseja realmente remover sua conta?';
+        mensagem.textContent = t('js.conta.remover');
         form.action = '/removerConta';
     }
 
@@ -495,7 +496,7 @@ window.confirmarCriacaoLista = async function () {
     const areaId = window.areaAtualId; // ID da área carregada na página
     
     if (!nome) {
-        Aviso.mostrar("O nome da lista é obrigatório!", 'erro');
+        Aviso.mostrar(t('js.lista.nomeObrigatorio'), 'erro');
         return;
     }
 
@@ -520,7 +521,7 @@ window.confirmarEdicaoLista = async function () {
     const desc = document.getElementById("descricao-lista-edit").value.trim();
 
     if (!nome) {
-        Aviso.mostrar("O nome é obrigatório!", 'erro');
+        Aviso.mostrar(t('js.lista.nomeObrigatorioCurto'), 'erro');
         return;
     }
 
@@ -627,7 +628,7 @@ function definirFotoPerfil(url, manterAvatarSidebar) {
     });
 
     document.querySelectorAll('.btn-foto-remover').forEach(b => { b.style.display = url ? 'flex' : 'none'; });
-    document.querySelectorAll('.btn-foto-texto').forEach(t => { t.textContent = url ? 'Alterar foto' : 'Adicionar foto'; });
+    document.querySelectorAll('.btn-foto-texto').forEach(txt => { txt.textContent = url ? t('js.foto.alterar') : t('js.foto.adicionar'); });
 }
 
 window.carregarFotoPerfil = async function () {
@@ -687,11 +688,11 @@ window.aoEscolherFotoPerfil = async function (input) {
     if (!arquivo) return;
 
     if (!/^image\/(jpeg|png|gif|webp)$/.test(arquivo.type)) {
-        mostrarMensagemFoto('Formato inválido. Use uma imagem JPG, PNG, GIF ou WebP.');
+        mostrarMensagemFoto(t('js.foto.formato'));
         return;
     }
     if (arquivo.size > TAMANHO_MAX_FOTO) {
-        mostrarMensagemFoto('A imagem é grande demais. Escolha uma de até 20 MB.');
+        mostrarMensagemFoto(t('js.foto.grande'));
         return;
     }
 
@@ -707,12 +708,12 @@ window.aoEscolherFotoPerfil = async function (input) {
         const resposta = await fetch(URL_FOTO_PERFIL, { method: 'POST', body: dados });
         if (!resposta.ok) {
             const texto = await resposta.text();
-            mostrarMensagemFoto(texto && texto.length < 200 ? texto : 'Não foi possível salvar a foto.');
+            mostrarMensagemFoto(texto && texto.length < 200 ? texto : t('js.foto.erroSalvar'));
         } else {
             await carregarFotoPerfil();
         }
     } catch (e) {
-        mostrarMensagemFoto('Não foi possível ler essa imagem. Tente outro arquivo.');
+        mostrarMensagemFoto(t('js.foto.erroLer'));
     } finally {
         botoes.forEach(b => { b.disabled = false; });
     }
@@ -729,10 +730,10 @@ window.removerFotoPerfil = async function () {
             guardarCacheFoto(null);
             definirFotoPerfil(null);
         } else {
-            mostrarMensagemFoto('Não foi possível remover a foto.');
+            mostrarMensagemFoto(t('js.foto.erroRemover'));
         }
     } catch (e) {
-        mostrarMensagemFoto('Não foi possível remover a foto.');
+        mostrarMensagemFoto(t('js.foto.erroRemover'));
     } finally {
         botoes.forEach(b => { b.disabled = false; });
     }

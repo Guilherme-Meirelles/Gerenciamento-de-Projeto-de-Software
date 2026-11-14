@@ -50,7 +50,7 @@
 
             const titulo = document.createElement('h3');
             titulo.className = 'aviso-titulo';
-            titulo.textContent = config.titulo || 'Confirmar';
+            titulo.textContent = config.titulo || t('js.aviso.confirmar');
 
             const texto = document.createElement('p');
             texto.className = 'aviso-texto';
@@ -62,12 +62,12 @@
             const btnCancelar = document.createElement('button');
             btnCancelar.type = 'button';
             btnCancelar.className = 'aviso-btn cancelar';
-            btnCancelar.textContent = config.cancelar || 'Cancelar';
+            btnCancelar.textContent = config.cancelar || t('js.aviso.cancelar');
 
             const btnConfirmar = document.createElement('button');
             btnConfirmar.type = 'button';
             btnConfirmar.className = 'aviso-btn confirmar' + (config.perigo ? ' perigo' : '');
-            btnConfirmar.textContent = config.confirmar || 'Confirmar';
+            btnConfirmar.textContent = config.confirmar || t('js.aviso.confirmar');
 
             botoes.appendChild(btnCancelar);
             botoes.appendChild(btnConfirmar);

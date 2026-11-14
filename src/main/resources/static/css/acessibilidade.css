@@ -328,6 +328,17 @@ html.acess-contraste .acess-segmento.ativo {
 
 html.acess-contraste .acess-limite { color: #ffffff; }
 
+/* ===== Botão principal das telas de acesso (Entrar, Cadastrar-se, Confirmar) =====
+   No tema claro ele fica escuro com texto claro (a inversão automática deixava texto e fundo cinzas). */
+html.tema-claro .btn:not(.secundario) {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+}
+
+html.tema-claro .btn:not(.secundario):hover {
+    background-color: #444444 !important;
+}
+
 /* ===== Interruptores e caixas de seleção marcadas (tema claro e alto contraste) =====
    As regras genéricas de "input" pintariam tudo de uma cor só e apagariam o verde do estado marcado. */
 html.tema-claro .tarefa-checkbox:checked,
@@ -424,4 +435,15 @@ html.acess-zoom body:not(:has(.app-container)) {
 html.acess-zoom .acess-painel {
     max-height: calc((100vh - 100px) / var(--az, 1));
     max-width: calc((100vw - 40px) / var(--az, 1));
+}
+
+/* ===== Seta dos seletores de idioma (a cor da seta é uma imagem, então precisa de uma por tema) ===== */
+html.tema-claro .idioma-seletor select,
+html.tema-claro .campo-perfil select.idioma-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23333333' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
+}
+
+html.acess-contraste .idioma-seletor select,
+html.acess-contraste .campo-perfil select.idioma-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
 }

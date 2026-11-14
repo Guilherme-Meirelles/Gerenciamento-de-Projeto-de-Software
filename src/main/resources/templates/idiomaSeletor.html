@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Seletor de idioma das telas de acesso (a troca é feita por /idioma, que guarda a escolha) -->
+<div class="idioma-seletor" th:fragment="seletor">
+    <label for="idiomaSelect" th:text="#{comum.idioma}">Idioma</label>
+    <select id="idiomaSelect" onchange="trocarIdioma(this.value)">
+        <option value="pt-BR" th:selected="${#locale.language == 'pt'}">Português</option>
+        <option value="en" th:selected="${#locale.language == 'en'}">English</option>
+        <option value="es" th:selected="${#locale.language == 'es'}">Español</option>
+    </select>
+</div>
+</body>
+</html>

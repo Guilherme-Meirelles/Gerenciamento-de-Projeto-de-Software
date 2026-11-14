@@ -1,23 +1,26 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" th:lang="${#locale.toLanguageTag()}">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ToDaily - Redefinição de Senha</title>
+    <title th:text="#{redefinir.titulo}">ToDaily - Redefinição de Senha</title>
     <link rel="stylesheet" href="/css/login.css" />
     <link rel="stylesheet" href="/css/avisos.css" />
+    <link rel="stylesheet" href="/css/idioma.css" />
     <link rel="stylesheet" href="/css/acessibilidade-temas.css" />
     <link rel="stylesheet" href="/css/acessibilidade.css" />
+    <script src="/idioma/mensagens.js"></script>
     <script src="/js/acessibilidade.js"></script>
 </head>
 <body>
+<div th:replace="~{idiomaSeletor :: seletor}"></div>
 <div class="logo">
-    <img src="/img/logo.png" alt="ToDaily logo" />
+    <img src="/img/logo.png" alt="ToDaily logo" th:alt="#{comum.logoAlt}" />
 
 </div>
 
 <div class="login-container">
-    <h4>Redefinição de Senha</h4>
+    <h4 th:text="#{redefinir.cabecalho}">Redefinição de Senha</h4>
 
     <p class="aviso erro" th:if="${erro != null}" th:text="${erro}"></p>
     <p class="aviso erro" id="avisoRedefinicao" hidden></p>
@@ -25,13 +28,13 @@
     <form id="redefinicaoForm" action="/redefinirSenha" method="post" novalidate onsubmit="return validarSenha()">
 
         <input type="hidden" name="token" th:value="${token}">
-        <label for="senha">Senha</label>
+        <label for="senha" th:text="#{comum.senha}">Senha</label>
         <input type="password" id="senha" name="senha" required />
 
-        <label for="confirmarSenha">Confirmar Senha</label>
+        <label for="confirmarSenha" th:text="#{comum.confirmarSenha}">Confirmar Senha</label>
         <input type="password" id="confirmarSenha" name="confirmarSenha" required />
 
-        <button type="submit" class="btn">Confirmar</button>
+        <button type="submit" class="btn" th:text="#{comum.confirmar}">Confirmar</button>
 
     </form>
 </div>
@@ -50,15 +53,15 @@
         if (!senha.value.trim() || !confirmar.value.trim()) {
             [senha, confirmar].filter(c => !c.value.trim()).forEach(c => Validacao.marcar(c, true));
             primeiro = !senha.value.trim() ? senha : confirmar;
-            mensagem = "Preencha os campos destacados.";
+            mensagem = t("js.form.preenchaCampos");
         } else if (Validacao.requisitosFaltando(senha.value).length) {
             Validacao.marcar(senha, true);
             primeiro = senha;
-            mensagem = "A senha precisa ter " + Validacao.juntar(Validacao.requisitosFaltando(senha.value)) + ".";
+            mensagem = t("js.form.senhaPrecisa", Validacao.juntar(Validacao.requisitosFaltando(senha.value)));
         } else if (senha.value !== confirmar.value) {
             Validacao.marcar(confirmar, true);
             primeiro = confirmar;
-            mensagem = "As senhas não coincidem.";
+            mensagem = t("js.form.senhasDiferentes");
         }
 
         if (primeiro) {

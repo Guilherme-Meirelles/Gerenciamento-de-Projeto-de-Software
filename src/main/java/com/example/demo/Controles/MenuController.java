@@ -1,5 +1,7 @@
 package com.example.demo.Controles;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Entidades.Usuario;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
@@ -67,7 +69,7 @@ public class MenuController {
         String usuarioId = SessaoUtil.getUsuarioId(request);
 
         if (usuarioId == null) {
-            model.addAttribute("erro", "Nenhum usuário logado.");
+            model.addAttribute("erro", Mensagens.get("msg.menu.semUsuario"));
             return "redirect:/login";
         }
 
@@ -80,10 +82,10 @@ public class MenuController {
             this.usuarioService.excluirConta(usuario);
             SessaoUtil.encerrar(request);
 
-            model.addAttribute("remocao", "Usuário removido com sucesso!");
+            model.addAttribute("remocao", Mensagens.get("msg.menu.removido"));
             return "login";
         } else {
-            model.addAttribute("erro", "Senha incorreta. Tente novamente.");
+            model.addAttribute("erro", Mensagens.get("msg.menu.senhaIncorreta"));
             model.addAttribute("abrirModal", "verificacao");
             model.addAttribute("acaoConta", "remover");
             model.addAttribute("nome", usuario.getNome());
@@ -109,7 +111,7 @@ public class MenuController {
         String usuarioId = SessaoUtil.getUsuarioId(request);
 
         if (usuarioId == null) {
-            model.addAttribute("erro", "Nenhum usuário logado.");
+            model.addAttribute("erro", Mensagens.get("msg.menu.semUsuario"));
             return "redirect:/login";
         }
 
@@ -121,7 +123,7 @@ public class MenuController {
         if (passwordEncoder.matches(usuarioSenha.getSenha(), usuario.getSenha())) {
             return "redirect:/edicaoUsuario";
         } else {
-            model.addAttribute("erro", "Senha incorreta. Tente novamente.");
+            model.addAttribute("erro", Mensagens.get("msg.menu.senhaIncorreta"));
             model.addAttribute("abrirModal", "verificacao");
             model.addAttribute("acaoConta", "editar");
 

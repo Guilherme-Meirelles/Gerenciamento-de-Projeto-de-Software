@@ -1,47 +1,50 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" th:lang="${#locale.toLanguageTag()}">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ToDaily - Cadastro</title>
+    <title th:text="#{cadastro.titulo}">ToDaily - Cadastro</title>
     <link rel="stylesheet" href="/css/cadastro.css" />
     <link rel="stylesheet" href="/css/avisos.css" />
+    <link rel="stylesheet" href="/css/idioma.css" />
     <link rel="stylesheet" href="/css/acessibilidade-temas.css" />
     <link rel="stylesheet" href="/css/acessibilidade.css" />
+    <script src="/idioma/mensagens.js"></script>
     <script src="/js/acessibilidade.js"></script>
 </head>
 <body>
+<div th:replace="~{idiomaSeletor :: seletor}"></div>
 <div class="logo">
-    <img src="/img/logo.png" alt="ToDaily logo" />
+    <img src="/img/logo.png" alt="ToDaily logo" th:alt="#{comum.logoAlt}" />
 
 </div>
 
 <div class="cadastro-container">
-    <h2>Cadastro</h2>
+    <h2 th:text="#{cadastro.cabecalho}">Cadastro</h2>
 
     <p class="aviso erro" th:if="${mensagem != null}" th:text="${mensagem}"></p>
     <p class="aviso erro" id="erro" hidden></p>
 
     <form id="cadastroForm" action="/cadastro" method="post" novalidate>
 
-        <label for="nome">Nome</label>
-        <input type="text" id="nome" name="nome" placeholder="Maria Silva" required />
+        <label for="nome" th:text="#{comum.nome}">Nome</label>
+        <input type="text" id="nome" name="nome" placeholder="Maria Silva" th:placeholder="#{cadastro.phNome}" required />
 
-        <label for="email">E-mail</label>
-        <input type="email" id="email" name="email" placeholder="maria.silva@exemplo.com" required />
+        <label for="email" th:text="#{comum.email}">E-mail</label>
+        <input type="email" id="email" name="email" placeholder="maria.silva@exemplo.com" th:placeholder="#{cadastro.phEmail}" required />
 
-        <label for="dataNasc">Data de Nascimento</label>
+        <label for="dataNasc" th:text="#{comum.dataNascimento}">Data de Nascimento</label>
         <input type="date" id="dataNasc" name="dataNascimento" required />
 
-        <label for="senha">Senha</label>
-        <input type="password" id="senha" name="senha" placeholder="Mínimo de 8 caracteres" required />
+        <label for="senha" th:text="#{comum.senha}">Senha</label>
+        <input type="password" id="senha" name="senha" placeholder="Mínimo de 8 caracteres" th:placeholder="#{cadastro.phSenha}" required />
 
-        <label for="confirmar">Confirmar Senha</label>
-        <input type="password" id="confirmar" name="confirmarSenha" placeholder="Repita a senha" required />
+        <label for="confirmar" th:text="#{comum.confirmarSenha}">Confirmar Senha</label>
+        <input type="password" id="confirmar" name="confirmarSenha" placeholder="Repita a senha" th:placeholder="#{cadastro.phConfirmar}" required />
 
         <div class="botoes botoes-dupla">
-            <button type="button" class="btn secundario" onclick="window.location.href='/login'">Voltar</button>
-            <button type="submit" class="btn">Cadastrar-se</button>
+            <button type="button" class="btn secundario" onclick="window.location.href='/login'" th:text="#{comum.voltar}">Voltar</button>
+            <button type="submit" class="btn" th:text="#{login.cadastrar}">Cadastrar-se</button>
         </div>
     </form>
 
@@ -78,21 +81,21 @@
         if (vazios.length) {
             vazios.forEach(c => Validacao.marcar(c, true));
             primeiro = vazios[0];
-            mensagem = vazios.length === 1 ? "Preencha o campo destacado." : "Preencha os campos destacados.";
+            mensagem = t(vazios.length === 1 ? "js.form.preenchaCampo" : "js.form.preenchaCampos");
         } else {
             // 2) formatos e regras
             if (!Validacao.emailValido(email.value.trim())) {
-                falha(email, "Digite um e-mail válido, como nome@exemplo.com.");
+                falha(email, t("js.form.emailInvalido"));
             }
             if (dataNasc.value > dataNasc.max || dataNasc.value < dataNasc.min) {
-                falha(dataNasc, "Informe uma data de nascimento válida.");
+                falha(dataNasc, t("js.form.dataInvalida"));
             }
             const faltando = Validacao.requisitosFaltando(senha.value);
             if (faltando.length) {
-                falha(senha, "A senha precisa ter " + Validacao.juntar(faltando) + ".");
+                falha(senha, t("js.form.senhaPrecisa", Validacao.juntar(faltando)));
             }
             if (senha.value !== confirmar.value) {
-                falha(confirmar, "As senhas não coincidem.");
+                falha(confirmar, t("js.form.senhasDiferentes"));
             }
         }
 

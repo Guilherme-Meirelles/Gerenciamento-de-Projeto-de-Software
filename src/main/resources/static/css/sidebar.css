@@ -968,3 +968,22 @@ body {
     line-height: normal;
     font-size: 10px;
 }
+
+/* Seletor de idioma no perfil */
+.campo-perfil select.idioma-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: #1e1e1e;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cccccc' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    color: #fff;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 8px 38px 8px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+}

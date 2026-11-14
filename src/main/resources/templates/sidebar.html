@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-br" th:lang="${#locale.toLanguageTag()}" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,14 +12,14 @@
 <!-- ========== FRAGMENT: SIDEBAR ========== -->
 <aside class="sidebar" th:fragment="sidebar">
     <div class="header-sidebar">
-        <h1 class="app-title" onclick="navegarPara(this, '/menu')" style="cursor: pointer;" title="Menu Principal">ToDaily</h1>
-        <button class="btn-recolher-sidebar" id="btnRecolherSidebar" onclick="alternarSidebar()" title="Recolher barra lateral">
+        <h1 class="app-title" onclick="navegarPara(this, '/menu')" style="cursor: pointer;" title="Menu Principal" th:title="#{sidebar.menuPrincipal}">ToDaily</h1>
+        <button class="btn-recolher-sidebar" id="btnRecolherSidebar" onclick="alternarSidebar()" title="Recolher barra lateral" th:title="#{sidebar.recolher}">
             <i data-lucide="panel-left-close"></i>
         </button>
     </div>
 
     <!-- Perfil -->
-    <div class="perfil" onclick="abrirModalPerfil('modalPerfil')" style="cursor: pointer;" title="Ver perfil">
+    <div class="perfil" onclick="abrirModalPerfil('modalPerfil')" style="cursor: pointer;" title="Ver perfil" th:title="#{sidebar.verPerfil}">
         <div class="avatar">
             <i data-lucide="user"></i>
             <img class="foto-img" alt="" />
@@ -44,24 +44,24 @@
 
     <!-- Menu de Navegação -->
     <nav class="menu">
-        <button class="menu-item">
-            <i data-lucide="sun"></i> <span>Para Hoje</span>
+        <button class="menu-item" data-visao="hoje">
+            <i data-lucide="sun"></i> <span th:text="#{sidebar.paraHoje}">Para Hoje</span>
         </button>
-        <button class="menu-item">
-            <i data-lucide="calendar"></i> <span>Agendadas</span>
+        <button class="menu-item" data-visao="agendadas">
+            <i data-lucide="calendar"></i> <span th:text="#{sidebar.agendadas}">Agendadas</span>
         </button>
-        <button class="menu-item">
-            <i data-lucide="list-checks"></i> <span>Todas as Tarefas</span>
+        <button class="menu-item" data-visao="todas">
+            <i data-lucide="list-checks"></i> <span th:text="#{sidebar.todasTarefas}">Todas as Tarefas</span>
         </button>
         <button class="menu-item" onclick="navegarPara(this, '/areasTrabalho')">
-            <i data-lucide="briefcase"></i> <span>Áreas de Trabalho</span>
+            <i data-lucide="briefcase"></i> <span th:text="#{sidebar.areasTrabalho}">Áreas de Trabalho</span>
         </button>
         <button class="menu-item" id="btnNotificacoes" onclick="abrirNotificacoes()">
-            <i data-lucide="bell"></i> <span>Notificações</span>
+            <i data-lucide="bell"></i> <span th:text="#{sidebar.notificacoes}">Notificações</span>
             <b class="selo-contador" id="seloNotificacoes" hidden>0</b>
         </button>
         <button class="menu-item" id="btnCalendario">
-            <i data-lucide="calendar-days"></i> <span>Calendário</span>
+            <i data-lucide="calendar-days"></i> <span th:text="#{sidebar.calendario}">Calendário</span>
         </button>
     </nav>
     <!-- Marca o item ativo já na primeira pintura (antes o "Para Hoje" aparecia marcado por um instante) -->
@@ -97,7 +97,7 @@
 
         <!-- Botão Nova Lista -->
         <button class="nova-lista" onclick="abrirModalPerfil('modalAddLista')">
-            <i data-lucide="plus"></i> <span>Nova Lista</span>
+            <i data-lucide="plus"></i> <span th:text="#{sidebar.novaLista}">Nova Lista</span>
         </button>
 
         <!-- Listas da Área de Trabalho -->
@@ -116,7 +116,7 @@
 
     <!-- Botão Sair -->
     <button class="btn-sair-sidebar" onclick="abrirModalLogout()">
-        <i data-lucide="log-out"></i> <span>Sair</span>
+        <i data-lucide="log-out"></i> <span th:text="#{comum.sair}">Sair</span>
     </button>
 
     <!-- Se a barra estava recolhida nesta aba, já nasce recolhida (antes da primeira pintura) -->
@@ -138,25 +138,25 @@
     <!-- Modal: Perfil do Usuário -->
     <div id="modalPerfil" class="overlay-perfil" th:fragment="modalPerfil" style="display: none;" onclick="fecharModalPerfil('modalPerfil')">
         <div class="modal-perfil" onclick="event.stopPropagation()">
-            <h3 class="titulo-modal-perfil">Perfil</h3>
+            <h3 class="titulo-modal-perfil" th:text="#{sidebar.perfil}">Perfil</h3>
 
             <!-- Foto de perfil -->
             <div class="perfil-topo">
                 <div class="perfil-avatar">
                     <i data-lucide="user"></i>
-                    <img class="foto-img" alt="Foto de perfil" />
+                    <img class="foto-img" alt="Foto de perfil" th:alt="#{sidebar.fotoAlt}" />
                 </div>
                 <div class="perfil-foto-acoes">
                     <div class="perfil-foto-botoes">
                         <button type="button" class="btn-foto" onclick="escolherFotoPerfil()">
                             <i data-lucide="camera"></i>
-                            <span class="btn-foto-texto">Adicionar foto</span>
+                            <span class="btn-foto-texto" th:text="#{sidebar.adicionarFoto}">Adicionar foto</span>
                         </button>
                         <button type="button" class="btn-foto btn-foto-remover" style="display: none;" onclick="removerFotoPerfil()">
-                            <i data-lucide="trash-2"></i> Remover foto
+                            <i data-lucide="trash-2"></i> <span th:text="#{sidebar.removerFoto}">Remover foto</span>
                         </button>
                     </div>
-                    <p class="perfil-foto-dica">JPG, PNG, GIF ou WebP.</p>
+                    <p class="perfil-foto-dica" th:text="#{sidebar.fotoDica}">JPG, PNG, GIF ou WebP.</p>
                     <p class="perfil-foto-msg" role="alert"></p>
                     <input type="file" class="input-foto-perfil" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;" onchange="aoEscolherFotoPerfil(this)" />
                 </div>
@@ -165,25 +165,33 @@
             <!-- Informações do usuário -->
             <div class="perfil-campos">
                 <div class="campo-perfil">
-                    <label>Nome</label>
+                    <label th:text="#{comum.nome}">Nome</label>
                     <p class="valor-perfil" th:text="${nome}">Generic User</p>
                 </div>
                 <div class="campo-perfil">
-                    <label>E-mail</label>
+                    <label th:text="#{comum.email}">E-mail</label>
                     <p class="valor-perfil" th:text="${email}">genericemail@gmail.com</p>
                 </div>
                 <div class="campo-perfil">
-                    <label>Data de Nascimento</label>
+                    <label th:text="#{comum.dataNascimento}">Data de Nascimento</label>
                     <p class="valor-perfil" th:text="${dataNascimento}">01/01/2000</p>
+                </div>
+                <div class="campo-perfil">
+                    <label for="idiomaPerfil" th:text="#{comum.idioma}">Idioma</label>
+                    <select id="idiomaPerfil" class="idioma-select" onchange="trocarIdioma(this.value)">
+                        <option value="pt-BR" th:selected="${#locale.language == 'pt'}">Português</option>
+                        <option value="en" th:selected="${#locale.language == 'en'}">English</option>
+                        <option value="es" th:selected="${#locale.language == 'es'}">Español</option>
+                    </select>
                 </div>
             </div>
 
             <!-- Ações do perfil -->
             <div class="botoes-acao-perfil">
-                <button type="button" class="btn-excluir-perfil" onclick="abrirModalAcao('remover')">Excluir Conta</button>
+                <button type="button" class="btn-excluir-perfil" onclick="abrirModalAcao('remover')" th:text="#{sidebar.excluirConta}">Excluir Conta</button>
                 <div class="botoes-acao-perfil-direita">
-                    <button type="button" class="btn-editar-perfil" onclick="abrirModalAcao('editar')">Editar Conta</button>
-                    <button type="button" class="btn-fechar-perfil" onclick="fecharModalPerfil('modalPerfil')">Fechar</button>
+                    <button type="button" class="btn-editar-perfil" onclick="abrirModalAcao('editar')" th:text="#{sidebar.editarConta}">Editar Conta</button>
+                    <button type="button" class="btn-fechar-perfil" onclick="fecharModalPerfil('modalPerfil')" th:text="#{comum.fechar}">Fechar</button>
                 </div>
             </div>
         </div>
@@ -193,7 +201,7 @@
     <div id="modalVerificacao" class="confirma-acao" th:style="${abrirModal} == 'verificacao' ? 'display:flex;' : 'display:none;'" onclick="fecharModalPerfil('modalVerificacao')">
         <div class="verificacao" th:classappend="${acaoConta == 'remover'} ? 'perigo'" onclick="event.stopPropagation()">
             <h3 class="mensagem-verificacao" id="mensagemVerificacao"
-                th:text="${acaoConta == 'remover'} ? 'Deseja realmente remover sua conta?' : (${acaoConta == 'editar'} ? 'Deseja realmente editar sua conta?' : 'Deseja realmente executar esta ação?')">
+                th:text="${acaoConta == 'remover'} ? #{sidebar.removerContaPergunta} : (${acaoConta == 'editar'} ? #{sidebar.editarContaPergunta} : #{sidebar.acaoPergunta})">
                 Deseja realmente executar esta ação?
             </h3>
 
@@ -201,15 +209,15 @@
             <form id="formConfirmacao" method="post"
                   th:attr="action=${acaoConta == 'remover'} ? '/removerConta' : (${acaoConta == 'editar'} ? '/editarConta' : null)">
                 <div class="campo-senha">
-                    <label for="senhaConfirmacao">Digite sua senha para confirmar</label>
-                    <input type="password" id="senhaConfirmacao" name="senha" placeholder="Sua senha"
+                    <label for="senhaConfirmacao" th:text="#{sidebar.digiteSenha}">Digite sua senha para confirmar</label>
+                    <input type="password" id="senhaConfirmacao" name="senha" placeholder="Sua senha" th:placeholder="#{sidebar.phSenha}"
                            th:classappend="${erro} ? 'campo-invalido'" required />
                     <p th:if="${erro}" class="mensagem-erro" th:text="${erro}"></p>
                 </div>
 
                 <div class="botoes-verificacao">
-                    <button type="button" class="btn-cancelar-V" onclick="fecharModalPerfil('modalVerificacao')">Cancelar</button>
-                    <button type="submit" class="btn-confirmar-V">Confirmar</button>
+                    <button type="button" class="btn-cancelar-V" onclick="fecharModalPerfil('modalVerificacao')" th:text="#{comum.cancelar}">Cancelar</button>
+                    <button type="submit" class="btn-confirmar-V" th:text="#{comum.confirmar}">Confirmar</button>
                 </div>
             </form>
         </div>
@@ -219,22 +227,22 @@
     <div id="modalNotificacoes" class="overlay-perfil" th:fragment="modalNotificacoes" style="display: none;" onclick="fecharModalPerfil('modalNotificacoes')">
         <div class="modal-lista modal-notificacoes" onclick="event.stopPropagation()">
             <div class="icone-modal-lista"><i data-lucide="bell"></i></div>
-            <h3 class="titulo-modal-lista">Notificações</h3>
-            <p class="descricao-modal-lista">Suas tarefas com aviso ligado que vencem até amanhã ou já estão atrasadas.</p>
+            <h3 class="titulo-modal-lista" th:text="#{sidebar.notificacoes}">Notificações</h3>
+            <p class="descricao-modal-lista" th:text="#{sidebar.notifDescricao}">Suas tarefas com aviso ligado que vencem até amanhã ou já estão atrasadas.</p>
             <div class="lista-notificacoes" id="listaNotificacoes"></div>
             <div class="preferencias-notificacao">
-                <p class="preferencias-titulo">Como quero ser avisado</p>
+                <p class="preferencias-titulo" th:text="#{sidebar.notifPreferencias}">Como quero ser avisado</p>
                 <label class="preferencia-linha">
-                    <span><i data-lucide="mail"></i> Por e-mail</span>
+                    <span><i data-lucide="mail"></i> <span th:text="#{sidebar.notifEmail}">Por e-mail</span></span>
                     <input type="checkbox" class="toggle-switch" id="prefNotifEmail">
                 </label>
                 <label class="preferencia-linha">
-                    <span><i data-lucide="bell"></i> No sistema (sino)</span>
+                    <span><i data-lucide="bell"></i> <span th:text="#{sidebar.notifSistema}">No sistema (sino)</span></span>
                     <input type="checkbox" class="toggle-switch" id="prefNotifSistema">
                 </label>
             </div>
             <div class="botoes-acao-lista">
-                <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalNotificacoes')">Fechar</button>
+                <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalNotificacoes')" th:text="#{comum.fechar}">Fechar</button>
             </div>
         </div>
     </div>
@@ -243,20 +251,20 @@
     <div id="modalAddLista" class="overlay-perfil" style="display: none;" onclick="fecharModalPerfil('modalAddLista')">
         <div class="modal-lista" onclick="event.stopPropagation()">
             <div class="icone-modal-lista"><i data-lucide="list-plus"></i></div>
-            <h3 class="titulo-modal-lista">Adicionar Lista</h3>
-            <p class="descricao-modal-lista">Dê um nome à lista e, se quiser, uma descrição.</p>
+            <h3 class="titulo-modal-lista" th:text="#{sidebar.addListaTitulo}">Adicionar Lista</h3>
+            <p class="descricao-modal-lista" th:text="#{sidebar.addListaDescricao}">Dê um nome à lista e, se quiser, uma descrição.</p>
             <form class="form-lista">
                 <div class="campo-lista">
-                    <label for="nome-lista">Nome da Lista<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
-                    <input type="text" id="nome-lista" placeholder="Nova Lista" />
+                    <label for="nome-lista"><span th:text="#{sidebar.nomeLista}">Nome da Lista</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
+                    <input type="text" id="nome-lista" placeholder="Nova Lista" th:placeholder="#{sidebar.phNomeLista}" />
                 </div>
                 <div class="campo-lista">
-                    <label for="descricao-lista">Descrição</label>
-                    <textarea id="descricao-lista" rows="4" placeholder="Adicione uma descrição (opcional)"></textarea>
+                    <label for="descricao-lista" th:text="#{sidebar.descricao}">Descrição</label>
+                    <textarea id="descricao-lista" rows="4" placeholder="Adicione uma descrição (opcional)" th:placeholder="#{sidebar.phDescricao}"></textarea>
                 </div>
                 <div class="botoes-acao-lista">
-                    <button type="button" class="btn-ok" id="btnOkAddLista" onclick="confirmarCriacaoLista()">OK</button>
-                    <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalAddLista')">Cancelar</button>
+                    <button type="button" class="btn-ok" id="btnOkAddLista" onclick="confirmarCriacaoLista()" th:text="#{sidebar.ok}">OK</button>
+                    <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalAddLista')" th:text="#{comum.cancelar}">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -266,20 +274,20 @@
     <div id="modalEditLista" class="overlay-perfil" style="display: none;" onclick="fecharModalPerfil('modalEditLista')">
         <div class="modal-lista" onclick="event.stopPropagation()">
             <div class="icone-modal-lista"><i data-lucide="pencil"></i></div>
-            <h3 class="titulo-modal-lista">Editar Lista</h3>
-            <p class="descricao-modal-lista">Mude o nome ou a descrição da lista.</p>
+            <h3 class="titulo-modal-lista" th:text="#{sidebar.editListaTitulo}">Editar Lista</h3>
+            <p class="descricao-modal-lista" th:text="#{sidebar.editListaDescricao}">Mude o nome ou a descrição da lista.</p>
             <form class="form-lista">
                 <div class="campo-lista">
-                    <label for="nome-lista-edit">Nome da Lista<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
+                    <label for="nome-lista-edit"><span th:text="#{sidebar.nomeLista}">Nome da Lista</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
                     <input type="text" id="nome-lista-edit" />
                 </div>
                 <div class="campo-lista">
-                    <label for="descricao-lista-edit">Descrição</label>
-                    <textarea id="descricao-lista-edit" rows="4" placeholder="Adicione uma descrição (opcional)"></textarea>
+                    <label for="descricao-lista-edit" th:text="#{sidebar.descricao}">Descrição</label>
+                    <textarea id="descricao-lista-edit" rows="4" placeholder="Adicione uma descrição (opcional)" th:placeholder="#{sidebar.phDescricao}"></textarea>
                 </div>
                 <div class="botoes-acao-lista">
-                    <button type="button" class="btn-ok" id="btnOkEditLista" onclick="confirmarEdicaoLista()">OK</button>
-                    <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalEditLista')">Cancelar</button>
+                    <button type="button" class="btn-ok" id="btnOkEditLista" onclick="confirmarEdicaoLista()" th:text="#{sidebar.ok}">OK</button>
+                    <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalEditLista')" th:text="#{comum.cancelar}">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -288,28 +296,28 @@
     <!-- Modal: Remover Lista -->
     <div id="modalRemoveLista" class="confirma-acao" style="display: none;" onclick="fecharModalPerfil('modalRemoveLista')">
         <div class="modal-remover" onclick="event.stopPropagation()">
-            <h3 class="modal-remover-mensagem">Deseja realmente remover esta lista?</h3>
+            <h3 class="modal-remover-mensagem" th:text="#{sidebar.removerListaPergunta}">Deseja realmente remover esta lista?</h3>
             <div class="modal-remover-botoes">
-                <button class="btn-remover-nao" onclick="fecharModalPerfil('modalRemoveLista')">Não</button>
-                <button class="btn-remover-sim" onclick="confirmarRemocaoLista()">Sim</button>
+                <button class="btn-remover-nao" onclick="fecharModalPerfil('modalRemoveLista')" th:text="#{sidebar.nao}">Não</button>
+                <button class="btn-remover-sim" onclick="confirmarRemocaoLista()" th:text="#{sidebar.sim}">Sim</button>
             </div>
         </div>
     </div>
 
     <!-- Menu de Contexto (Clique direito nas listas) -->
     <div id="menuContextoLista" class="context-menu" style="display: none;">
-        <button class="context-menu-item" onclick="abrirModalEditarLista()">Editar Lista</button>
-        <button class="context-menu-item" onclick="abrirModalRemoverLista()">Remover Lista</button>
+        <button class="context-menu-item" onclick="abrirModalEditarLista()" th:text="#{sidebar.menuEditarLista}">Editar Lista</button>
+        <button class="context-menu-item" onclick="abrirModalRemoverLista()" th:text="#{sidebar.menuRemoverLista}">Remover Lista</button>
     </div>
 
     <!-- Modal: Confirmação de Logout -->
     <div id="modalConfirmarLogout" class="confirma-acao" style="display: none;" onclick="fecharModalPerfil('modalConfirmarLogout')">
         <div class="modal-sair" onclick="event.stopPropagation()">
-            <h3 class="titulo-modal-sair">Sair da conta</h3>
-            <p class="texto-modal-sair">Deseja realmente sair da sua conta?</p>
+            <h3 class="titulo-modal-sair" th:text="#{sidebar.logoutTitulo}">Sair da conta</h3>
+            <p class="texto-modal-sair" th:text="#{sidebar.logoutPergunta}">Deseja realmente sair da sua conta?</p>
             <div class="botoes-acao-sair">
-                <button type="button" class="btn-cancelar-sair" onclick="fecharModalPerfil('modalConfirmarLogout')">Cancelar</button>
-                <button type="button" class="btn-confirmar-sair" onclick="confirmarLogout()">Sair</button>
+                <button type="button" class="btn-cancelar-sair" onclick="fecharModalPerfil('modalConfirmarLogout')" th:text="#{comum.cancelar}">Cancelar</button>
+                <button type="button" class="btn-confirmar-sair" onclick="confirmarLogout()" th:text="#{comum.sair}">Sair</button>
             </div>
         </div>
     </div>

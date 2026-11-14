@@ -119,8 +119,8 @@
         botao = el('button', 'acess-botao');
         botao.type = 'button';
         botao.id = 'acessBotao';
-        botao.title = 'Acessibilidade';
-        botao.setAttribute('aria-label', 'Abrir o menu de acessibilidade');
+        botao.title = t('js.acess.titulo');
+        botao.setAttribute('aria-label', t('js.acess.abrir'));
         botao.setAttribute('aria-haspopup', 'dialog');
         botao.setAttribute('aria-expanded', 'false');
         botao.innerHTML = ICONE;
@@ -128,20 +128,20 @@
         painel = el('div', 'acess-painel');
         painel.id = 'acessPainel';
         painel.setAttribute('role', 'dialog');
-        painel.setAttribute('aria-label', 'Acessibilidade');
+        painel.setAttribute('aria-label', t('js.acess.titulo'));
         painel.hidden = true;
 
-        painel.appendChild(el('h2', 'acess-titulo', 'Acessibilidade'));
+        painel.appendChild(el('h2', 'acess-titulo', t('js.acess.titulo')));
 
         // Tamanho do texto
         var grupoTexto = el('div', 'acess-grupo');
-        grupoTexto.appendChild(el('span', 'acess-grupo-rotulo', 'Tamanho do texto'));
+        grupoTexto.appendChild(el('span', 'acess-grupo-rotulo', t('js.acess.tamanhoTexto')));
         var controle = el('div', 'acess-texto-controle');
         var menos = el('button', 'acess-btn', 'A−');
-        menos.type = 'button'; menos.id = 'acessTextoMenos'; menos.setAttribute('aria-label', 'Diminuir o texto');
+        menos.type = 'button'; menos.id = 'acessTextoMenos'; menos.setAttribute('aria-label', t('js.acess.diminuir'));
         var valor = el('span', 'acess-texto-valor'); valor.id = 'acessTextoValor'; valor.setAttribute('aria-live', 'polite');
         var mais = el('button', 'acess-btn', 'A+');
-        mais.type = 'button'; mais.id = 'acessTextoMais'; mais.setAttribute('aria-label', 'Aumentar o texto');
+        mais.type = 'button'; mais.id = 'acessTextoMais'; mais.setAttribute('aria-label', t('js.acess.aumentar'));
         menos.addEventListener('click', function () { if (prefs.texto > 0) mudar({ texto: prefs.texto - 1 }); });
         mais.addEventListener('click', function () { if (prefs.texto < ZOOMS.length - 1) mudar({ texto: prefs.texto + 1 }); });
         controle.append(menos, valor, mais);
@@ -154,11 +154,11 @@
 
         // Tema
         var grupoTema = el('div', 'acess-grupo');
-        grupoTema.appendChild(el('span', 'acess-grupo-rotulo', 'Tema'));
+        grupoTema.appendChild(el('span', 'acess-grupo-rotulo', t('js.acess.tema')));
         var seg = el('div', 'acess-segmentos');
         seg.setAttribute('role', 'group');
-        seg.setAttribute('aria-label', 'Tema');
-        [['escuro', 'Escuro'], ['claro', 'Claro'], ['sistema', 'Sistema']].forEach(function (op) {
+        seg.setAttribute('aria-label', t('js.acess.tema'));
+        [['escuro', t('js.acess.escuro')], ['claro', t('js.acess.claro')], ['sistema', t('js.acess.sistema')]].forEach(function (op) {
             var b = el('button', 'acess-segmento', op[1]);
             b.type = 'button';
             b.dataset.tema = op[0];
@@ -166,20 +166,20 @@
             seg.appendChild(b);
         });
         grupoTema.appendChild(seg);
-        var nota = el('span', 'acess-linha-desc', 'Com o alto contraste ligado, o tema escuro é usado.');
+        var nota = el('span', 'acess-linha-desc', t('js.acess.notaTema'));
         nota.id = 'acessNotaTema';
         nota.hidden = true;
         grupoTema.appendChild(nota);
         painel.appendChild(grupoTema);
 
-        painel.appendChild(linhaInterruptor('Alto contraste', 'Fundo preto, texto e bordas brancos', 'acessContraste',
+        painel.appendChild(linhaInterruptor(t('js.acess.contraste'), t('js.acess.contrasteDesc'), 'acessContraste',
             function (v) { mudar({ contraste: v }); }));
-        painel.appendChild(linhaInterruptor('Reduzir animações', 'Tira transições e movimentos', 'acessSemAnim',
+        painel.appendChild(linhaInterruptor(t('js.acess.semAnim'), t('js.acess.semAnimDesc'), 'acessSemAnim',
             function (v) { mudar({ semAnim: v }); }));
-        painel.appendChild(linhaInterruptor('Destacar o foco do teclado', 'Contorno forte no item selecionado com Tab', 'acessFoco',
+        painel.appendChild(linhaInterruptor(t('js.acess.foco'), t('js.acess.focoDesc'), 'acessFoco',
             function (v) { mudar({ foco: v }); }));
 
-        var restaurar = el('button', 'acess-restaurar', 'Restaurar padrão');
+        var restaurar = el('button', 'acess-restaurar', t('js.acess.restaurar'));
         restaurar.type = 'button';
         restaurar.id = 'acessRestaurar';
         restaurar.addEventListener('click', function () {
@@ -222,11 +222,11 @@
         var bMenos = document.getElementById('acessTextoMenos'), bMais = document.getElementById('acessTextoMais');
         bMenos.disabled = noMinimo;
         bMais.disabled = noMaximo;
-        bMenos.title = noMinimo ? 'O texto já está no tamanho mínimo (100%)' : 'Diminuir o texto';
-        bMais.title = noMaximo ? 'O texto já está no tamanho máximo (' + Math.round(ZOOMS[ZOOMS.length - 1] * 100) + '%)' : 'Aumentar o texto';
+        bMenos.title = noMinimo ? t('js.acess.minimoDica') : t('js.acess.diminuir');
+        bMais.title = noMaximo ? t('js.acess.maximoDica', Math.round(ZOOMS[ZOOMS.length - 1] * 100)) : t('js.acess.aumentar');
         var limite = document.getElementById('acessTextoLimite');
         limite.hidden = !(noMinimo || noMaximo);
-        limite.textContent = noMinimo ? 'Tamanho mínimo: não dá para diminuir mais.' : (noMaximo ? 'Tamanho máximo: não dá para aumentar mais.' : '');
+        limite.textContent = noMinimo ? t('js.acess.minimoMsg') : (noMaximo ? t('js.acess.maximoMsg') : '');
         painel.querySelectorAll('.acess-segmento').forEach(function (b) {
             var ativo = b.dataset.tema === prefs.tema;
             b.classList.toggle('ativo', ativo);

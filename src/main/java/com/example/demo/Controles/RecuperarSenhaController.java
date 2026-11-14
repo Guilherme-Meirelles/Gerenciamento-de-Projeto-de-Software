@@ -1,5 +1,7 @@
 package com.example.demo.Controles;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import com.example.demo.ConsultasBD.UsuarioRepository;
 import com.example.demo.Entidades.Token;
 import com.example.demo.Entidades.Usuario;
@@ -45,7 +47,7 @@ public class RecuperarSenhaController {
             Usuario usuario = this.ur.findByEmail(email);
 
             if (usuario == null) {
-                model.addAttribute("erro", "Não encontramos nenhuma conta com esse e-mail.");
+                model.addAttribute("erro", Mensagens.get("msg.recuperar.semConta"));
                 return "recuperarSenhaEmail";
             }
 
@@ -61,10 +63,10 @@ public class RecuperarSenhaController {
 
             emailService2.enviarEmailRecuperacaoSenha(usuario.getEmail(), usuario.getNome(), tokenString);
 
-            model.addAttribute("mensagem", "Enviamos o link de recuperação para o seu e-mail. Ele vale por 10 minutos.");
+            model.addAttribute("mensagem", Mensagens.get("msg.recuperar.enviado"));
 
         } catch (Exception e) {
-            model.addAttribute("erro", "Não foi possível enviar o e-mail agora. Tente novamente em instantes.");
+            model.addAttribute("erro", Mensagens.get("msg.recuperar.falhaEnvio"));
         }
 
         return "recuperarSenhaEmail";
@@ -76,7 +78,7 @@ public class RecuperarSenhaController {
         Token t = tokenRepository.findByToken(token);
 
         if (t == null || t.isUsado() || t.getExpiraEm().isBefore(LocalDateTime.now())) {
-            model.addAttribute("erro", "Link de recuperação de senha expirado");
+            model.addAttribute("erro", Mensagens.get("msg.recuperar.linkExpirado"));
             return "login";
         }
 
@@ -93,19 +95,18 @@ public class RecuperarSenhaController {
             Token t = tokenRepository.findByToken(token);
 
             if (t == null || t.isUsado() || t.getExpiraEm().isBefore(LocalDateTime.now())) {
-                model.addAttribute("erro", "Link expirado ou inválido");
+                model.addAttribute("erro", Mensagens.get("msg.recuperar.linkInvalido"));
                 return "redefinicaoSenha";
             }
 
             if (senha == null || senha.length() < 8) {
                 model.addAttribute("token", token);
-                model.addAttribute("erro", "A senha deve ter pelo menos 8 caracteres.");
+                model.addAttribute("erro", Mensagens.get("msg.senha.curtaPonto"));
                 return "redefinicaoSenha";
             }
             if (!LoginCadastroControle.senhaForte(senha)) {
                 model.addAttribute("token", token);
-                model.addAttribute("erro",
-                        "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
+                model.addAttribute("erro", Mensagens.get("msg.senha.fraca"));
                 return "redefinicaoSenha";
             }
 
@@ -118,11 +119,11 @@ public class RecuperarSenhaController {
 
             SessaoUtil.encerrar(request);
 
-            model.addAttribute("mensagem", "Senha redefinida com sucesso!");
+            model.addAttribute("mensagem", Mensagens.get("msg.recuperar.sucesso"));
             return "login";
 
         } catch (Exception e) {
-            model.addAttribute("erro", "Erro ao redefinir senha! \n" + e.getMessage());
+            model.addAttribute("erro", Mensagens.get("msg.recuperar.erro", e.getMessage()));
             return "redefinicaoSenha";
         }
     }

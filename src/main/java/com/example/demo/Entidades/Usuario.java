@@ -25,6 +25,9 @@ public class Usuario {
     private Boolean notificarPorEmail;
     private Boolean notificarNoSistema;
 
+    // Idioma da interface: "pt-BR", "en" ou "es". Nulo (contas antigas) vale português.
+    private String idioma;
+
     // @JsonIgnore evita o ciclo Usuario -> areasCriadas -> AreaTrabalho -> dono -> Usuario -> ...
     // cascade+orphanRemoval: ao excluir o usuário, as áreas das quais ele é dono são excluídas
     // junto (e essas por sua vez já cascateiam para listas/tarefas/participações).
@@ -51,6 +54,9 @@ public class Usuario {
     public void setDataNascimento(String dataNascimento) { this.dataNascimento = dataNascimento; }
     public boolean isEmailVerificado() { return emailVerificado; }
     public void setEmailVerificado(boolean emailVerificado) { this.emailVerificado = emailVerificado; }
+
+    public String getIdioma() { return idioma; }
+    public void setIdioma(String idioma) { this.idioma = idioma; }
 
     public boolean isNotificarPorEmail() { return notificarPorEmail == null || notificarPorEmail; }
     public void setNotificarPorEmail(boolean valor) { this.notificarPorEmail = valor; }

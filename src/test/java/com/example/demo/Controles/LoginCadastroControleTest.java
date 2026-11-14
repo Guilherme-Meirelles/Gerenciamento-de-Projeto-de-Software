@@ -399,4 +399,85 @@ class LoginCadastroControleTest {
 
         assertThat(view).isEqualTo("redirect:/login");
     }
+
+    // ---------- idioma no login ----------
+
+    private Usuario cadastradoVerificado() {
+        Usuario cadastrado = usuarioValido();
+        cadastrado.setSenha(passwordEncoder.encode("Senha@Segura1"));
+        cadastrado.setEmailVerificado(true);
+        when(usuarioRepository.findByEmail(cadastrado.getEmail())).thenReturn(cadastrado);
+        return cadastrado;
+    }
+
+    private Usuario tentativaCorreta() {
+        Usuario tentativa = new Usuario();
+        tentativa.setEmail("fulano@teste.com");
+        tentativa.setSenha("Senha@Segura1");
+        return tentativa;
+    }
+
+    @Test
+    void login_navegadorSemEscolha_usaOIdiomaDoPerfil() {
+        Usuario cadastrado = cadastradoVerificado();
+        cadastrado.setIdioma("es");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+
+        String view = controller.loginUsuario(tentativaCorreta(), new ExtendedModelMap(), request);
+
+        assertThat(view).isEqualTo("redirect:/menu");
+        assertThat(request.getSession().getAttribute("idioma")).isEqualTo("es");
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void login_idiomaEscolhidoNaTelaDeLoginVenceOPerfilEPassaAValer() {
+        Usuario cadastrado = cadastradoVerificado();
+        cadastrado.setIdioma("en");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setCookies(new jakarta.servlet.http.Cookie("todaily_idioma", "pt-BR"));
+
+        controller.loginUsuario(tentativaCorreta(), new ExtendedModelMap(), request);
+
+        assertThat(request.getSession().getAttribute("idioma")).isEqualTo("pt-BR");
+        assertThat(cadastrado.getIdioma()).isEqualTo("pt-BR");
+        verify(usuarioRepository).save(cadastrado);
+    }
+
+    @Test
+    void login_usuarioSemIdioma_adotaOIdiomaEmUsoESalvaNoPerfil() {
+        Usuario cadastrado = cadastradoVerificado();
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setCookies(new jakarta.servlet.http.Cookie("todaily_idioma", "en"));
+
+        controller.loginUsuario(tentativaCorreta(), new ExtendedModelMap(), request);
+
+        assertThat(cadastrado.getIdioma()).isEqualTo("en");
+        assertThat(request.getSession().getAttribute("idioma")).isEqualTo("en");
+        verify(usuarioRepository).save(cadastrado);
+    }
+
+    @Test
+    void login_semNenhumaEscolha_salvaPortuguesNoPerfil() {
+        Usuario cadastrado = cadastradoVerificado();
+
+        controller.loginUsuario(tentativaCorreta(), new ExtendedModelMap(), new MockHttpServletRequest());
+
+        assertThat(cadastrado.getIdioma()).isEqualTo("pt-BR");
+    }
+
+    @Test
+    void login_senhaErrada_mostraAMensagemNoIdiomaEscolhido() {
+        cadastradoVerificado();
+        Usuario tentativa = tentativaCorreta();
+        tentativa.setSenha("errada");
+        org.springframework.context.i18n.LocaleContextHolder.setLocale(java.util.Locale.ENGLISH);
+        try {
+            Model model = new ExtendedModelMap();
+            controller.loginUsuario(tentativa, model, new MockHttpServletRequest());
+            assertThat(model.getAttribute("erro")).isEqualTo("Incorrect email or password. Check your details and try again.");
+        } finally {
+            org.springframework.context.i18n.LocaleContextHolder.resetLocaleContext();
+        }
+    }
 }
