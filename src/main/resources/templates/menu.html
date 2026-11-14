@@ -7,7 +7,10 @@
     <link rel="stylesheet" href="/css/sidebar.css" />
     <link rel="stylesheet" href="/css/menu.css" />
     <link rel="stylesheet" href="/css/calendario.css" />
-    <script src="https://unpkg.com/lucide@1.72.0/dist/umd/lucide.min.js"></script>
+    <script src="/js/lucide.min.js"></script>
+    <link rel="stylesheet" href="/css/acessibilidade-temas.css" />
+    <link rel="stylesheet" href="/css/acessibilidade.css" />
+    <script src="/js/acessibilidade.js"></script>
 </head>
 <body>
 <div class="app-container">
@@ -143,13 +146,13 @@
 
             <!-- LISTA -->
             <div class="campo-tarefa">
-                <label>Lista</label>
+                <label>Lista<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
                 <select id="tarefaLista"></select>
             </div>
 
             <!-- TÍTULO -->
             <div class="campo-tarefa">
-                <label>Título</label>
+                <label>Título<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
                 <input type="text" id="tarefaTitulo" placeholder="Digite o título da tarefa" />
             </div>
 
@@ -325,7 +328,7 @@
 
         <form class="form-checklist">
             <div class="campo-checklist">
-                <label>Nome da Categoria</label>
+                <label>Nome da Categoria<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
                 <input type="text" id="categoriaNome" placeholder="Digite o nome da categoria" />
             </div>
 

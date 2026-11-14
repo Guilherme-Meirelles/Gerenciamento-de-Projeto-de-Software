@@ -39,14 +39,9 @@ public class MenuController {
             return "redirect:/login";
         }
 
-        String dataNascimento = usuario.getDataNascimento();
-        String ano = dataNascimento.substring(0, 4);
-        String mes = dataNascimento.substring(5, 7);
-        String dia = dataNascimento.substring(8, 10);
-        dataNascimento = dia + "/" + mes + "/" + ano;
         model.addAttribute("nome", usuario.getNome());
         model.addAttribute("email", usuario.getEmail());
-        model.addAttribute("dataNascimento", dataNascimento);
+        model.addAttribute("dataNascimento", dataParaExibicao(usuario.getDataNascimento()));
         model.addAttribute("isMenu", true);
 
         model.addAttribute("areaId", "");
@@ -93,7 +88,7 @@ public class MenuController {
             model.addAttribute("acaoConta", "remover");
             model.addAttribute("nome", usuario.getNome());
             model.addAttribute("email", usuario.getEmail());
-            model.addAttribute("dataNascimento", usuario.getDataNascimento());
+            model.addAttribute("dataNascimento", dataParaExibicao(usuario.getDataNascimento()));
             model.addAttribute("isMenu", true);
 
             model.addAttribute("areaId", "");
@@ -132,7 +127,7 @@ public class MenuController {
 
             model.addAttribute("nome", usuario.getNome());
             model.addAttribute("email", usuario.getEmail());
-            model.addAttribute("dataNascimento", usuario.getDataNascimento());
+            model.addAttribute("dataNascimento", dataParaExibicao(usuario.getDataNascimento()));
             model.addAttribute("isMenu", true);
 
             model.addAttribute("areaId", "");
@@ -144,4 +139,12 @@ public class MenuController {
         }
     }
 
+
+    /** Converte a data guardada (aaaa-mm-dd) para dd/mm/aaaa, o formato mostrado no perfil em todas as telas. */
+    static String dataParaExibicao(String dataIso) {
+        if (dataIso != null && dataIso.matches("\\d{4}-\\d{2}-\\d{2}.*")) {
+            return dataIso.substring(8, 10) + "/" + dataIso.substring(5, 7) + "/" + dataIso.substring(0, 4);
+        }
+        return dataIso;
+    }
 }

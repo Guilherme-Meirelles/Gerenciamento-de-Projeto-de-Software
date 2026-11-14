@@ -6,6 +6,9 @@
     <title>ToDaily - Editar Conta</title>
     <link rel="stylesheet" href="/css/cadastro.css" />
     <link rel="stylesheet" href="/css/avisos.css" />
+    <link rel="stylesheet" href="/css/acessibilidade-temas.css" />
+    <link rel="stylesheet" href="/css/acessibilidade.css" />
+    <script src="/js/acessibilidade.js"></script>
 </head>
 <body>
 <div class="logo">
@@ -20,7 +23,7 @@
 
     <form id="cadastroForm" action="/edicaoUsuario" method="post" novalidate onsubmit="return validarFormulario()" th:object="${usuario}">
 
-        <label for="nome">Nome</label>
+        <label for="nome">Nome<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
         <input type="text" id="nome" name="nome" th:value="*{nome}" required />
 
         <label for="email">E-mail</label>
@@ -28,7 +31,7 @@
                title="O e-mail é o seu login e não pode ser alterado" />
         <p class="info">O e-mail é o seu login e não pode ser alterado.</p>
 
-        <label for="dataNasc">Data de Nascimento</label>
+        <label for="dataNasc">Data de Nascimento<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
         <input type="date" id="dataNasc" name="dataNascimento" th:value="*{dataNascimento}" required />
 
         <label for="senha">Nova Senha</label>

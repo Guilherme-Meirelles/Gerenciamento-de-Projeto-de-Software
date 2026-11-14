@@ -91,7 +91,7 @@ public class AreaTrabalhoController {
         model.addAttribute("usuarioId", usuarioId);
         model.addAttribute("nome", usuario.getNome());
         model.addAttribute("email", usuario.getEmail());
-        model.addAttribute("dataNascimento", usuario.getDataNascimento());
+        model.addAttribute("dataNascimento", MenuController.dataParaExibicao(usuario.getDataNascimento()));
 
         List<ParticipacaoArea> participacaoAreas = participacaoAreaRepository.findByUsuario(usuario);
 
@@ -130,7 +130,7 @@ public class AreaTrabalhoController {
 
         model.addAttribute("nome", usuario.getNome());
         model.addAttribute("email", usuario.getEmail());
-        model.addAttribute("dataNascimento", usuario.getDataNascimento());
+        model.addAttribute("dataNascimento", MenuController.dataParaExibicao(usuario.getDataNascimento()));
 
         model.addAttribute("areaId", id);
         model.addAttribute("areaName", name);

@@ -1915,6 +1915,14 @@ a.checklist-nome:hover {
     border-color: #888;
 }
 
+/* Campo obrigatório vazio e selecionado: mantém o fundo normal, só a borda fica vermelha */
+.campo-tarefa input.campo-invalido:focus,
+.campo-tarefa select.campo-invalido:focus,
+.campo-checklist input.campo-invalido:focus,
+.campo-senha input.campo-invalido:focus {
+    background-color: #1e1e1e;
+}
+
 .btn-cor-selecionada:hover {
     background-color: #242424;
     border-color: #4a4a4a;

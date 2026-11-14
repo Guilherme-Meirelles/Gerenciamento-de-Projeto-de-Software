@@ -48,6 +48,13 @@ input.campo-invalido:focus {
     box-shadow: 0 0 0 1px rgba(192, 80, 77, 0.35);
 }
 
+/* Asterisco vermelho nos rótulos dos campos obrigatórios */
+.obrigatorio {
+    margin-left: 3px;
+    color: #ff5252;
+    font-weight: 600;
+}
+
 
 /* ===== Aviso flutuante e confirmação (substituem alert() e confirm() do navegador) ===== */
 /* Usa as mesmas cores dos .aviso acima; só muda a posição (fixo no topo da tela). */

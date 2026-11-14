@@ -1,0 +1,427 @@
+/* Menu de acessibilidade: botão fixo no canto inferior direito e painel (ver js/acessibilidade.js).
+   Os ajustes de tema claro e alto contraste das demais telas ficam em acessibilidade-temas.css (gerado). */
+
+.acess-botao {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 90;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid #3a3a3a;
+    background-color: #2a2a2a;
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    transition: background-color 0.2s, border-color 0.2s;
+    /* Ao navegar entre páginas o botão fica parado (não entra na troca com esmaecimento da página) */
+    view-transition-name: acess-botao;
+}
+
+::view-transition-group(acess-botao),
+::view-transition-old(acess-botao),
+::view-transition-new(acess-botao) {
+    animation: none;
+}
+
+::view-transition-old(acess-botao) {
+    display: none;
+}
+
+::view-transition-new(acess-botao) {
+    opacity: 1;
+}
+
+.acess-botao:hover,
+.acess-botao[aria-expanded="true"] {
+    background-color: #3a3a3a;
+    border-color: #888;
+}
+
+.acess-botao svg {
+    width: 24px;
+    height: 24px;
+}
+
+.acess-painel {
+    position: fixed;
+    right: 20px;
+    bottom: 76px;
+    z-index: 91;
+    width: 300px;
+    max-width: calc(100vw - 40px);
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 18px;
+    border-radius: 16px;
+    border: 1px solid #3a3a3a;
+    background-color: #2a2a2a;
+    color: #ffffff;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    font-family: inherit;
+    font-size: 14px;
+    text-align: left;
+}
+
+.acess-painel[hidden] {
+    display: none;
+}
+
+.acess-titulo {
+    margin: 0 0 14px;
+    font-size: 17px;
+    font-weight: 600;
+    color: inherit;
+}
+
+.acess-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.acess-grupo-rotulo {
+    font-size: 13px;
+    font-weight: 500;
+    color: #d6d6d6;
+}
+
+.acess-texto-controle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.acess-btn,
+.acess-restaurar,
+.acess-segmento {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    color: #ffffff;
+    background-color: #2e2e2e;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.acess-btn {
+    flex: 0 0 56px;
+    height: 38px;
+}
+
+.acess-btn:hover:not(:disabled),
+.acess-restaurar:hover,
+.acess-segmento:hover:not(.ativo) {
+    background-color: #3a3a3a;
+    border-color: #4a4a4a;
+}
+
+.acess-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.acess-texto-valor {
+    flex: 1;
+    text-align: center;
+    font-weight: 500;
+}
+
+.acess-segmentos {
+    display: flex;
+    gap: 6px;
+}
+
+.acess-segmento {
+    flex: 1;
+    height: 36px;
+    padding: 0 6px;
+}
+
+.acess-segmento.ativo {
+    background-color: #4a4a4a;
+    border-color: #888;
+}
+
+.acess-linha {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid #3a3a3a;
+    cursor: pointer;
+}
+
+.acess-linha-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.acess-linha-rotulo {
+    font-weight: 500;
+}
+
+.acess-linha-desc {
+    font-size: 12px;
+    color: #b5b5b5;
+}
+
+.acess-painel .acess-interruptor {
+    appearance: none;
+    -webkit-appearance: none;
+    flex-shrink: 0;
+    position: relative;
+    box-sizing: border-box;
+    display: inline-block;
+    width: 44px;
+    min-width: 44px;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    box-shadow: none;
+    background-color: #4a4a4a;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s;
+}
+
+.acess-painel .acess-interruptor:focus {
+    border: 0;
+    box-shadow: none;
+    background-color: #4a4a4a;
+}
+
+.acess-painel .acess-interruptor::before {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    transition: transform 0.3s;
+}
+
+.acess-painel .acess-interruptor:checked,
+.acess-painel .acess-interruptor:checked:focus {
+    background-color: #4caf50;
+}
+
+.acess-painel .acess-interruptor:checked::before {
+    transform: translateX(20px);
+}
+
+.acess-painel .acess-interruptor:focus-visible {
+    outline: 2px solid #888;
+    outline-offset: 2px;
+}
+
+/* Aviso quando o tamanho do texto chegou ao mínimo ou ao máximo */
+.acess-limite {
+    margin: -2px 0 0;
+    font-size: 12px;
+    color: #b5b5b5;
+    text-align: center;
+}
+
+.acess-limite[hidden] {
+    display: none;
+}
+
+.acess-restaurar {
+    width: 100%;
+    height: 40px;
+    margin-top: 8px;
+}
+
+/* ===== Tema claro (o painel é escrito à mão; o resto das telas vem de acessibilidade-temas.css) ===== */
+html.tema-claro {
+    color-scheme: light;
+}
+
+html.tema-claro .acess-botao,
+html.tema-claro .acess-painel {
+    background-color: #ffffff;
+    border-color: #cfcfcf;
+    color: #1a1a1a;
+}
+
+html.tema-claro .acess-botao:hover,
+html.tema-claro .acess-botao[aria-expanded="true"] {
+    background-color: #ececec;
+    border-color: #999999;
+}
+
+html.tema-claro .acess-painel {
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+}
+
+html.tema-claro .acess-grupo-rotulo { color: #333333; }
+html.tema-claro .acess-linha-desc { color: #555555; }
+html.tema-claro .acess-linha { border-top-color: #d9d9d9; }
+
+html.tema-claro .acess-btn,
+html.tema-claro .acess-restaurar,
+html.tema-claro .acess-segmento {
+    color: #1a1a1a;
+    background-color: #f1f1f1;
+    border-color: #cfcfcf;
+}
+
+html.tema-claro .acess-btn:hover:not(:disabled),
+html.tema-claro .acess-restaurar:hover,
+html.tema-claro .acess-segmento:hover:not(.ativo) {
+    background-color: #e3e3e3;
+    border-color: #b5b5b5;
+}
+
+html.tema-claro .acess-segmento.ativo {
+    background-color: #d9d9d9;
+    border-color: #777777;
+}
+
+html.tema-claro .acess-painel .acess-interruptor,
+html.tema-claro .acess-painel .acess-interruptor:focus { background-color: #b5b5b5 !important; border: 0 !important; box-shadow: none !important; }
+html.tema-claro .acess-painel .acess-interruptor:checked,
+html.tema-claro .acess-painel .acess-interruptor:checked:focus { background-color: #2e7d32 !important; }
+html.tema-claro .acess-painel .acess-interruptor::before { background-color: #ffffff !important; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+html.tema-claro .acess-limite { color: #555555; }
+
+/* ===== Alto contraste ===== */
+html.acess-contraste .acess-botao,
+html.acess-contraste .acess-painel {
+    background-color: #000000;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+}
+
+html.acess-contraste .acess-grupo-rotulo,
+html.acess-contraste .acess-linha-desc { color: #ffffff; }
+html.acess-contraste .acess-linha { border-top-color: #ffffff; }
+
+html.acess-contraste .acess-btn,
+html.acess-contraste .acess-restaurar,
+html.acess-contraste .acess-segmento {
+    background-color: #000000;
+    border: 1px solid #ffffff;
+}
+
+html.acess-contraste .acess-segmento.ativo {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+html.acess-contraste .acess-limite { color: #ffffff; }
+
+/* ===== Interruptores e caixas de seleção marcadas (tema claro e alto contraste) =====
+   As regras genéricas de "input" pintariam tudo de uma cor só e apagariam o verde do estado marcado. */
+html.tema-claro .tarefa-checkbox:checked,
+html.tema-claro .checklist-item-checkbox:checked {
+    background-color: #2e7d32 !important;
+    border-color: #2e7d32 !important;
+}
+
+html.tema-claro .tarefa-checkbox:checked::after,
+html.tema-claro .checklist-item-checkbox:checked::after {
+    color: #ffffff !important;
+}
+
+html.tema-claro input.toggle-switch:checked {
+    background-color: #2e7d32 !important;
+}
+
+html.tema-claro input.toggle-switch:checked::before {
+    background-color: #ffffff !important;
+}
+
+html.acess-contraste input.toggle-switch,
+html.acess-contraste .acess-painel .acess-interruptor,
+html.acess-contraste .acess-painel .acess-interruptor:focus {
+    background-color: #000000 !important;
+    border: 0 !important;
+    box-shadow: inset 0 0 0 2px #ffffff !important;
+    outline: none !important;
+}
+
+html.acess-contraste input.toggle-switch::before,
+html.acess-contraste .acess-painel .acess-interruptor::before {
+    background-color: #ffffff !important;
+}
+
+html.acess-contraste input.toggle-switch:checked,
+html.acess-contraste .acess-painel .acess-interruptor:checked,
+html.acess-contraste .acess-painel .acess-interruptor:checked:focus {
+    background-color: #ffffff !important;
+}
+
+html.acess-contraste input.toggle-switch:checked::before,
+html.acess-contraste .acess-painel .acess-interruptor:checked::before {
+    background-color: #000000 !important;
+}
+
+/* ===== Reduzir animações ===== */
+html.acess-sem-animacao *,
+html.acess-sem-animacao *::before,
+html.acess-sem-animacao *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+}
+
+html.acess-sem-animacao .area-card:hover,
+html.acess-sem-animacao .btn-adicionar-fixo:hover,
+html.acess-sem-animacao .btn-metodo-compartilhar:hover,
+html.acess-sem-animacao .area-item-gerenciar:hover .seta-area,
+html.acess-sem-animacao .cor-opcao:hover,
+html.acess-sem-animacao .btn:active {
+    transform: none !important;
+}
+
+html.acess-sem-animacao::view-transition-group(*),
+html.acess-sem-animacao::view-transition-old(*),
+html.acess-sem-animacao::view-transition-new(*) {
+    animation: none !important;
+}
+
+/* ===== Destacar o foco do teclado ===== */
+html.acess-foco :focus-visible {
+    outline: 3px solid #ffd54f !important;
+    outline-offset: 2px !important;
+}
+
+html.acess-foco.tema-claro :focus-visible {
+    outline-color: #0b57d0 !important;
+}
+
+html.acess-foco a {
+    text-decoration: underline;
+}
+
+/* ===== Texto ampliado: corpo da página que não cabe na janela não pode ficar cortado em cima ===== */
+html.acess-zoom body:not(:has(.app-container)) {
+    justify-content: safe center !important;
+    align-items: safe center !important;
+}
+
+html.acess-zoom .acess-painel {
+    max-height: calc((100vh - 100px) / var(--az, 1));
+    max-width: calc((100vw - 40px) / var(--az, 1));
+}

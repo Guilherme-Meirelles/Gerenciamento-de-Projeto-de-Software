@@ -1,7 +1,7 @@
 package com.example.demo;
 
 import org.springframework.context.annotation.*;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -14,11 +14,18 @@ public class ConfigBancoDeDados {
     @Bean
     public DataSource dataSource(){
 
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        // Com pool de conexões: a conexão com o MySQL é aberta uma vez e reaproveitada. Antes (DriverManagerDataSource)
+        // cada consulta abria uma conexão nova, e de vez em quando o MySQL demorava segundos só para aceitá-la.
+        HikariDataSource dataSource = new HikariDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://localhost:3306/todaily_db?useTimezone=true&serverTimezone=UTC");
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/todaily_db?useTimezone=true&serverTimezone=UTC");
         dataSource.setUsername("ToDaily_user");
         dataSource.setPassword("ToDaily_123");
+        dataSource.setPoolName("ToDailyPool");
+        dataSource.setMaximumPoolSize(10);
+        dataSource.setMinimumIdle(2);
+        dataSource.setKeepaliveTime(300_000);   // testa conexões paradas a cada 5 min
+        dataSource.setMaxLifetime(1_500_000);   // renova conexões a cada 25 min (antes do limite do MySQL)
         return  dataSource;
     }
     @Bean

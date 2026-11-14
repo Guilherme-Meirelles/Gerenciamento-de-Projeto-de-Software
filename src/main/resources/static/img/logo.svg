@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 133 151" width="133" height="151" role="img" aria-label="ToDaily">
+  <title>ToDaily</title>
+  <defs>
+    <mask id="recortes" maskUnits="userSpaceOnUse" x="0" y="0" width="133" height="151">
+      <rect width="133" height="151" fill="#fff"/>
+      <!-- janela do calendário -->
+      <rect x="33" y="38.5" width="66.5" height="54.5" rx="3" fill="#000"/>
+      <!-- canto onde fica o "+" -->
+      <rect x="68" y="62" width="50" height="50" fill="#000"/>
+      <!-- vãos em volta das argolas -->
+      <rect x="43.2" y="4" width="13.6" height="30" rx="6.8" fill="#000"/>
+      <rect x="69.2" y="4" width="13.6" height="30" rx="6.8" fill="#000"/>
+    </mask>
+  </defs>
+  <!-- corpo do calendário -->
+  <rect x="25" y="18" width="83" height="83" rx="12.5" fill="#6f6f6f" mask="url(#recortes)"/>
+  <!-- argolas -->
+  <rect x="46" y="9" width="8" height="22" rx="4" fill="#6f6f6f"/>
+  <rect x="72" y="9" width="8" height="22" rx="4" fill="#6f6f6f"/>
+  <!-- dias -->
+  <rect x="42.6" y="46" width="14.4" height="14" rx="1.6" fill="#6f6f6f"/>
+  <rect x="63.6" y="46" width="13.4" height="14" rx="1.6" fill="#9f9f9f"/>
+  <rect x="42.6" y="69" width="14.4" height="13.5" rx="1.6" fill="#6f6f6f"/>
+  <!-- "+" -->
+  <rect x="71.4" y="77" width="36.6" height="12" rx="1.2" fill="#9f9f9f"/>
+  <rect x="83.7" y="64.7" width="12" height="36.6" rx="1.2" fill="#9f9f9f"/>
+  <!-- TODAILY -->
+  <g fill="#7d7d7d">
+    <!-- T -->
+    <rect x="22" y="113.5" width="11.5" height="4.4"/>
+    <rect x="25.55" y="113.5" width="4.4" height="23.5"/>
+    <!-- O -->
+    <path fill-rule="evenodd" d="M41.5 113.5A6 6 0 0 0 35.5 119.5V131A6 6 0 0 0 41.5 137A6 6 0 0 0 47.5 131V119.5A6 6 0 0 0 41.5 113.5ZM41.5 117.9A1.6 1.6 0 0 0 39.9 119.5V131A1.6 1.6 0 0 0 41.5 132.6A1.6 1.6 0 0 0 43.1 131V119.5A1.6 1.6 0 0 0 41.5 117.9Z"/>
+    <!-- D -->
+    <path fill-rule="evenodd" d="M49.5 113.5H55.3A6.2 6.2 0 0 1 61.5 119.7V130.8A6.2 6.2 0 0 1 55.3 137H49.5ZM53.9 117.9V132.6H55.3A1.8 1.8 0 0 0 57.1 130.8V119.7A1.8 1.8 0 0 0 55.3 117.9Z"/>
+    <!-- A -->
+    <path fill-rule="evenodd" d="M63.5 137L67.6 113.5H71.9L76 137H71.7L71 132H68.5L67.8 137ZM68.9 128.2H70.6L69.75 121.5Z"/>
+    <!-- I -->
+    <rect x="78.4" y="113.5" width="4.4" height="23.5"/>
+    <!-- L -->
+    <path d="M85.2 113.5H89.6V132.6H95.2V137H85.2Z"/>
+    <!-- Y -->
+    <path d="M97.2 113.5H101.9L103.2 120L104.5 113.5H109.2L105.4 126.4V137H101V126.4Z"/>
+  </g>
+</svg>

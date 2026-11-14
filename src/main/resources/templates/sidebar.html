@@ -247,7 +247,7 @@
             <p class="descricao-modal-lista">Dê um nome à lista e, se quiser, uma descrição.</p>
             <form class="form-lista">
                 <div class="campo-lista">
-                    <label for="nome-lista">Nome da Lista</label>
+                    <label for="nome-lista">Nome da Lista<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
                     <input type="text" id="nome-lista" placeholder="Nova Lista" />
                 </div>
                 <div class="campo-lista">
@@ -270,7 +270,7 @@
             <p class="descricao-modal-lista">Mude o nome ou a descrição da lista.</p>
             <form class="form-lista">
                 <div class="campo-lista">
-                    <label for="nome-lista-edit">Nome da Lista</label>
+                    <label for="nome-lista-edit">Nome da Lista<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
                     <input type="text" id="nome-lista-edit" />
                 </div>
                 <div class="campo-lista">
@@ -325,7 +325,6 @@
 <div th:fragment="scripts">
     <link rel="stylesheet" href="/css/avisos.css" />
     <script src="/js/avisos.js"></script>
-    <script src="https://unpkg.com/lucide@1.72.0/dist/umd/lucide.min.js"></script>
     <script src="/js/sidebar.js"></script>
     <script th:inline="javascript">
         window.areaAtualId = /*[[${areaId}]]*/ 0;

@@ -607,39 +607,79 @@ document.addEventListener('DOMContentLoaded', function() {
             responsavelIds
         };
 
+        // Enquanto salva, o botão fica desligado (evita criar a mesma tarefa duas vezes se o servidor demorar)
+        btnOkTarefa.disabled = true;
+
         let resposta;
         let tarefaCriadaOuEditada;
 
-        // EDITAR
-        if (tarefaSelecionada) {
-            resposta = await fetch(`/tarefas/${tarefaSelecionada.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(corpo)
-            });
+        try {
+            // EDITAR
+            if (tarefaSelecionada) {
+                resposta = await fetch(`/tarefas/${tarefaSelecionada.id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(corpo)
+                });
 
-        // CRIAR
-        } else {
-            resposta = await fetch(`/tarefas`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(corpo)
-            });
+            // CRIAR
+            } else {
+                resposta = await fetch(`/tarefas`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(corpo)
+                });
+            }
+
+            if (!resposta.ok) {
+                const txt = await resposta.text();
+                throw new Error("Erro ao salvar a tarefa: " + txt);
+            }
+
+            tarefaCriadaOuEditada = await resposta.json();
+        } finally {
+            btnOkTarefa.disabled = false;
         }
-
-        if (!resposta.ok) {
-            const txt = await resposta.text();
-            throw new Error("Erro ao salvar a tarefa: " + txt);
-        }
-
-        tarefaCriadaOuEditada = await resposta.json();
         window.atualizarNotificacoes?.(); // data/responsável/aviso podem ter mudado
 
-        // Se a tarefa era nova, envia agora o que ficou "em rascunho" (checklist e
-        // anexos montados enquanto a tarefa ainda não existia no backend).
-        if (!tarefaSelecionada && (itensChecklistRascunho.length > 0 || anexosRascunho.length > 0)) {
+        // Checklist e anexos montados enquanto a tarefa ainda não existia (rascunho) são enviados depois
+        // de a janela fechar, para a tarefa nova aparecer na hora.
+        const eraNova = !tarefaSelecionada;
+        const rascunhoChecklist = eraNova ? itensChecklistRascunho.slice() : [];
+        const rascunhoAnexos = eraNova ? anexosRascunho.slice() : [];
+        if (eraNova && (rascunhoChecklist.length > 0 || rascunhoAnexos.length > 0)) {
+            tarefaCriadaOuEditada.checklistTotal = rascunhoChecklist.length;
+            tarefaCriadaOuEditada.checklistConcluidos = rascunhoChecklist.filter(i => i.concluido).length;
+            tarefaCriadaOuEditada.anexoTotal = rascunhoAnexos.length;
+        }
+
+        // Atualiza arrays locais
+        if (!eraNova) {
+            const idx = tarefas.findIndex(t => t.id === tarefaCriadaOuEditada.id);
+            if (idx !== -1) tarefas[idx] = tarefaCriadaOuEditada;
+        } else {
+            tarefas.push(tarefaCriadaOuEditada);
+        }
+
+        // Mostra já o resultado e fecha a janela; a lista é conferida com o servidor logo depois
+        const recarregarListaDoServidor = () => {
+            if (listaAtual == "hoje") return carregarTarefasHoje();
+            if (listaAtual == "agendadas") return carregarTarefasAgendadas();
+            if (listaAtual == "todas") return carregarTarefasTodas();
+            return carregarTarefas(listaId);
+        };
+        renderizarTarefas(["hoje", "agendadas", "todas"].includes(listaAtual) ? listaAtual : listaId);
+        lucide.createIcons();
+
+        // Reset
+        modalAddTarefa.style.display = "none";
+        limparFormulario();
+        tarefaSelecionada = null;
+        categoriaIdsSelecionadosTarefa = [];
+
+        if (rascunhoChecklist.length > 0 || rascunhoAnexos.length > 0) {
             await Promise.all([
-                ...itensChecklistRascunho.map(async item => {
+                ...rascunhoChecklist.map(async item => {
                     const respItem = await fetch(`/tarefas/${tarefaCriadaOuEditada.id}/checklist/itens`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -654,42 +694,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                     }
                 }),
-                ...anexosRascunho.map(anexo => {
+                ...rascunhoAnexos.map(anexo => {
                     const formData = new FormData();
                     formData.append('arquivo', anexo.arquivo);
                     return fetch(`/tarefas/${tarefaCriadaOuEditada.id}/anexos`, { method: 'POST', body: formData });
                 })
             ]);
-
-            tarefaCriadaOuEditada.checklistTotal = itensChecklistRascunho.length;
-            tarefaCriadaOuEditada.checklistConcluidos = itensChecklistRascunho.filter(i => i.concluido).length;
-            tarefaCriadaOuEditada.anexoTotal = anexosRascunho.length;
         }
-
-        // Atualiza arrays locais
-        if (tarefaSelecionada) {
-            const idx = tarefas.findIndex(t => t.id === tarefaCriadaOuEditada.id);
-            if (idx !== -1) tarefas[idx] = tarefaCriadaOuEditada;
-        } else {
-            tarefas.push(tarefaCriadaOuEditada);
-        }
-
-        // Renderizar apenas tarefas daquela lista
-        if(listaAtual == "hoje"){
-            carregarTarefasHoje();
-        }else if(listaAtual == "agendadas"){
-            carregarTarefasAgendadas();
-        }else if(listaAtual == "todas"){
-            carregarTarefasTodas();
-        }else{
-            carregarTarefas(listaId);
-        }
-
-        // Reset
-        modalAddTarefa.style.display = "none";
-        limparFormulario();
-        tarefaSelecionada = null;
-        categoriaIdsSelecionadosTarefa = [];
+        await recarregarListaDoServidor();
     });
 
     window.limparFormulario = function () {
@@ -954,14 +966,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const tarefaEl = document.createElement('div');
             tarefaEl.className = 'tarefa-item';
             tarefaEl.dataset.id = tarefa.id;
-
-            tarefaEl.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                tarefaSelecionada = tarefa;
-                menuContextoTarefa.style.left = e.pageX + 'px';
-                menuContextoTarefa.style.top = e.pageY + 'px';
-                menuContextoTarefa.style.display = 'block';
-            });
 
             tarefaEl.addEventListener('click', function(e) {
                 // Evita abrir visualização ao clicar nos botões ou no checkbox
@@ -1292,11 +1296,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     window.excluirTarefa = function (tarefaId, list) {
+        // A tarefa some da tela na hora; se o servidor recusar, ela volta e o usuário é avisado
+        const anteriores = tarefas;
+        tarefas = tarefas.filter(t => t.id !== tarefaId);
+        renderizarTarefas(list);
+        lucide.createIcons();
         fetch(`/tarefas/${tarefaId}`, { method: 'DELETE' })
-            .then(() => {
-                tarefas = tarefas.filter(t => t.id !== tarefaId);
-                renderizarTarefas(list);
+            .then(resposta => {
+                if (!resposta.ok) throw new Error('falha ao remover');
                 window.atualizarNotificacoes?.();
+            })
+            .catch(() => {
+                tarefas = anteriores;
+                renderizarTarefas(list);
+                lucide.createIcons();
+                mostrarAviso('Não foi possível remover a tarefa. Tente novamente.');
             });
     };
 
