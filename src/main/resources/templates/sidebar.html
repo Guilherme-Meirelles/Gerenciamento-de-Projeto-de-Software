@@ -56,6 +56,10 @@
         <button class="menu-item" onclick="navegarPara(this, '/areasTrabalho')">
             <i data-lucide="briefcase"></i> <span>Áreas de Trabalho</span>
         </button>
+        <button class="menu-item" id="btnNotificacoes" onclick="abrirNotificacoes()">
+            <i data-lucide="bell"></i> <span>Notificações</span>
+            <b class="selo-contador" id="seloNotificacoes" hidden>0</b>
+        </button>
         <button class="menu-item" id="btnCalendario">
             <i data-lucide="calendar-days"></i> <span>Calendário</span>
         </button>
@@ -74,8 +78,10 @@
                     posicao = 1;
                 } else if (caminho === '/todasTarefas') {
                     posicao = 2;
-                } else if (caminho.indexOf('/areasTrabalho') === 0) {
-                    posicao = 3;
+                } else if (/^\/areasTrabalho\/?$/.test(caminho)) {
+                    posicao = 3; // só a lista de áreas; dentro de uma área o menu.js deixa "Para Hoje" marcado
+                } else if (caminho.indexOf('/areasTrabalho/') === 0) {
+                    posicao = 0;
                 }
                 if (itens[posicao]) itens[posicao].classList.add('active');
             } catch (e) { /* o sidebar.js marca de novo ao carregar */ }
@@ -206,6 +212,30 @@
                     <button type="submit" class="btn-confirmar-V">Confirmar</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal: Notificações (tarefas minhas, com aviso ligado, que vencem até amanhã ou já atrasaram) -->
+    <div id="modalNotificacoes" class="overlay-perfil" th:fragment="modalNotificacoes" style="display: none;" onclick="fecharModalPerfil('modalNotificacoes')">
+        <div class="modal-lista modal-notificacoes" onclick="event.stopPropagation()">
+            <div class="icone-modal-lista"><i data-lucide="bell"></i></div>
+            <h3 class="titulo-modal-lista">Notificações</h3>
+            <p class="descricao-modal-lista">Suas tarefas com aviso ligado que vencem até amanhã ou já estão atrasadas.</p>
+            <div class="lista-notificacoes" id="listaNotificacoes"></div>
+            <div class="preferencias-notificacao">
+                <p class="preferencias-titulo">Como quero ser avisado</p>
+                <label class="preferencia-linha">
+                    <span><i data-lucide="mail"></i> Por e-mail</span>
+                    <input type="checkbox" class="toggle-switch" id="prefNotifEmail">
+                </label>
+                <label class="preferencia-linha">
+                    <span><i data-lucide="bell"></i> No sistema (sino)</span>
+                    <input type="checkbox" class="toggle-switch" id="prefNotifSistema">
+                </label>
+            </div>
+            <div class="botoes-acao-lista">
+                <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalNotificacoes')">Fechar</button>
+            </div>
         </div>
     </div>
 

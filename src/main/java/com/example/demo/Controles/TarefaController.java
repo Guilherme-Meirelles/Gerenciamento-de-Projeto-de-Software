@@ -89,14 +89,14 @@ public class TarefaController {
         String descricao = (String) body.get("descricao");
         Integer cor = body.get("cor") != null ? Integer.valueOf(body.get("cor").toString()) : null;
         String dataFim = (String) body.get("dataFim"); // parse para LocalDate
-        Long responsavel = body.get("responsavelId") != null ? Long.valueOf(body.get("responsavelId").toString()) : null;
+        List<Long> responsaveis = extrairResponsavelIds(body);
         Boolean notificacoes = body.get("notificacoes") != null ? Boolean.valueOf(body.get("notificacoes").toString()) : null;
         List<Long> categoriaIds = extrairCategoriaIds(body);
         String repeticao = (String) body.get("repeticao");
 
-        Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsavel, notificacoes, categoriaIds, repeticao);
+        Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsaveis, notificacoes, categoriaIds, repeticao);
 
-        return ResponseEntity.ok(tarefaParaJson(tarefa, responsavel));
+        return ResponseEntity.ok(tarefaParaJson(tarefa));
     }
 
     @PutMapping("/{id}")
@@ -120,14 +120,14 @@ public class TarefaController {
         String descricao = (String) body.get("descricao");
         Integer cor = body.get("cor") != null ? Integer.valueOf(body.get("cor").toString()) : null;
         String dataFim = (String) body.get("dataFim"); // parse para LocalDate
-        Long responsavelId = body.get("responsavelId") != null ? Long.valueOf(body.get("responsavelId").toString()) : null;
+        List<Long> responsaveis = extrairResponsavelIds(body);
         Boolean notificacoes = body.get("notificacoes") != null ? Boolean.valueOf(body.get("notificacoes").toString()) : null;
         List<Long> categoriaIds = extrairCategoriaIds(body);
         String repeticao = (String) body.get("repeticao");
 
-        Tarefa tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsavelId, notificacoes, categoriaIds, repeticao);
+        Tarefa tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsaveis, notificacoes, categoriaIds, repeticao);
 
-        return ResponseEntity.ok(tarefaParaJson(tarefa, responsavelId));
+        return ResponseEntity.ok(tarefaParaJson(tarefa));
     }
 
     // Ordenação manual (arrastar e soltar): recebe {"ids": [...]} na nova ordem.
@@ -165,12 +165,11 @@ public class TarefaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Long responsavelId = body.get("responsavelId") != null ? Long.valueOf(body.get("responsavelId").toString()) : null;
         Boolean concluida = body.get("concluida") != null ? Boolean.valueOf(body.get("concluida").toString()) : null;
 
         Tarefa tarefa = tarefaService.toggleTarefa(id, concluida);
 
-        Map<String, Object> tarefaJson = tarefaParaJson(tarefa, responsavelId);
+        Map<String, Object> tarefaJson = tarefaParaJson(tarefa);
         tarefaJson.put("concluida", tarefa.getStatus());
 
         return ResponseEntity.ok(tarefaJson);
@@ -214,7 +213,21 @@ public class TarefaController {
                 .collect(Collectors.toList());
     }
 
-    private Map<String, Object> tarefaParaJson(Tarefa tarefa, Long responsavelId) {
+    // Responsáveis do corpo da requisição: aceita a lista nova ("responsavelIds") e, por
+    // compatibilidade, o campo antigo de um só ("responsavelId"). Sem nenhum dos dois = sem responsável.
+    private List<Long> extrairResponsavelIds(Map<String, Object> body) {
+        List<Long> ids = extrairIds(body.get("responsavelIds"));
+        if (ids != null) {
+            return ids;
+        }
+        Object unico = body.get("responsavelId");
+        if (unico != null && !unico.toString().isBlank()) {
+            return List.of(Long.valueOf(unico.toString()));
+        }
+        return List.of();
+    }
+
+    private Map<String, Object> tarefaParaJson(Tarefa tarefa) {
         Map<String, Object> tarefaJson = new HashMap<>();
         tarefaJson.put("id", tarefa.getId());
         tarefaJson.put("titulo", tarefa.getTitulo());
@@ -222,7 +235,7 @@ public class TarefaController {
         tarefaJson.put("cor", tarefa.getCor());
         tarefaJson.put("dataFim", tarefa.getDataFim() != null ? tarefa.getDataFim().toString() : null);
         tarefaJson.put("listaId", tarefa.getListaOrigem() != null ? tarefa.getListaOrigem().getId() : null);
-        tarefaJson.put("responsavelId", responsavelId);
+        TarefaJson.adicionarResponsaveis(tarefaJson, tarefa);
         tarefaJson.put("notificacoes", tarefa.getNotificacoes());
         tarefaJson.put("repeticao", tarefa.getRepeticao() != null ? tarefa.getRepeticao().name() : "NENHUMA");
         if (tarefa.getChecklist() != null) {

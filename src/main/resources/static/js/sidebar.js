@@ -154,7 +154,142 @@ document.addEventListener('keydown', (e) => {
         fecharModalPerfil('modalEditLista');
         fecharModalPerfil('modalRemoveLista');
         fecharModalPerfil('modalConfirmarLogout');
+        fecharModalPerfil('modalNotificacoes');
     }
+});
+
+/**
+ * Notificações (sino): tarefas do próprio usuário, com aviso ligado, que vencem até amanhã ou já
+ * estão atrasadas. O servidor calcula a lista a cada consulta (nada fica guardado), então o contador
+ * é atualizado ao abrir a tela, de minuto em minuto, ao voltar para a aba e quando uma tarefa muda.
+ */
+const ROTULO_SITUACAO_NOTIFICACAO = { ATRASADA: 'Atrasada', HOJE: 'Vence hoje', AMANHA: 'Vence amanhã' };
+
+function atualizarSeloNotificacoes(total) {
+    const selo = document.getElementById('seloNotificacoes');
+    const botao = document.getElementById('btnNotificacoes');
+    if (!selo) return;
+    selo.textContent = total > 99 ? '99+' : String(total);
+    selo.hidden = total === 0;
+    if (botao) {
+        botao.title = total === 0 ? 'Notificações'
+            : 'Notificações (' + total + (total === 1 ? ' nova)' : ' novas)');
+    }
+}
+
+window.atualizarNotificacoes = async function () {
+    try {
+        const resposta = await fetch('/notificacoes');
+        if (!resposta.ok) return null;
+        const dados = await resposta.json();
+        atualizarSeloNotificacoes(dados.total);
+        return dados;
+    } catch (e) {
+        return null; // sem rede ou servidor fora: mantém o contador que já está na tela
+    }
+};
+
+function dataCurtaNotificacao(iso) {
+    const partes = String(iso).split('-');
+    return partes.length === 3 ? partes[2] + '/' + partes[1] : iso;
+}
+
+function desenharNotificacoes(itens, sistemaLigado) {
+    const lista = document.getElementById('listaNotificacoes');
+    lista.replaceChildren();
+
+    if (!itens.length) {
+        const vazio = document.createElement('div');
+        vazio.className = 'notificacoes-vazio';
+        vazio.innerHTML = '<i data-lucide="bell-off"></i>';
+        const t = document.createElement('p');
+        t.textContent = sistemaLigado === false ? 'Avisos no sistema desligados' : 'Nenhuma notificação por enquanto';
+        const d = document.createElement('span');
+        d.textContent = sistemaLigado === false
+            ? 'Ligue "No sistema (sino)" abaixo para voltar a ver as tarefas que estão perto de vencer.'
+            : 'Ligue "Notificações" em uma tarefa sua para ser avisado quando ela estiver perto de vencer.';
+        vazio.append(t, d);
+        lista.appendChild(vazio);
+        return;
+    }
+
+    itens.forEach(item => {
+        const botao = document.createElement('button');
+        botao.type = 'button';
+        botao.className = 'item-notificacao';
+        botao.title = 'Abrir a área de trabalho "' + item.areaNome + '"';
+        botao.onclick = () => {
+            window.location.href = '/areasTrabalho/' + item.areaId + '/' + encodeURIComponent(item.areaNome);
+        };
+
+        const texto = document.createElement('div');
+        texto.className = 'notificacao-texto';
+        const titulo = document.createElement('p');
+        titulo.className = 'notificacao-titulo';
+        titulo.textContent = item.titulo;
+        const local = document.createElement('p');
+        local.className = 'notificacao-local';
+        local.textContent = item.areaNome + ' · ' + item.listaNome + ' · ' + dataCurtaNotificacao(item.dataFim);
+        texto.append(titulo, local);
+
+        const selo = document.createElement('span');
+        selo.className = 'selo-situacao ' + item.situacao.toLowerCase();
+        selo.textContent = item.situacao === 'ATRASADA' && item.diasAtraso > 0
+            ? 'Atrasada ' + item.diasAtraso + (item.diasAtraso === 1 ? ' dia' : ' dias')
+            : ROTULO_SITUACAO_NOTIFICACAO[item.situacao];
+
+        botao.append(texto, selo);
+        lista.appendChild(botao);
+    });
+}
+
+window.abrirNotificacoes = async function () {
+    abrirModalPerfil('modalNotificacoes');
+    const dados = await atualizarNotificacoes();
+    if (dados) {
+        const pref = dados.preferencias || { email: true, sistema: true };
+        document.getElementById('prefNotifEmail').checked = pref.email;
+        document.getElementById('prefNotifSistema').checked = pref.sistema;
+        desenharNotificacoes(dados.itens, pref.sistema);
+    } else {
+        document.getElementById('listaNotificacoes').textContent = 'Não foi possível carregar as notificações agora.';
+    }
+    setTimeout(() => lucide.createIcons(), 10);
+};
+
+// Guarda as preferências assim que um dos interruptores muda
+async function salvarPreferenciasNotificacao() {
+    const corpo = {
+        email: document.getElementById('prefNotifEmail').checked,
+        sistema: document.getElementById('prefNotifSistema').checked
+    };
+    try {
+        const resposta = await fetch('/notificacoes/preferencias', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(corpo)
+        });
+        if (!resposta.ok) throw new Error();
+        const dados = await atualizarNotificacoes();
+        if (dados) {
+            desenharNotificacoes(dados.itens, corpo.sistema);
+            setTimeout(() => lucide.createIcons(), 10);
+        }
+    } catch (e) {
+        Aviso.mostrar('Não foi possível salvar a preferência agora. Tente novamente.');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    ['prefNotifEmail', 'prefNotifSistema'].forEach(id => {
+        const caixa = document.getElementById(id);
+        if (caixa) caixa.addEventListener('change', salvarPreferenciasNotificacao);
+    });
+    atualizarNotificacoes();
+    setInterval(atualizarNotificacoes, 60000);
+});
+document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) atualizarNotificacoes();
 });
 
 /**
@@ -218,9 +353,13 @@ window.marcarItemAtivoSidebar = function () {
     } else if (path === '/todasTarefas') {
         const btnTodasTarefas = document.querySelectorAll('.menu-item')[2];
         if (btnTodasTarefas) btnTodasTarefas.classList.add('active');
-    } else if (path.startsWith('/areasTrabalho')) {
+    } else if (/^\/areasTrabalho\/?$/.test(path)) {
         const btnAreasTrabalho = document.querySelectorAll('.menu-item')[3];
         if (btnAreasTrabalho) btnAreasTrabalho.classList.add('active');
+    } else if (path.startsWith('/areasTrabalho/')) {
+        // Dentro de uma área o menu.js deixa "Para Hoje" marcado (tarefas de hoje da área)
+        const btnParaHoje = document.querySelectorAll('.menu-item')[0];
+        if (btnParaHoje) btnParaHoje.classList.add('active');
     }
 }
 

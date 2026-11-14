@@ -913,7 +913,6 @@ body {
 /* Vermelho, como os outros botões destrutivos do sistema (Excluir, Excluir conta) */
 .btn-confirmar-sair {
     background-color: #d32f2f;
-    font-weight: 600;
 }
 
 .btn-confirmar-sair:hover {
@@ -928,4 +927,44 @@ body {
 .sidebar svg,
 .sidebar i {
     flex-shrink: 0;
+}
+
+/* ===== Sino de notificações: contador sobre o item ===== */
+.menu-item {
+    position: relative;
+}
+
+.selo-contador {
+    position: absolute;
+    left: calc(100% - 38px);
+    top: 10px; /* item tem 40 px de altura: posição inteira, sem transform, para o número não ficar borrado/deslocado */
+    line-height: 1;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 7px 0 5px; /* compensa o "1", cuja haste fica à direita do centro da caixa */
+    border-radius: 10px;
+    background-color: #d32f2f;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    transition: left 0.2s ease, top 0.2s ease, min-width 0.2s ease, height 0.2s ease;
+}
+
+.selo-contador[hidden] {
+    display: none;
+}
+
+/* Recolhida: o número vira um pontinho no canto do ícone */
+.sidebar.recolhida .selo-contador {
+    left: 26px;
+    top: 4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    line-height: normal;
+    font-size: 10px;
 }

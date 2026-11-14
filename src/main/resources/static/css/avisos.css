@@ -257,7 +257,7 @@ input.campo-invalido:focus {
     border-radius: 10px;
     font-family: inherit;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 500;
     color: #ffffff;
     border: 1px solid #3a3a3a;
     background-color: #2e2e2e;
@@ -342,4 +342,10 @@ input.campo-invalido:focus {
     padding: 12px 16px;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+}
+
+/* Mensagem de uma frase só (remover tarefa, remover lista): peso médio. Títulos seguem em 600 e
+   todos os botões dos avisos usam o mesmo peso (500). */
+.modal-remover .modal-remover-mensagem {
+    font-weight: 500;
 }

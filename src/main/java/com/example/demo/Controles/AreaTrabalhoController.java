@@ -436,13 +436,7 @@ public class AreaTrabalhoController {
             mapa.put("areaNome", t.getListaOrigem().getArea().getNome());
             mapa.put("concluida", t.getStatus());
             mapa.put("ordem", t.getOrdem());
-            if (!t.getResponsaveis().isEmpty()) {
-                mapa.put("responsavel", t.getResponsaveis().iterator().next().getId());
-                mapa.put("responsavelNome", t.getResponsaveis().iterator().next().getNome());
-            } else {
-                mapa.put("responsavel", null);
-                mapa.put("responsavelNome", null);
-            }
+            TarefaJson.adicionarResponsaveis(mapa, t);
             mapa.put("notificacoes", t.getNotificacoes());
             mapa.put("repeticao", t.getRepeticao() != null ? t.getRepeticao().name() : "NENHUMA");
             if (t.getChecklist() != null) {
@@ -501,13 +495,7 @@ public class AreaTrabalhoController {
             mapa.put("areaNome", t.getListaOrigem().getArea().getNome());
             mapa.put("concluida", t.getStatus());
             mapa.put("ordem", t.getOrdem());
-            if (!t.getResponsaveis().isEmpty()) {
-                mapa.put("responsavel", t.getResponsaveis().iterator().next().getId());
-                mapa.put("responsavelNome", t.getResponsaveis().iterator().next().getNome());
-            } else {
-                mapa.put("responsavel", null);
-                mapa.put("responsavelNome", null);
-            }
+            TarefaJson.adicionarResponsaveis(mapa, t);
             mapa.put("notificacoes", t.getNotificacoes());
             mapa.put("repeticao", t.getRepeticao() != null ? t.getRepeticao().name() : "NENHUMA");
             if (t.getChecklist() != null) {

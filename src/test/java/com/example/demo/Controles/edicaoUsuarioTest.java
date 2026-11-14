@@ -181,4 +181,28 @@ class edicaoUsuarioTest {
         assertThat(view).isEqualTo("edicaoUsuario");
         verify(usuarioRepository, never()).save(any());
     }
+
+    @Test
+    void post_trocandoSenhaFraca_bloqueiaEdicao() {
+        Usuario existente = usuarioExistente(1L);
+        when(usuarioRepository.findUsuarioById(1L)).thenReturn(existente);
+
+        Usuario edicao = new Usuario();
+        edicao.setNome("Fulano");
+        edicao.setEmail(existente.getEmail());
+        edicao.setDataNascimento("2000-01-01");
+        edicao.setSenha("senhafraca123"); // 8+ caracteres, mas sem maiúscula nem especial
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        SessaoUtil.autenticar(request, 1L);
+        BindingResult semErros = new BeanPropertyBindingResult(edicao, "usuario");
+        Model model = new ExtendedModelMap();
+
+        String view = controller.edicaoUsuario(edicao, request, semErros, model);
+
+        assertThat(view).isEqualTo("edicaoUsuario");
+        assertThat(model.getAttribute("mensagem")).isEqualTo(
+                "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
+        verify(usuarioRepository, never()).save(any());
+    }
 }

@@ -97,6 +97,18 @@ public class RecuperarSenhaController {
                 return "redefinicaoSenha";
             }
 
+            if (senha == null || senha.length() < 8) {
+                model.addAttribute("token", token);
+                model.addAttribute("erro", "A senha deve ter pelo menos 8 caracteres.");
+                return "redefinicaoSenha";
+            }
+            if (!LoginCadastroControle.senhaForte(senha)) {
+                model.addAttribute("token", token);
+                model.addAttribute("erro",
+                        "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
+                return "redefinicaoSenha";
+            }
+
             Usuario usuario = this.ur.findByEmail(t.getEmail());
             usuario.setSenha(passwordEncoder.encode(senha));
             ur.save(usuario);

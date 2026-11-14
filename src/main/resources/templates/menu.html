@@ -180,7 +180,13 @@
             <!-- RESPONSÁVEIS -->
             <div class="campo-tarefa">
                 <label>Responsáveis</label>
-                <select id="tarefaResponsavel"></select>
+                <div class="multi-resp" id="tarefaResponsavel">
+                    <button type="button" class="multi-resp-botao" id="tarefaResponsavelBotao" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="multi-resp-texto">Selecione...</span>
+                        <i data-lucide="chevron-down"></i>
+                    </button>
+                    <div class="multi-resp-lista" id="tarefaResponsavelLista" role="listbox" aria-multiselectable="true" hidden></div>
+                </div>
             </div>
 
             <div class="campo-tarefa-row">

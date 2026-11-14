@@ -35,7 +35,7 @@ public class TarefaService {
     private CategoriaRepository categoriaRepository;
 
     public Tarefa criarTarefa(Long listaId, String titulo, String descricao, Integer cor,
-                              String dataFim, Long responsavelId, Boolean notificacoes,
+                              String dataFim, List<Long> responsavelIds, Boolean notificacoes,
                               List<Long> categoriaIds, String repeticao) {
 
         Lista lista = listaRepository.findById(listaId)
@@ -55,11 +55,7 @@ public class TarefaService {
             tarefa.setDataFim(LocalDate.parse(dataFim));
         }
 
-        if (responsavelId != null) {
-            Usuario u = usuarioRepository.findById(responsavelId)
-                    .orElseThrow(() -> new RuntimeException("Responsável não encontrado"));
-            tarefa.setResponsaveis(u);
-        }
+        aplicarResponsaveis(tarefa, responsavelIds);
 
         aplicarCategorias(tarefa, categoriaIds);
 
@@ -67,7 +63,7 @@ public class TarefaService {
     }
 
     public Tarefa editarTarefa(Long id, Long listaId, String titulo, String descricao, Integer cor,
-                               String dataFim, Long responsavelId, Boolean notificacoes,
+                               String dataFim, List<Long> responsavelIds, Boolean notificacoes,
                                List<Long> categoriaIds, String repeticao) {
 
         Tarefa tarefa = tarefaRepository.findById(id)
@@ -90,16 +86,25 @@ public class TarefaService {
         }
         tarefa.setDataFim(novaDataFim);
 
-        tarefa.getResponsaveis().clear();
-        if (responsavelId != null) {
-            Usuario u = usuarioRepository.findById(responsavelId)
-                    .orElseThrow(() -> new RuntimeException("Responsável não encontrado"));
-            tarefa.getResponsaveis().add(u);
-        }
+        aplicarResponsaveis(tarefa, responsavelIds);
 
         aplicarCategorias(tarefa, categoriaIds);
 
         return tarefaRepository.save(tarefa);
+    }
+
+    // Substitui os responsáveis da tarefa pela lista informada (vazia ou nula = sem responsável).
+    // Ids repetidos valem uma vez só.
+    private void aplicarResponsaveis(Tarefa tarefa, List<Long> responsavelIds) {
+        tarefa.getResponsaveis().clear();
+        if (responsavelIds == null) {
+            return;
+        }
+        for (Long usuarioId : new java.util.LinkedHashSet<>(responsavelIds)) {
+            Usuario usuario = usuarioRepository.findById(usuarioId)
+                    .orElseThrow(() -> new RuntimeException("Responsável não encontrado"));
+            tarefa.getResponsaveis().add(usuario);
+        }
     }
 
     private void aplicarCategorias(Tarefa tarefa, List<Long> categoriaIds) {

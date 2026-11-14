@@ -93,7 +93,7 @@ class TarefaServiceTest {
 
         Tarefa tarefa = tarefaService.criarTarefa(
                 lista.getId(), "Título", "Descrição", 1, "2026-12-31",
-                usuario.getId(), true, List.of(categoria.getId()), "diaria");
+                List.of(usuario.getId()), true, List.of(categoria.getId()), "diaria");
 
         assertThat(tarefa.getId()).isNotNull();
         assertThat(tarefa.getResponsaveis()).extracting(Usuario::getId).containsExactly(usuario.getId());
@@ -154,11 +154,11 @@ class TarefaServiceTest {
         entityManager.persistAndFlush(outroResponsavel);
 
         Tarefa tarefa = tarefaService.criarTarefa(
-                lista.getId(), "Título", null, null, null, usuario.getId(), null, null, null);
+                lista.getId(), "Título", null, null, null, List.of(usuario.getId()), null, null, null);
 
         Tarefa editada = tarefaService.editarTarefa(
                 tarefa.getId(), lista.getId(), "Título", null, null, null,
-                outroResponsavel.getId(), null, null, null);
+                List.of(outroResponsavel.getId()), null, null, null);
 
         assertThat(editada.getResponsaveis()).extracting(Usuario::getId).containsExactly(outroResponsavel.getId());
     }
@@ -219,7 +219,7 @@ class TarefaServiceTest {
         entityManager.persistAndFlush(categoria);
 
         Tarefa tarefa = tarefaService.criarTarefa(
-                lista.getId(), "Título", null, null, null, usuario.getId(), null,
+                lista.getId(), "Título", null, null, null, List.of(usuario.getId()), null,
                 List.of(categoria.getId()), null);
 
         checklistService.adicionarItem(tarefa.getId(), "Item 1");
@@ -279,5 +279,51 @@ class TarefaServiceTest {
         assertThat(tarefaRepository.findById(escondida.getId()).orElseThrow().getOrdem()).isNull();
         assertThat(tarefaRepository.findById(c.getId()).orElseThrow().getOrdem()).isEqualTo(a.getId());
         assertThat(tarefaRepository.findById(a.getId()).orElseThrow().getOrdem()).isEqualTo(c.getId());
+    }
+
+    private Usuario criarOutroUsuario(String email) {
+        Usuario u = new Usuario();
+        u.setNome("Outro " + email);
+        u.setEmail(email);
+        u.setSenha("hash");
+        u.setDataNascimento("2000-01-01");
+        return entityManager.persistAndFlush(u);
+    }
+
+    @Test
+    void criarTarefa_comVariosResponsaveis_guardaTodosSemRepetir() {
+        montarCenarioBasico();
+        Usuario outro = criarOutroUsuario("dupla@teste.com");
+
+        Tarefa tarefa = tarefaService.criarTarefa(
+                lista.getId(), "Em dupla", null, null, null,
+                List.of(usuario.getId(), outro.getId(), usuario.getId()), null, null, null);
+
+        assertThat(tarefa.getResponsaveis()).extracting(Usuario::getId)
+                .containsExactlyInAnyOrder(usuario.getId(), outro.getId());
+    }
+
+    @Test
+    void editarTarefa_comListaVazia_removeTodosOsResponsaveis() {
+        montarCenarioBasico();
+        Usuario outro = criarOutroUsuario("dupla@teste.com");
+        Tarefa tarefa = tarefaService.criarTarefa(
+                lista.getId(), "Em dupla", null, null, null,
+                List.of(usuario.getId(), outro.getId()), null, null, null);
+
+        Tarefa editada = tarefaService.editarTarefa(
+                tarefa.getId(), lista.getId(), "Em dupla", null, null, null,
+                List.of(), null, null, null);
+
+        assertThat(editada.getResponsaveis()).isEmpty();
+    }
+
+    @Test
+    void criarTarefa_responsavelInexistente_lancaErro() {
+        montarCenarioBasico();
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> tarefaService.criarTarefa(
+                lista.getId(), "Título", null, null, null, List.of(999999L), null, null, null))
+                .hasMessageContaining("Responsável não encontrado");
     }
 }

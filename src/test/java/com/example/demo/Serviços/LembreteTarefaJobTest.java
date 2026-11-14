@@ -96,6 +96,21 @@ class LembreteTarefaJobTest {
     }
 
     @Test
+    void responsavelQueDesligouOEmail_naoRecebe_masOsOutrosSim() {
+        Usuario semEmail = criarResponsavel(1, "quieto@teste.com");
+        semEmail.setNotificarPorEmail(false);
+        Usuario comEmail = criarResponsavel(2, "avisado@teste.com");
+        Tarefa tarefa = criarTarefa("Tarefa em dupla", semEmail, comEmail);
+        when(tarefaRepository.buscarTarefasParaLembrete(any(), any())).thenReturn(List.of(tarefa));
+
+        job.enviarLembretes();
+
+        verify(emailService, never()).enviarEmailLembreteTarefa(eq(semEmail), any());
+        verify(emailService).enviarEmailLembreteTarefa(eq(comEmail), eq(tarefa));
+        assertThat(tarefa.getLembreteEnviado()).isTrue();
+    }
+
+    @Test
     void erroAoEnviarParaUmResponsavel_naoImpedeMarcarLembreteEnviado() {
         Usuario r1 = criarResponsavel(1, "falha@teste.com");
         Tarefa tarefa = criarTarefa("Com falha de envio", r1);
@@ -107,5 +122,26 @@ class LembreteTarefaJobTest {
 
         assertThat(tarefa.getLembreteEnviado()).isTrue();
         verify(tarefaRepository).save(tarefa);
+    }
+
+    @Test
+    void aoIniciar_recuperaLembretesPerdidos() {
+        Usuario responsavel = criarResponsavel(1, "resp1@teste.com");
+        Tarefa tarefa = criarTarefa("Venceu enquanto o sistema estava desligado", responsavel);
+        when(tarefaRepository.buscarTarefasParaLembrete(any(), any())).thenReturn(List.of(tarefa));
+
+        job.enviarLembretesAoIniciar();
+
+        verify(emailService).enviarEmailLembreteTarefa(eq(responsavel), eq(tarefa));
+        assertThat(tarefa.getLembreteEnviado()).isTrue();
+    }
+
+    @Test
+    void aoIniciar_falhaNoBanco_naoImpedeOSistemaDeSubir() {
+        when(tarefaRepository.buscarTarefasParaLembrete(any(), any())).thenThrow(new RuntimeException("banco fora"));
+
+        job.enviarLembretesAoIniciar(); // não pode lançar exceção
+
+        verify(emailService, never()).enviarEmailLembreteTarefa(any(), any());
     }
 }

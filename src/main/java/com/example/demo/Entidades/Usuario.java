@@ -21,6 +21,10 @@ public class Usuario {
     private String dataNascimento;
     private boolean emailVerificado = false;
 
+    // Preferências de notificação. Nulo (contas criadas antes dessas colunas existirem) vale "ligado".
+    private Boolean notificarPorEmail;
+    private Boolean notificarNoSistema;
+
     // @JsonIgnore evita o ciclo Usuario -> areasCriadas -> AreaTrabalho -> dono -> Usuario -> ...
     // cascade+orphanRemoval: ao excluir o usuário, as áreas das quais ele é dono são excluídas
     // junto (e essas por sua vez já cascateiam para listas/tarefas/participações).
@@ -47,6 +51,11 @@ public class Usuario {
     public void setDataNascimento(String dataNascimento) { this.dataNascimento = dataNascimento; }
     public boolean isEmailVerificado() { return emailVerificado; }
     public void setEmailVerificado(boolean emailVerificado) { this.emailVerificado = emailVerificado; }
+
+    public boolean isNotificarPorEmail() { return notificarPorEmail == null || notificarPorEmail; }
+    public void setNotificarPorEmail(boolean valor) { this.notificarPorEmail = valor; }
+    public boolean isNotificarNoSistema() { return notificarNoSistema == null || notificarNoSistema; }
+    public void setNotificarNoSistema(boolean valor) { this.notificarNoSistema = valor; }
 
     public Set<AreaTrabalho> getAreasCriadas() { return areasCriadas; }
     public Set<ParticipacaoArea> getParticipacoes() { return participacoes; }

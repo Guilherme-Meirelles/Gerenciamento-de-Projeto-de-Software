@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -338,5 +339,54 @@ class TarefaControllerTest {
                 new HashMap<>(), requestAutenticado(cenario.editor().getId()));
 
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> json(ResponseEntity<?> resposta) {
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        return (Map<String, Object>) resposta.getBody();
+    }
+
+    @Test
+    void criarTarefa_comVariosResponsaveis_devolveTodosNoJson() {
+        Cenario cenario = montarCenario();
+        Map<String, Object> body = corpoTarefa(cenario.lista().getId(), "Em equipe");
+        body.put("responsavelIds", List.of(cenario.observador().getId(), cenario.editor().getId()));
+
+        Map<String, Object> resposta = json(controller.criarTarefa(body, requestAutenticado(cenario.editor().getId())));
+
+        assertThat((List<Object>) resposta.get("responsavelIds"))
+                .containsExactlyInAnyOrder(cenario.editor().getId(), cenario.observador().getId());
+        // nomes juntos, em ordem alfabética
+        assertThat(resposta.get("responsavelNome"))
+                .isEqualTo("Usuário editor@teste.com, Usuário observador@teste.com");
+        assertThat(tarefaRepository.findByResponsaveisId(cenario.observador().getId())).hasSize(1);
+    }
+
+    @Test
+    void criarTarefa_campoAntigoResponsavelId_continuaFuncionando() {
+        Cenario cenario = montarCenario();
+        Map<String, Object> body = corpoTarefa(cenario.lista().getId(), "Um só");
+        body.put("responsavelId", cenario.editor().getId());
+
+        Map<String, Object> resposta = json(controller.criarTarefa(body, requestAutenticado(cenario.editor().getId())));
+
+        assertThat((List<Object>) resposta.get("responsavelIds")).containsExactly(cenario.editor().getId());
+    }
+
+    @Test
+    void editarTarefa_semResponsaveisNoCorpo_removeOsResponsaveis() {
+        Cenario cenario = montarCenario();
+        Map<String, Object> criar = corpoTarefa(cenario.lista().getId(), "Em equipe");
+        criar.put("responsavelIds", List.of(cenario.editor().getId()));
+        Map<String, Object> criada = json(controller.criarTarefa(criar, requestAutenticado(cenario.editor().getId())));
+        Long tarefaId = ((Number) criada.get("id")).longValue();
+
+        Map<String, Object> editar = corpoTarefa(cenario.lista().getId(), "Em equipe");
+        Map<String, Object> editada = json(controller.editarTarefa(
+                tarefaId, editar, requestAutenticado(cenario.editor().getId())));
+
+        assertThat((List<?>) editada.get("responsavelIds")).isEmpty();
+        assertThat(editada.get("responsavelNome")).isNull();
     }
 }

@@ -48,10 +48,10 @@
             [senha, confirmar].filter(c => !c.value.trim()).forEach(c => Validacao.marcar(c, true));
             primeiro = !senha.value.trim() ? senha : confirmar;
             mensagem = "Preencha os campos destacados.";
-        } else if (senha.value.length < 8) {
+        } else if (Validacao.requisitosFaltando(senha.value).length) {
             Validacao.marcar(senha, true);
             primeiro = senha;
-            mensagem = "A senha deve ter pelo menos 8 caracteres.";
+            mensagem = "A senha precisa ter " + Validacao.juntar(Validacao.requisitosFaltando(senha.value)) + ".";
         } else if (senha.value !== confirmar.value) {
             Validacao.marcar(confirmar, true);
             primeiro = confirmar;

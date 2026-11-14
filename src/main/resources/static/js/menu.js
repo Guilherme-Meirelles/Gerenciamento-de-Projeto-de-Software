@@ -106,6 +106,53 @@ async function carregarTarefasAgendadas() {
 }
 
 // Chamada sempre que abrir o modal de tarefa
+// ===== Seleção de vários responsáveis =====
+function obterResponsaveisSelecionados() {
+    return [...document.querySelectorAll('#tarefaResponsavelLista input[type="checkbox"]:checked')].map(c => +c.value);
+}
+
+function definirResponsaveisSelecionados(ids) {
+    const marcados = new Set((ids || []).map(Number));
+    document.querySelectorAll('#tarefaResponsavelLista input[type="checkbox"]').forEach(c => {
+        c.checked = marcados.has(+c.value);
+    });
+    atualizarTextoResponsaveis();
+}
+
+function atualizarTextoResponsaveis() {
+    const nomes = [...document.querySelectorAll('#tarefaResponsavelLista input[type="checkbox"]:checked')].map(c => c.dataset.nome);
+    const texto = document.querySelector('#tarefaResponsavelBotao .multi-resp-texto');
+    if (!texto) return;
+    texto.textContent = nomes.length === 0 ? 'Selecione...'
+        : nomes.length <= 2 ? nomes.join(', ')
+        : `${nomes.length} pessoas`;
+}
+
+function alternarListaResponsaveis(abrir) {
+    const lista = document.getElementById('tarefaResponsavelLista');
+    const botao = document.getElementById('tarefaResponsavelBotao');
+    if (!lista || !botao) return;
+    const mostrar = abrir === undefined ? lista.hidden : abrir;
+    lista.hidden = !mostrar;
+    botao.setAttribute('aria-expanded', String(mostrar));
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const botao = document.getElementById('tarefaResponsavelBotao');
+    if (!botao) return;
+    botao.addEventListener('click', () => { if (!botao.disabled) alternarListaResponsaveis(); });
+    document.addEventListener('click', e => {
+        if (!e.target.closest('#tarefaResponsavel')) alternarListaResponsaveis(false);
+    });
+    document.getElementById('tarefaResponsavel').addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !document.getElementById('tarefaResponsavelLista').hidden) {
+            e.stopPropagation();
+            alternarListaResponsaveis(false);
+        }
+    });
+});
+
+
 async function atualizarCamposModalTarefa() {
     let respListas
 
@@ -140,14 +187,37 @@ async function atualizarCamposModalTarefa() {
 
     membrosCarregados = await respMembros.json();
 
-    const selectResp = document.getElementById("tarefaResponsavel");
-    selectResp.innerHTML = `<option value="">Selecione...</option>`;
+    const listaResp = document.getElementById("tarefaResponsavelLista");
+    listaResp.replaceChildren();
 
-    membrosCarregados.forEach(m => {
-        selectResp.innerHTML += `
-            <option value="${m.id}">${m.nome}</option>
-        `;
+    // Dois membros com o mesmo nome aparecem com o e-mail ao lado para dar para diferenciar
+    // (fora de uma área o servidor devolve os membros de todas as áreas, então a mesma pessoa pode vir repetida)
+    const vistos = new Set();
+    const membrosUnicos = membrosCarregados.filter(m => !vistos.has(m.id) && vistos.add(m.id));
+    const contagemNomes = {};
+    membrosUnicos.forEach(m => { contagemNomes[m.nome] = (contagemNomes[m.nome] || 0) + 1; });
+
+    membrosUnicos.forEach(m => {
+        const rotulo = contagemNomes[m.nome] > 1 && m.email ? `${m.nome} (${m.email})` : m.nome;
+        const item = document.createElement('label');
+        item.className = 'multi-resp-item';
+        const caixa = document.createElement('input');
+        caixa.type = 'checkbox';
+        caixa.value = m.id;
+        caixa.dataset.nome = m.nome;
+        caixa.addEventListener('change', atualizarTextoResponsaveis);
+        const texto = document.createElement('span');
+        texto.textContent = rotulo; // textContent: não interpreta HTML
+        item.append(caixa, texto);
+        listaResp.appendChild(item);
     });
+    if (!membrosUnicos.length) {
+        const vazio = document.createElement('div');
+        vazio.className = 'multi-resp-vazio';
+        vazio.textContent = 'Nenhum membro disponível';
+        listaResp.appendChild(vazio);
+    }
+    definirResponsaveisSelecionados([]);
 
     // Se estiver editando uma tarefa, preenche tudo
     if (tarefaSelecionada) {
@@ -506,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const titulo = document.getElementById('tarefaTitulo').value.trim();
         const descricao = document.getElementById('tarefaDescricao').value.trim();
         const dataFim = document.getElementById('tarefaDataFim').value || null; // LocalDate
-        const responsavelId = +document.getElementById('tarefaResponsavel').value || null;
+        const responsavelIds = obterResponsaveisSelecionados();
         const notificacoes = document.getElementById('tarefaNotificacoes').checked;
         const repeticao = document.getElementById('tarefaRepeticao').value;
         const categoriaIds = categoriaIdsSelecionadosTarefa.slice();
@@ -534,7 +604,7 @@ document.addEventListener('DOMContentLoaded', function() {
             repeticao,
             categoriaIds,
             listaId,
-            responsavelId
+            responsavelIds
         };
 
         let resposta;
@@ -563,6 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         tarefaCriadaOuEditada = await resposta.json();
+        window.atualizarNotificacoes?.(); // data/responsável/aviso podem ter mudado
 
         // Se a tarefa era nova, envia agora o que ficou "em rascunho" (checklist e
         // anexos montados enquanto a tarefa ainda não existia no backend).
@@ -623,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.limparFormulario = function () {
         document.querySelectorAll('#modalAddTarefa .campo-invalido').forEach(el => el.classList.remove('campo-invalido'));
-        document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select")
+        document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select, #modalAddTarefa .multi-resp-botao")
             .forEach(el => el.disabled = false);
         document.getElementById("btnAnexo").disabled = false;
         document.getElementById("btnChecklist").disabled = false;
@@ -634,7 +705,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarefaTitulo').value = '';
         document.getElementById('tarefaDescricao').value = '';
         document.getElementById('tarefaDataFim').value = '';
-        document.getElementById('tarefaResponsavel').value = '';
+        definirResponsaveisSelecionados([]);
+        alternarListaResponsaveis(false);
         document.getElementById('tarefaNotificacoes').checked = false;
         mostrarNotificacoesSomenteLeitura(false);
         document.getElementById('tarefaRepeticao').value = 'NENHUMA';
@@ -668,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         modoRascunho = false;
 
-        document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select")
+        document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select, #modalAddTarefa .multi-resp-botao")
             .forEach(el => el.disabled = false);
         document.getElementById("btnAnexo").disabled = false;
         document.getElementById("btnChecklist").disabled = false;
@@ -688,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarefaTitulo').value = tarefa.titulo;
         document.getElementById('tarefaDescricao').value = tarefa.descricao;
         document.getElementById('tarefaDataFim').value = tarefa.dataFim;
-        document.getElementById('tarefaResponsavel').value = tarefa.responsavel;
+        definirResponsaveisSelecionados(tarefa.responsavelIds);
         document.getElementById('tarefaNotificacoes').checked = tarefa.notificacoes;
         mostrarNotificacoesSomenteLeitura(false);
         document.getElementById('tarefaRepeticao').value = tarefa.repeticao || 'NENHUMA';
@@ -724,7 +796,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById("tarefaTitulo").value = tarefa.titulo;
         document.getElementById("tarefaDescricao").value = tarefa.descricao || "";
         document.getElementById("tarefaDataFim").value = tarefa.dataFim || "";
-        document.getElementById("tarefaResponsavel").value = tarefa.responsavel || "";
+        definirResponsaveisSelecionados(tarefa.responsavelIds);
         document.getElementById("tarefaNotificacoes").checked = tarefa.notificacoes || false;
         document.getElementById("tarefaNotificacoesTexto").textContent = tarefa.notificacoes ? "Sim" : "Não";
         mostrarNotificacoesSomenteLeitura(true);
@@ -733,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
         categoriaIdsSelecionadosTarefa = (tarefa.categoriaIds || []).slice();
         atualizarVisualBotaoCategoria();
 
-        document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select")
+        document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select, #modalAddTarefa .multi-resp-botao")
             .forEach(el => el.disabled = true);
         // Visualizar (mesmo de outra área/lista) ainda permite ver/gerenciar
         // checklist, anexos e categorias — só os campos da tarefa ficam travados.
@@ -929,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // e listas, então precisa deixar claro de onde cada uma é.
             const mostrarOrigem = typeof listaAtual === 'string' && tarefa.areaNome && tarefa.listaNome;
 
-            if (mostrarOrigem || tarefa.dataFim || tarefa.responsavel || tarefa.checklistTotal || tarefa.anexoTotal || (tarefa.categoriaIds && tarefa.categoriaIds.length) || (tarefa.repeticao && tarefa.repeticao !== 'NENHUMA')) {
+            if (mostrarOrigem || tarefa.dataFim || tarefa.responsavelNome || tarefa.checklistTotal || tarefa.anexoTotal || (tarefa.categoriaIds && tarefa.categoriaIds.length) || (tarefa.repeticao && tarefa.repeticao !== 'NENHUMA')) {
                 const info = document.createElement('div');
                 info.className = 'tarefa-info';
 
@@ -984,7 +1056,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (tarefa.responsavelNome) {
                     const resp = document.createElement('span');
                     resp.className = 'tarefa-responsavel';
-                    resp.innerHTML = `<i data-lucide="user"></i> ${tarefa.responsavelNome}`;
+                    resp.innerHTML = '<i data-lucide="user"></i> ';
+                    resp.appendChild(document.createTextNode(tarefa.responsavelNome));
                     info.appendChild(resp);
                 }
 
@@ -1174,13 +1247,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const titulo = tarefa.titulo
             const listaId = tarefa.listaId
             const concluida = tarefa.concluida
-            const responsavelId = tarefa.responsavel
+            const responsavelIds = tarefa.responsavelIds || []
 
             const corpo = {
                 titulo,
                 listaId,
                 concluida,
-                responsavelId
+                responsavelIds
             };
 
             let resposta;
@@ -1199,6 +1272,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             tarefaCriadaOuEditada = await resposta.json();
+            window.atualizarNotificacoes?.(); // concluir/reabrir muda o que vence
 
             const idx = tarefas.findIndex(t => t.id === tarefaCriadaOuEditada.id);
             if (idx !== -1) tarefas[idx] = tarefaCriadaOuEditada;
@@ -1222,6 +1296,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(() => {
                 tarefas = tarefas.filter(t => t.id !== tarefaId);
                 renderizarTarefas(list);
+                window.atualizarNotificacoes?.();
             });
     };
 

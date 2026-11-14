@@ -58,6 +58,12 @@ public class edicaoUsuario {
         else if (vaiTrocarSenha && usuarioEditado.getSenha().length() < 8) {
             model.addAttribute("mensagem", "A senha deve ter pelo menos 8 caracteres!");
             return "edicaoUsuario";
+        }
+
+        else if (vaiTrocarSenha && !LoginCadastroControle.senhaForte(usuarioEditado.getSenha())) {
+            model.addAttribute("mensagem",
+                    "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
+            return "edicaoUsuario";
         } else {
 
             String usuarioId = SessaoUtil.getUsuarioId(request);

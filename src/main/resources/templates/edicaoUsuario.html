@@ -79,8 +79,9 @@
             }
             // Só valida a senha se o usuário decidiu trocá-la
             if (senha.value.length > 0 || confirmar.value.length > 0) {
-                if (senha.value.length < 8) {
-                    falha(senha, "A senha deve ter pelo menos 8 caracteres.");
+                const faltando = Validacao.requisitosFaltando(senha.value);
+                if (faltando.length) {
+                    falha(senha, "A senha precisa ter " + Validacao.juntar(faltando) + ".");
                 }
                 if (senha.value !== confirmar.value) {
                     falha(confirmar, "As senhas não coincidem.");

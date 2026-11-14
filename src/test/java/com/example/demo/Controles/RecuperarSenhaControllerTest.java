@@ -18,6 +18,7 @@ import org.springframework.ui.Model;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -138,14 +139,33 @@ class RecuperarSenhaControllerTest {
         SessaoUtil.autenticar(request, 1L); // simula sessão ativa que deve ser encerrada
         Model model = new ExtendedModelMap();
 
-        String view = controller.redefinirSenha("novaSenhaForte123", "xyz", model, request);
+        String view = controller.redefinirSenha("NovaSenha@123", "xyz", model, request);
 
         assertThat(view).isEqualTo("login");
         assertThat(usuario.getSenha()).isNotEqualTo(senhaAntigaHash);
-        assertThat(passwordEncoder.matches("novaSenhaForte123", usuario.getSenha())).isTrue();
+        assertThat(passwordEncoder.matches("NovaSenha@123", usuario.getSenha())).isTrue();
         assertThat(token.isUsado()).isTrue();
         verify(usuarioRepository).save(usuario);
         verify(tokenRepository).save(token);
         assertThat(SessaoUtil.getUsuarioId(request)).isNull();
+    }
+
+    @Test
+    void redefinirSenha_senhaFraca_naoAlteraSenhaENaoGastaOToken() {
+        Usuario usuario = usuarioExistente();
+        String senhaAntigaHash = usuario.getSenha();
+        Token token = new Token("xyz", usuario.getEmail(), LocalDateTime.now().plusMinutes(5), false);
+        when(tokenRepository.findByToken("xyz")).thenReturn(token);
+
+        Model model = new ExtendedModelMap();
+        String view = controller.redefinirSenha("senhasemmaiuscula1", "xyz", model, new MockHttpServletRequest());
+
+        assertThat(view).isEqualTo("redefinicaoSenha");
+        assertThat(model.getAttribute("erro")).isEqualTo(
+                "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
+        assertThat(model.getAttribute("token")).isEqualTo("xyz");
+        assertThat(usuario.getSenha()).isEqualTo(senhaAntigaHash);
+        assertThat(token.isUsado()).isFalse();
+        verify(usuarioRepository, never()).save(any());
     }
 }
