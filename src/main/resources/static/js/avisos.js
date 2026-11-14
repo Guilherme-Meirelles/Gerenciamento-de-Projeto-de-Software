@@ -102,5 +102,30 @@
         });
     }
 
-    window.Aviso = { mostrar: mostrar, confirmar: confirmar };
+    /**
+     * Deixa o botão apagado (com o símbolo de bloqueado e a mensagem ao passar o mouse)
+     * enquanto o campo estiver vazio. Para limpar/preencher o campo por código, dispare
+     * input.dispatchEvent(new Event('input')) para o botão acompanhar.
+     */
+    function exigirTexto(campo, botao, dica) {
+        if (!campo || !botao) return;
+        var tituloNormal = botao.getAttribute('title');
+
+        function sincronizar() {
+            var vazio = campo.value.trim() === '';
+            botao.disabled = vazio;
+            if (vazio) {
+                botao.title = dica;
+            } else if (tituloNormal) {
+                botao.title = tituloNormal;
+            } else {
+                botao.removeAttribute('title');
+            }
+        }
+
+        campo.addEventListener('input', sincronizar);
+        sincronizar();
+    }
+
+    window.Aviso = { mostrar: mostrar, confirmar: confirmar, exigirTexto: exigirTexto };
 })();

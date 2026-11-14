@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/css/sidebar.css" />
     <link rel="stylesheet" href="/css/menu.css" />
     <link rel="stylesheet" href="/css/calendario.css" />
+    <script src="https://unpkg.com/lucide@1.72.0/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 <div class="app-container">
@@ -21,6 +22,15 @@
                 <div class="titulo-texto">
                     <h2 id="titulo-principal">Para Hoje</h2>
                     <span id="subtitulo-principal" th:text="${descricaoDaLista}" th:title="${descricaoDaLista}"></span>
+                    <!-- Título da visão já na primeira pintura (evita mostrar "Para Hoje" antes de trocar) -->
+                    <script>
+                        (function () {
+                            if (location.pathname !== '/menu') return;
+                            var visao = new URLSearchParams(location.search).get('view');
+                            var titulo = visao === 'agendadas' ? 'Agendadas' : visao === 'todas' ? 'Todas as Tarefas' : null;
+                            if (titulo) document.getElementById('titulo-principal').textContent = titulo;
+                        })();
+                    </script>
                 </div>
                 <div class="titulo-acoes">
                     <button class="btn-filtro" id="btnFiltro" title="Filtrar tarefas">
@@ -133,13 +143,13 @@
 
             <!-- LISTA -->
             <div class="campo-tarefa">
-                <label>Lista*</label>
+                <label>Lista</label>
                 <select id="tarefaLista"></select>
             </div>
 
             <!-- TÍTULO -->
             <div class="campo-tarefa">
-                <label>Título*</label>
+                <label>Título</label>
                 <input type="text" id="tarefaTitulo" placeholder="Digite o título da tarefa" />
             </div>
 
@@ -309,7 +319,7 @@
 
         <form class="form-checklist">
             <div class="campo-checklist">
-                <label>Nome da Categoria*</label>
+                <label>Nome da Categoria</label>
                 <input type="text" id="categoriaNome" placeholder="Digite o nome da categoria" />
             </div>
 
@@ -378,7 +388,6 @@
     window.podeEditar = /*[[${podeEditar != false}]]*/ true;
 </script>
 
-<script src="https://unpkg.com/lucide@latest"></script>
 <script src="/js/menu.js"></script>
 </body>
 </html>

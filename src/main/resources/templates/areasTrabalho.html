@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/areasTrabalho.css" />
     <link rel="stylesheet" href="/css/menu.css" />
     <link rel="stylesheet" href="/css/calendario.css" />
+    <script src="https://unpkg.com/lucide@1.72.0/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 <div class="app-container">
@@ -28,8 +29,7 @@
                  th:data-id="${participacao.area.id}"
                  th:data-nome="${participacao.area.nome}"
                  th:data-permissao="${participacao.permissao}"
-                 onclick="abrirArea(this)"
-                 oncontextmenu="abrirMenuContexto(event, this)">
+                 onclick="abrirArea(this)">
 
                 <h3 th:text="${participacao.area.nome}"></h3>
                 <span class="badge-permissao"
@@ -168,7 +168,7 @@
     <!-- Modal de Exclusão -->
     <div id="modalExcluir" class="overlay-modal" style="display: none;" onclick="fecharModalExcluir()">
         <div class="modal-excluir" onclick="event.stopPropagation()">
-            <h2 class="titulo-modal">Excluir ou sair de áreas</h2>
+            <h2 class="titulo-modal">Excluir ou Sair de Áreas</h2>
             <p class="descricao-modal">Marque as áreas que deseja excluir. Nas áreas que você não administra, você apenas sairá.</p>
 
             <!-- Lista de áreas para excluir -->
@@ -184,14 +184,6 @@
                 <button type="button" class="btn-cancelar-modal" onclick="fecharModalExcluir()">Cancelar</button>
             </div>
         </div>
-    </div>
-
-    <!-- Menu de contexto (botão direito) -->
-    <div id="menuContexto" class="menu-contexto" style="display: none;">
-        <button class="item-menu-contexto" onclick="renomearAreaContexto()">
-            <i data-lucide="edit-3"></i>
-            Renomear
-        </button>
     </div>
 
     <!-- Modal de Gerenciamento -->
@@ -221,6 +213,11 @@
                         <h3>Membros</h3>
                         <span class="subtitulo-detalhes" id="subtituloMembros"></span>
                     </div>
+                    <!-- Só o administrador da área vê este botão -->
+                    <button type="button" class="btn-renomear-area" id="btnRenomearArea" style="display: none;"
+                            title="Renomear esta área de trabalho" onclick="renomearAreaGerenciada()">
+                        <i data-lucide="pencil"></i> Renomear
+                    </button>
                 </div>
 
                 <div class="lista-membros" id="listaMembros">
@@ -280,7 +277,6 @@
 <!-- Importa os Scripts do fragment -->
 <div th:replace="~{sidebar :: scripts}"></div>
 
-<script src="https://unpkg.com/lucide@latest"></script>
 <script src="/js/validacao.js"></script>
 <script src="/js/areasTrabalho.js"></script>
 <script>

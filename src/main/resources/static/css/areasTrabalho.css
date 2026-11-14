@@ -944,61 +944,33 @@
     height: 14px;
 }
 
-/* ===== Menu de Contexto (Botão Direito) ===== */
-/* Mesmo visual do .context-menu da barra lateral (menu.css) */
-.menu-contexto {
-    position: absolute;
-    background-color: #2a2a2a;
-    border: 1px solid #3a3a3a;
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
-    padding: 5px;
-    z-index: 10000;
-    min-width: 170px;
-    animation: menu-contexto-entrada 0.12s ease-out;
-}
-
-@keyframes menu-contexto-entrada {
-    from {
-        opacity: 0;
-        transform: translateY(-4px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.item-menu-contexto {
-    background: none;
-    border: none;
-    color: #e0e0e0;
-    padding: 9px 12px;
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
-    border-radius: 7px;
-    display: flex;
+/* ===== Botão Renomear (tela de membros do Gerenciar) ===== */
+.btn-renomear-area {
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    transition: background-color 0.15s, color 0.15s;
+    gap: 8px;
+    background-color: #2e2e2e;
+    border: 1px solid #3a3a3a;
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: #e0e0e0;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.15s, border-color 0.15s;
 }
 
-.item-menu-contexto:hover {
-    background-color: #3a3a3a;
-    color: #fff;
+.btn-renomear-area:hover {
+    background-color: #383838;
+    border-color: #4a4a4a;
 }
 
-.item-menu-contexto i {
+.btn-renomear-area i,
+.btn-renomear-area svg {
     width: 16px;
     height: 16px;
-    color: #aaa;
-    transition: color 0.15s;
-}
-
-.item-menu-contexto:hover i {
-    color: #fff;
 }
 
 /* ===== Modal de Compartilhamento: permissão e convite por e-mail ===== */
@@ -1101,4 +1073,145 @@
     .botoes-modal {
         flex-direction: column;
     }
+}
+
+/* ===== Modais de áreas no mesmo estilo do Calendário ===== */
+/* Fundo #2a2a2a com borda fina; itens em cartões escuros (#1e1e1e) com borda e realce no hover;
+   botões secundários #2e2e2e e botão principal #4a4a4a, como nos demais modais. */
+.modal-nova-area,
+.modal-compartilhar,
+.modal-excluir,
+.modal-gerenciamento,
+.modal-permissao {
+    background-color: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+
+.area-item-compartilhar,
+.area-item-excluir,
+.area-item-gerenciar,
+.opcao-permissao,
+.membro-item {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+}
+
+.area-item-compartilhar:hover,
+.area-item-excluir:hover,
+.area-item-gerenciar:hover,
+.opcao-permissao:hover {
+    background-color: #303030;
+    border-color: #4a4a4a;
+}
+
+.area-item-compartilhar.selecionada,
+.opcao-permissao.selecionada {
+    background-color: #2a2a2a;
+    border-color: #8a8a8a;
+}
+
+.area-item-excluir.selecionada {
+    background-color: rgba(255, 77, 77, 0.1);
+    border-color: rgba(255, 107, 107, 0.6);
+}
+
+.btn-metodo-compartilhar {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+}
+
+.btn-metodo-compartilhar:hover:not(:disabled) {
+    background-color: #303030;
+    border-color: #4a4a4a;
+    transform: none;
+}
+
+.btn-metodo-compartilhar:disabled:hover {
+    background-color: #1e1e1e;
+}
+
+.btn-cancelar-modal,
+.btn-link-compartilhar,
+.btn-acao-membro,
+.btn-criar {
+    border: 1px solid #3a3a3a;
+}
+
+.btn-cancelar-modal:hover,
+.btn-link-compartilhar:hover:not(:disabled),
+.btn-acao-membro:hover:not(:disabled),
+.btn-criar:hover:not(:disabled) {
+    background-color: #383838;
+    border-color: #4a4a4a;
+}
+
+.modal-nova-area .btn-criar {
+    border-color: #4a4a4a;
+}
+
+.modal-nova-area .btn-criar:hover:not(:disabled) {
+    background-color: #5a5a5a;
+    border-color: #5a5a5a;
+}
+
+.campo-modal input,
+.formulario-nova-area .campo-modal input {
+    background-color: #1e1e1e;
+    border: 1px solid #3a3a3a;
+}
+
+.campo-modal input:focus,
+.formulario-nova-area .campo-modal input:focus {
+    background-color: #242424;
+    border-color: #888;
+}
+
+.detalhes-area-header,
+.secao-permissao-convite {
+    border-color: #333;
+}
+
+.membro-acoes,
+.membro-detalhes {
+    border-top-color: #333;
+}
+
+.btn-voltar-gerenciar:hover {
+    background-color: #303030;
+}
+
+/* Passar o mouse num membro: mesmo realce dos demais cartões (o #505050 antigo ficava claro e apagava a borda) */
+.membro-item:hover {
+    background-color: #303030;
+    border-color: #4a4a4a;
+}
+
+/* Botões do modal de exclusão com largura fixa: trocar o texto ("Excluir Selecionadas" / "Sair da Área")
+   não muda mais o tamanho de ninguém, e o ícone já ocupa seu espaço (sem "tremer" ao selecionar) */
+.modal-excluir .botoes-modal .btn-excluir-areas {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.modal-excluir .botoes-modal .btn-cancelar-modal {
+    flex: 0 0 120px;
+}
+
+.btn-excluir-areas i,
+.btn-excluir-areas svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.btn-excluir-areas:disabled:hover {
+    background-color: #d32f2f;
+}
+
+/* Item de área sem deslocar o texto ao marcar (a borda tem sempre a mesma espessura) */
+.area-item-excluir,
+.area-item-compartilhar {
+    border-width: 1px;
 }

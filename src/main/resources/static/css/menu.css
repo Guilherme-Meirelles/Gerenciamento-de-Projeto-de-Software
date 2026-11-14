@@ -1794,3 +1794,251 @@ a.checklist-nome:hover {
 #titulo-principal {
     flex-shrink: 0;
 }
+
+/* ===== Adicionar/Editar Lista no mesmo estilo dos demais modais (como Nova Área) ===== */
+.modal-lista {
+    background-color: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    max-width: 440px;
+    animation: caixa-aviso-entrada 0.15s ease-out;
+}
+
+.icone-modal-lista {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d6d6d6;
+}
+
+.icone-modal-lista i,
+.icone-modal-lista svg {
+    width: 24px;
+    height: 24px;
+}
+
+.modal-lista .titulo-modal-lista {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.descricao-modal-lista {
+    text-align: center;
+    font-size: 14px;
+    color: #b5b5b5;
+    margin: 0 0 22px;
+}
+
+.campo-lista input,
+.campo-lista textarea {
+    background-color: #1e1e1e;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.campo-lista input:focus,
+.campo-lista textarea:focus {
+    background-color: #242424;
+    border-color: #888;
+}
+
+.modal-lista .botoes-acao-lista {
+    flex-direction: row-reverse; /* "Cancelar" à esquerda e "OK" à direita, como nos outros modais */
+    justify-content: stretch;
+    margin-top: 22px;
+}
+
+.modal-lista .btn-ok,
+.modal-lista .btn-cancelar-lista {
+    flex: 1;
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    border: 1px solid #3a3a3a;
+}
+
+.modal-lista .btn-ok {
+    background-color: #4a4a4a;
+    border-color: #4a4a4a;
+}
+
+.modal-lista .btn-ok:hover {
+    background-color: #5a5a5a;
+    border-color: #5a5a5a;
+}
+
+.modal-lista .btn-cancelar-lista:hover {
+    background-color: #383838;
+    border-color: #4a4a4a;
+}
+
+/* ===== Modais no cinza do calendário: Perfil, Tarefa, Checklist, Anexos e Categorias ===== */
+.modal-tarefa,
+.modal-perfil,
+.modal-checklist,
+.modal-checklist-form {
+    background-color: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    animation: caixa-aviso-entrada 0.15s ease-out;
+}
+
+/* Campos de texto: fundo escuro com borda fina (como no calendário e em Nova Área) */
+.campo-tarefa input,
+.campo-tarefa textarea,
+.campo-tarefa select,
+.campo-checklist input,
+.campo-senha input,
+.btn-cor-selecionada,
+.picker-hex input,
+.checklist-item-input {
+    background-color: #1e1e1e;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+}
+
+.campo-tarefa input:focus:not(.campo-invalido),
+.campo-tarefa textarea:focus,
+.campo-tarefa select:focus:not(.campo-invalido),
+.campo-checklist input:focus:not(.campo-invalido),
+.campo-senha input:focus:not(.campo-invalido),
+.checklist-item-input:focus {
+    background-color: #242424;
+    border-color: #888;
+}
+
+.btn-cor-selecionada:hover {
+    background-color: #242424;
+    border-color: #4a4a4a;
+}
+
+.paleta-cores {
+    background-color: #1e1e1e;
+    border: 1px solid #3a3a3a;
+}
+
+/* Botões secundários */
+.btn-checklist,
+.btn-anexo,
+.btn-ok-paleta,
+.btn-cancelar-tarefa,
+.btn-cancelar-checklist,
+.btn-fechar-checklist,
+.btn-editar-perfil,
+.btn-fechar-perfil,
+.btn-foto {
+    background-color: #2e2e2e;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    color: #ffffff;
+}
+
+.btn-checklist:hover,
+.btn-anexo:hover,
+.btn-ok-paleta:hover,
+.btn-cancelar-tarefa:hover,
+.btn-cancelar-checklist:hover,
+.btn-fechar-checklist:hover,
+.btn-editar-perfil:hover,
+.btn-fechar-perfil:hover,
+.btn-foto:hover:not(:disabled) {
+    background-color: #383838;
+    border-color: #4a4a4a;
+}
+
+/* Botões principais */
+.btn-ok-tarefa,
+.btn-salvar-checklist {
+    background-color: #4a4a4a;
+    border: 1px solid #4a4a4a;
+    border-radius: 10px;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.btn-ok-tarefa:hover,
+.btn-salvar-checklist:hover {
+    background-color: #5a5a5a;
+    border-color: #5a5a5a;
+}
+
+.btn-excluir-perfil {
+    border-radius: 10px;
+}
+
+/* Botão apagado: mesmo padrão dos outros (opaco, símbolo de bloqueado e mensagem ao passar o mouse) */
+.btn-novo-checklist:disabled,
+.btn-salvar-checklist:disabled,
+.modal-lista .btn-ok:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.modal-lista .btn-ok:disabled:hover {
+    background-color: #4a4a4a;
+    border-color: #4a4a4a;
+}
+
+.btn-salvar-checklist:disabled:hover {
+    background-color: #4a4a4a;
+    border-color: #4a4a4a;
+}
+
+/* "+" do checklist com a mesma altura do campo ao lado */
+.campo-novo-item-checklist {
+    align-items: stretch;
+}
+
+/* Itens das listas (checklist, anexos, categorias): cartão escuro com borda */
+.checklist-item {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+}
+
+.checklist-item:hover {
+    background-color: #303030;
+    border-color: #4a4a4a;
+}
+
+.btn-editar-checklist:hover,
+.btn-excluir-checklist:hover {
+    background-color: #383838;
+}
+
+/* Foto do perfil */
+.perfil-avatar {
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+}
+
+.valor-perfil {
+    border-radius: 10px;
+}
+
+.campo-novo-item-checklist input {
+    min-width: 0;
+}
+
+/* "+" do checklist e "Nova Categoria" continuam verdes (ação de adicionar) */
+.btn-novo-checklist {
+    border-radius: 10px;
+    border: 1px solid #4caf50;
+}
+
+.btn-novo-checklist:hover:not(:disabled) {
+    background-color: #45a049;
+    border-color: #45a049;
+}
+
+.btn-novo-checklist:disabled:hover {
+    background-color: #4caf50;
+    border-color: #4caf50;
+}

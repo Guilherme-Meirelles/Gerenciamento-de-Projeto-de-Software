@@ -266,6 +266,11 @@ document.addEventListener('DOMContentLoaded', function() {
         resetFiltro()
         resetOrdem()
 
+        // Título e subtítulo condizem com a visão inicial (o HTML traz "Para Hoje" por padrão)
+        if (!window.areaAtualId) {
+            mudarTituloPrincipal(botaoInicial)
+        }
+
         if (listaAtual === "agendadas") {
             carregarTarefasAgendadas()
         } else if (listaAtual === "todas") {
@@ -302,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const btn = document.createElement("button");
         btn.className = "lista";
         btn.dataset.id = lista.id;
-        btn.dataset.desc = lista.descricao
+        btn.dataset.desc = lista.descricao || ''
         btn.onclick = () => clickLista(btn);
         btn.oncontextmenu = (e) => mostrarMenuContexto(e, "menuContextoLista", btn);
 
@@ -1313,7 +1318,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (modoRascunho) {
             itensChecklistRascunho.push({ id: 'rascunho-' + (proximoIdRascunho++), descricao, concluido: false });
             itensChecklistAtual = itensChecklistRascunho;
-            novoItemChecklistInput.value = '';
+            limparNovoItemChecklist();
             renderizarChecklistItens();
             return;
         }
@@ -1332,10 +1337,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         itensChecklistAtual.push(await resposta.json());
-        novoItemChecklistInput.value = '';
+        limparNovoItemChecklist();
         renderizarChecklistItens();
         atualizarBadgeChecklistTarefa();
     }
+
+    // Botão "+" apagado até digitar o nome do item (mesmo padrão dos outros botões bloqueados)
+    Aviso.exigirTexto(novoItemChecklistInput, btnAdicionarItemChecklist, 'Digite o nome do item para adicionar');
+    const limparNovoItemChecklist = () => {
+        novoItemChecklistInput.value = '';
+        novoItemChecklistInput.dispatchEvent(new Event('input'));
+    };
 
     btnAdicionarItemChecklist.addEventListener('click', adicionarItemChecklist);
     novoItemChecklistInput.addEventListener('keydown', function(e) {
@@ -1746,6 +1758,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const paletaCoresCategoria = document.getElementById('paletaCoresCategoria');
     const corPreviewCategoria = document.getElementById('corPreviewCategoria');
     const categoriaNomeInput = document.getElementById('categoriaNome');
+    const definirNomeCategoria = (valor) => {
+        categoriaNomeInput.value = valor;
+        categoriaNomeInput.dispatchEvent(new Event('input'));
+    };
+    Aviso.exigirTexto(categoriaNomeInput, btnSalvarCategoria, 'Digite o nome da categoria para salvar');
     const tituloModalCategoria = document.getElementById('tituloModalCategoria');
     const btnCancelarRemoverCategoria = document.getElementById('btnCancelarRemoverCategoria');
     const btnConfirmarRemoverCategoria = document.getElementById('btnConfirmarRemoverCategoria');
@@ -1896,7 +1913,7 @@ document.addEventListener('DOMContentLoaded', function() {
     btnNovaCategoria.addEventListener('click', function() {
         categoriaSelecionada = null;
         tituloModalCategoria.textContent = 'Nova Categoria';
-        categoriaNomeInput.value = '';
+        definirNomeCategoria('');
         definirCorCategoria('#4caf50');
         modalAddCategoria.style.display = 'flex';
     });
@@ -1904,7 +1921,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cancelar adicionar/editar categoria
     btnCancelarCategoria.addEventListener('click', function() {
         modalAddCategoria.style.display = 'none';
-        categoriaNomeInput.value = '';
+        definirNomeCategoria('');
     });
 
     // Salvar categoria
@@ -1941,7 +1958,7 @@ document.addEventListener('DOMContentLoaded', function() {
         atualizarVisualBotaoCategoria();
         modalAddCategoria.style.display = 'none';
         renderizarCategorias();
-        categoriaNomeInput.value = '';
+        definirNomeCategoria('');
     });
 
     // Abrir/Fechar paleta de cores
@@ -1974,7 +1991,7 @@ document.addEventListener('DOMContentLoaded', function() {
     modalAddCategoria.addEventListener('click', function(e) {
         if (e.target === modalAddCategoria) {
             modalAddCategoria.style.display = 'none';
-            categoriaNomeInput.value = '';
+            definirNomeCategoria('');
         }
     });
 
@@ -2046,7 +2063,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.stopPropagation();
                 categoriaSelecionada = categoria;
                 tituloModalCategoria.textContent = 'Editar Categoria';
-                categoriaNomeInput.value = categoria.nome;
+                definirNomeCategoria(categoria.nome);
                 definirCorCategoria(normalizarHex(categoria.cor || '') || '#4caf50');
                 modalAddCategoria.style.display = 'flex';
             });

@@ -28,11 +28,23 @@
             <p class="nome" th:text="${nome}" th:title="${nome}">Generic User</p>
             <p class="email" th:text="${email}" th:title="${email}">genericemail@gmail.com</p>
         </div>
+        <!-- Foto guardada nesta aba: aparece já na primeira pintura, sem piscar o ícone ao trocar de tela -->
+        <script>
+            try {
+                var cacheFoto = JSON.parse(sessionStorage.getItem('fotoPerfil') || 'null');
+                var emailAtual = document.currentScript.parentElement.querySelector('.email').textContent.trim();
+                if (cacheFoto && cacheFoto.email === emailAtual) {
+                    var imgFoto = document.currentScript.parentElement.querySelector('.foto-img');
+                    imgFoto.src = cacheFoto.dados;
+                    imgFoto.parentElement.classList.add('com-foto');
+                }
+            } catch (e) { /* sem armazenamento: carrega normalmente */ }
+        </script>
     </div>
 
     <!-- Menu de Navegação -->
     <nav class="menu">
-        <button class="menu-item active">
+        <button class="menu-item">
             <i data-lucide="sun"></i> <span>Para Hoje</span>
         </button>
         <button class="menu-item">
@@ -41,13 +53,34 @@
         <button class="menu-item">
             <i data-lucide="list-checks"></i> <span>Todas as Tarefas</span>
         </button>
-        <button class="menu-item" id="btnCalendario">
-            <i data-lucide="calendar-days"></i> <span>Calendário</span>
-        </button>
         <button class="menu-item" onclick="navegarPara(this, '/areasTrabalho')">
             <i data-lucide="briefcase"></i> <span>Áreas de Trabalho</span>
         </button>
+        <button class="menu-item" id="btnCalendario">
+            <i data-lucide="calendar-days"></i> <span>Calendário</span>
+        </button>
     </nav>
+    <!-- Marca o item ativo já na primeira pintura (antes o "Para Hoje" aparecia marcado por um instante) -->
+    <script>
+        (function () {
+            try {
+                var itens = document.currentScript.previousElementSibling.querySelectorAll('.menu-item');
+                var caminho = location.pathname;
+                var posicao = -1;
+                if (caminho === '/menu' || caminho === '/') {
+                    var visao = new URLSearchParams(location.search).get('view');
+                    posicao = visao === 'agendadas' ? 1 : visao === 'todas' ? 2 : 0;
+                } else if (caminho === '/agendadas') {
+                    posicao = 1;
+                } else if (caminho === '/todasTarefas') {
+                    posicao = 2;
+                } else if (caminho.indexOf('/areasTrabalho') === 0) {
+                    posicao = 3;
+                }
+                if (itens[posicao]) itens[posicao].classList.add('active');
+            } catch (e) { /* o sidebar.js marca de novo ao carregar */ }
+        })();
+    </script>
 
     <!-- Área de Trabalho atual, com suas listas indentadas embaixo -->
     <div class="secao-area" th:if="${not (isMenu ?: false)}">
@@ -66,7 +99,8 @@
             <button class="lista"
                     th:each="lista : ${listas}"
                     th:data-id="${lista.id}"
-                    th:data-desc="${lista.descricao}"
+                    th:data-desc="${lista.descricao ?: ''}"
+                    th:title="${lista.nome}"
                     oncontextmenu="mostrarMenuContexto(event, 'menuContextoLista', this)">
                 <i data-lucide="list"></i>
                 <span th:text="${lista.nome}"></span>
@@ -86,6 +120,8 @@
                 document.currentScript.parentElement.classList.add('recolhida');
             }
         } catch (e) { /* sem armazenamento: abre expandida */ }
+        // Ícones da barra já na primeira pintura (a biblioteca vem do <head>), sem aparecerem depois do texto
+        if (window.lucide) lucide.createIcons({ root: document.currentScript.parentElement });
     </script>
 </aside>
 
@@ -176,10 +212,12 @@
     <!-- Modal: Adicionar Lista -->
     <div id="modalAddLista" class="overlay-perfil" style="display: none;" onclick="fecharModalPerfil('modalAddLista')">
         <div class="modal-lista" onclick="event.stopPropagation()">
+            <div class="icone-modal-lista"><i data-lucide="list-plus"></i></div>
             <h3 class="titulo-modal-lista">Adicionar Lista</h3>
+            <p class="descricao-modal-lista">Dê um nome à lista e, se quiser, uma descrição.</p>
             <form class="form-lista">
                 <div class="campo-lista">
-                    <label for="nome-lista">Nome da Lista*</label>
+                    <label for="nome-lista">Nome da Lista</label>
                     <input type="text" id="nome-lista" placeholder="Nova Lista" />
                 </div>
                 <div class="campo-lista">
@@ -187,7 +225,7 @@
                     <textarea id="descricao-lista" rows="4" placeholder="Adicione uma descrição (opcional)"></textarea>
                 </div>
                 <div class="botoes-acao-lista">
-                    <button type="button" class="btn-ok" onclick="confirmarCriacaoLista()">OK</button>
+                    <button type="button" class="btn-ok" id="btnOkAddLista" onclick="confirmarCriacaoLista()">OK</button>
                     <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalAddLista')">Cancelar</button>
                 </div>
             </form>
@@ -197,18 +235,20 @@
     <!-- Modal: Editar Lista -->
     <div id="modalEditLista" class="overlay-perfil" style="display: none;" onclick="fecharModalPerfil('modalEditLista')">
         <div class="modal-lista" onclick="event.stopPropagation()">
+            <div class="icone-modal-lista"><i data-lucide="pencil"></i></div>
             <h3 class="titulo-modal-lista">Editar Lista</h3>
+            <p class="descricao-modal-lista">Mude o nome ou a descrição da lista.</p>
             <form class="form-lista">
                 <div class="campo-lista">
-                    <label for="nome-lista-edit">Nome da Lista*</label>
-                    <input type="text" id="nome-lista-edit" value="RENOMEADA" />
+                    <label for="nome-lista-edit">Nome da Lista</label>
+                    <input type="text" id="nome-lista-edit" />
                 </div>
                 <div class="campo-lista">
                     <label for="descricao-lista-edit">Descrição</label>
                     <textarea id="descricao-lista-edit" rows="4" placeholder="Adicione uma descrição (opcional)"></textarea>
                 </div>
                 <div class="botoes-acao-lista">
-                    <button type="button" class="btn-ok" onclick="confirmarEdicaoLista()">OK</button>
+                    <button type="button" class="btn-ok" id="btnOkEditLista" onclick="confirmarEdicaoLista()">OK</button>
                     <button type="button" class="btn-cancelar-lista" onclick="fecharModalPerfil('modalEditLista')">Cancelar</button>
                 </div>
             </form>
@@ -255,7 +295,7 @@
 <div th:fragment="scripts">
     <link rel="stylesheet" href="/css/avisos.css" />
     <script src="/js/avisos.js"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@1.72.0/dist/umd/lucide.min.js"></script>
     <script src="/js/sidebar.js"></script>
     <script th:inline="javascript">
         window.areaAtualId = /*[[${areaId}]]*/ 0;

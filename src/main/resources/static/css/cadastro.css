@@ -8,7 +8,7 @@
 
 /* ===== Corpo ===== */
 body {
-    background-color: #0d0d0d;
+    background-color: #121212;
     color: #fff;
     height: 100vh;
     display: flex;
@@ -39,11 +39,12 @@ body {
 
 /* ===== Caixa de cadastro ===== */
 .cadastro-container {
-    background-color: #1a1a1a;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
     padding: 40px;
-    border-radius: 10px;
+    border-radius: 16px;
 
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
 
     min-width: 400px;
     display: flex;
@@ -75,11 +76,11 @@ label {
 }
 
 input {
-    /* Estilo de input do login */
-    background-color: #252525;
-    border: 1px solid #333;
-    border-radius: 6px;
-    height: 40px;
+    background-color: #2a2a2a;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    height: 44px;
+    font-size: 14px;
     color: #fff;
     padding: 0 15px;
     outline: none;
@@ -91,9 +92,9 @@ input::placeholder {
 }
 
 input:focus {
-    border-color: #ffffff;
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
-    background-color: #1e1e1e;
+    border-color: #888;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+    background-color: #242424;
 }
 
 /* ===== ESTILOS ESPECÍFICOS PARA INPUT TIPO DATE ===== */
@@ -136,8 +137,8 @@ input[type="date"]:invalid {
     background-color: #ffffff;
     color: #1a1a1a;
     border: none;
-    padding: 12px 25px;
-    border-radius: 6px;
+    padding: 13px 25px;
+    border-radius: 10px;
     cursor: pointer;
     transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
     font-weight: 600;
@@ -166,13 +167,27 @@ input[type="date"]:invalid {
 }
 
 .btn.secundario {
-    background-color: #333333;
-    color: #ccc;
-    border: 1px solid #444;
+    background-color: #2e2e2e;
+    color: #ddd;
+    border: 1px solid #3a3a3a;
 }
 
 .btn.secundario:hover {
-    background-color: #444444;
-    border-color: #555;
+    background-color: #383838;
+    border-color: #4a4a4a;
     box-shadow: none;
+}
+
+/* Campo somente leitura (e-mail na edição de conta): mais escuro e sem destaque de foco */
+input[readonly] {
+    background-color: #1a1a1a;
+    border-color: #2c2c2c;
+    color: #999;
+    cursor: not-allowed;
+}
+
+input[readonly]:focus {
+    border-color: #2c2c2c;
+    box-shadow: none;
+    background-color: #1a1a1a;
 }

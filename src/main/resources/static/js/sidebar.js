@@ -22,7 +22,7 @@ function aplicarEstadoSidebar(recolhida) {
     sidebar.querySelectorAll('.menu-item, .lista, .nova-lista, .btn-sair-sidebar, .area-atual').forEach(el => {
         const rotulo = el.querySelector('span');
         if (!rotulo) return;
-        if (recolhida) {
+        if (recolhida || el.classList.contains('lista')) {
             el.title = rotulo.textContent.trim();
         } else {
             el.removeAttribute('title');
@@ -61,6 +61,21 @@ window.abrirModalPerfil = function (nomeModal) {
 /**
  * Fecha um modal pelo ID
  */
+// Preenche/limpa um campo por código e avisa o botão "OK" (que fica apagado com o campo vazio)
+function definirValorCampo(campo, valor) {
+    if (!campo) return;
+    campo.value = valor;
+    campo.dispatchEvent(new Event('input'));
+}
+
+// Botões "OK" de Adicionar/Editar Lista ficam apagados, com a mensagem, enquanto o nome estiver vazio
+document.addEventListener('DOMContentLoaded', function () {
+    Aviso.exigirTexto(document.getElementById('nome-lista'), document.getElementById('btnOkAddLista'),
+        'Digite o nome da lista para continuar');
+    Aviso.exigirTexto(document.getElementById('nome-lista-edit'), document.getElementById('btnOkEditLista'),
+        'Digite o nome da lista para continuar');
+});
+
 window.fecharModalPerfil = function (nomeModal) {
     const modal = document.getElementById(nomeModal);
     modal.style.display = 'none';
@@ -71,10 +86,7 @@ window.fecharModalPerfil = function (nomeModal) {
         erroMsg.textContent = '';
     }
 
-    const nome = document.getElementById("nome-lista");
-    if(nome){
-        nome.value = "";
-    }
+    definirValorCampo(document.getElementById("nome-lista"), "");
 
     const desc = document.getElementById("descricao-lista");
     if(desc){
@@ -195,8 +207,11 @@ window.marcarItemAtivoSidebar = function () {
 
     // Marca o item correto baseado na URL
     if (path === '/menu' || path === '/') {
-        const btnParaHoje = document.querySelector('.menu-item');
-        if (btnParaHoje) btnParaHoje.classList.add('active');
+        // Respeita ?view=agendadas|todas (senão "Para Hoje" aparecia marcado por um instante)
+        const visao = new URLSearchParams(window.location.search).get('view');
+        const posicao = visao === 'agendadas' ? 1 : visao === 'todas' ? 2 : 0;
+        const btnVisao = document.querySelectorAll('.menu-item')[posicao];
+        if (btnVisao) btnVisao.classList.add('active');
     } else if (path === '/agendadas') {
         const btnAgendadas = document.querySelectorAll('.menu-item')[1];
         if (btnAgendadas) btnAgendadas.classList.add('active');
@@ -204,7 +219,7 @@ window.marcarItemAtivoSidebar = function () {
         const btnTodasTarefas = document.querySelectorAll('.menu-item')[2];
         if (btnTodasTarefas) btnTodasTarefas.classList.add('active');
     } else if (path.startsWith('/areasTrabalho')) {
-        const btnAreasTrabalho = document.querySelectorAll('.menu-item')[4];
+        const btnAreasTrabalho = document.querySelectorAll('.menu-item')[3];
         if (btnAreasTrabalho) btnAreasTrabalho.classList.add('active');
     }
 }
@@ -272,7 +287,7 @@ window.adicionarListaNaTela = function (lista) {
     const btn = document.createElement("button");
     btn.className = "lista";
     btn.dataset.id = lista.id;
-    btn.dataset.desc = lista.descricao
+    btn.dataset.desc = lista.descricao || ''
     btn.oncontextmenu = (e) => mostrarMenuContexto(e, "menuContextoLista", btn);
 
     btn.innerHTML = `
@@ -297,7 +312,7 @@ window.editarLista = async function (id, novoNome, descricao) {
     const botao = document.querySelector(`button.lista[data-id='${id}']`);
     
     botao.querySelector("span").textContent = atualizada.nome;
-    botao.dataset.desc = descricao
+    botao.dataset.desc = descricao || ''
     
 }
 
@@ -315,8 +330,9 @@ window.abrirModalEditarLista = function () {
     const nomeAtual = listaSelecionada.querySelector("span").textContent;
     const desc = listaSelecionada.dataset.desc;
 
-    document.getElementById("nome-lista-edit").value = nomeAtual;
-    document.getElementById("descricao-lista-edit").value = desc;
+    definirValorCampo(document.getElementById("nome-lista-edit"), nomeAtual);
+    // Lista sem descrição: campo vazio (antes aparecia "undefined")
+    document.getElementById("descricao-lista-edit").value = desc || '';
 
     document.querySelectorAll('.context-menu').forEach(menu => menu.style.display = 'none');
 
@@ -335,7 +351,7 @@ window.abrirModalRemoverLista = function () {
 
 window.confirmarCriacaoLista = async function () {
     const nome = document.getElementById("nome-lista").value.trim();
-    document.getElementById("nome-lista").value = "";
+    definirValorCampo(document.getElementById("nome-lista"), "");
     const descricao = document.getElementById("descricao-lista").value.trim();
     const areaId = window.areaAtualId; // ID da área carregada na página
     
@@ -378,7 +394,7 @@ window.confirmarEdicaoLista = async function () {
     const atualizada = await response.json();
 
     listaSelecionada.querySelector("span").textContent = atualizada.nome;
-    listaSelecionada.dataset.desc = desc
+    listaSelecionada.dataset.desc = desc || ''
 
     fecharModalPerfil("modalEditLista");
 };
@@ -403,7 +419,7 @@ window.abrirModalLogout = function () {
 
 // Confirma o logout e redireciona
 window.confirmarLogout = function () {
-    try { sessionStorage.removeItem('sidebarRecolhida'); } catch (e) { /* sem armazenamento */ }
+    try { sessionStorage.removeItem('sidebarRecolhida'); sessionStorage.removeItem('fotoPerfil'); } catch (e) { /* sem armazenamento */ }
     window.location.href = "/logout";
 }
 
@@ -417,12 +433,52 @@ function mostrarMensagemFoto(texto) {
     document.querySelectorAll('.perfil-foto-msg').forEach(m => { m.textContent = texto || ''; });
 }
 
-// Aplica (ou remove, com null) a foto no avatar da sidebar e no do modal de Perfil
-function definirFotoPerfil(url) {
+// Foto guardada em sessionStorage (só nesta aba) para a sidebar já nascer com ela ao trocar de tela
+const CHAVE_CACHE_FOTO = 'fotoPerfil';
+
+function emailDoPerfil() {
+    const el = document.querySelector('.perfil .email');
+    return el ? el.textContent.trim() : '';
+}
+
+function lerCacheFoto() {
+    try {
+        const cache = JSON.parse(sessionStorage.getItem(CHAVE_CACHE_FOTO) || 'null');
+        return cache && cache.email === emailDoPerfil() ? cache.dados : null;
+    } catch (e) { return null; }
+}
+
+function guardarCacheFoto(dados) {
+    try {
+        if (dados) {
+            sessionStorage.setItem(CHAVE_CACHE_FOTO, JSON.stringify({ email: emailDoPerfil(), dados: dados }));
+        } else {
+            sessionStorage.removeItem(CHAVE_CACHE_FOTO);
+        }
+    } catch (e) { /* sem armazenamento ou foto grande demais: só não guarda */ }
+}
+
+function blobParaDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+        const leitor = new FileReader();
+        leitor.onload = () => resolve(leitor.result);
+        leitor.onerror = reject;
+        leitor.readAsDataURL(blob);
+    });
+}
+
+// Aplica (ou remove, com null) a foto no avatar da sidebar e no do modal de Perfil.
+// manterAvatarSidebar: o avatar da sidebar já mostra exatamente esta foto (veio do cache), então
+// não é mexido, para não piscar.
+function definirFotoPerfil(url, manterAvatarSidebar) {
     if (urlFotoAtual) URL.revokeObjectURL(urlFotoAtual);
     urlFotoAtual = url;
 
     document.querySelectorAll('.foto-img').forEach(img => {
+        if (manterAvatarSidebar && img.closest('.perfil')) {
+            img.parentElement.classList.add('com-foto');
+            return;
+        }
         if (url) {
             img.src = url;
         } else {
@@ -439,12 +495,18 @@ window.carregarFotoPerfil = async function () {
     try {
         const resposta = await fetch(URL_FOTO_PERFIL, { cache: 'no-cache' });
         if (resposta.status === 200) {
-            definirFotoPerfil(URL.createObjectURL(await resposta.blob()));
+            const blob = await resposta.blob();
+            const dados = await blobParaDataUrl(blob);
+            const igualAoCache = dados === lerCacheFoto();
+            if (!igualAoCache) guardarCacheFoto(dados);
+            definirFotoPerfil(URL.createObjectURL(blob), igualAoCache);
         } else {
+            guardarCacheFoto(null);
             definirFotoPerfil(null);
         }
     } catch (e) {
-        definirFotoPerfil(null);
+        // Sem conexão: mantém a foto guardada, se houver
+        if (!lerCacheFoto()) definirFotoPerfil(null);
     }
 }
 
@@ -525,6 +587,7 @@ window.removerFotoPerfil = async function () {
     try {
         const resposta = await fetch(URL_FOTO_PERFIL, { method: 'DELETE' });
         if (resposta.ok) {
+            guardarCacheFoto(null);
             definirFotoPerfil(null);
         } else {
             mostrarMensagemFoto('Não foi possível remover a foto.');

@@ -1,4 +1,3 @@
-let areaAtualContexto = { id: null, nome: null };
 let modoEdicao = false; // false = criar, true = renomear
 let areaSelecionadaCompartilhar = null;
 // Nível de permissão do convite (vale para o convite por e-mail e para o link)
@@ -34,8 +33,15 @@ function configurarModalArea(icone, descricao) {
 }
 
 function atualizarBotaoSalvarArea() {
-    document.querySelector('#modalArea .btn-criar').disabled =
-        document.getElementById('inputNomeArea').value.trim() === '';
+    const botao = document.querySelector('#modalArea .btn-criar');
+    const vazio = document.getElementById('inputNomeArea').value.trim() === '';
+    botao.disabled = vazio;
+    // Mesmo padrão dos outros botões bloqueados: símbolo de bloqueado + mensagem
+    if (vazio) {
+        botao.title = 'Digite o nome da área para continuar';
+    } else {
+        botao.removeAttribute('title');
+    }
 }
 
 document.getElementById('inputNomeArea').addEventListener('input', atualizarBotaoSalvarArea);
@@ -43,6 +49,14 @@ document.getElementById('inputNomeArea').addEventListener('input', atualizarBota
 window.fecharModalArea = function () {
     document.getElementById('modalArea').style.display = 'none';
     document.getElementById('inputNomeArea').value = '';
+
+    // Veio da tela de Gerenciar: volta para os membros da área (já com o nome novo, se mudou)
+    if (areaVoltarGerenciar) {
+        const voltar = areaVoltarGerenciar;
+        areaVoltarGerenciar = null;
+        document.getElementById('modalGerenciamento').style.display = 'flex';
+        abrirMembros(voltar.id, voltar.nome);
+    }
 }
 
 window.adicionarCardArea = function (id, nome) {
@@ -54,7 +68,6 @@ window.adicionarCardArea = function (id, nome) {
     card.setAttribute("data-id", id);
     card.setAttribute("data-permissao", "ADMIN"); // quem cria a área é o administrador
     card.onclick = () => abrirArea(card);
-    card.oncontextmenu = (e) => abrirMenuContexto(e, card);
 
     const h3 = document.createElement("h3");
     h3.textContent = nome;
@@ -126,6 +139,7 @@ window.salvarArea = function (event) {
     })
     .then(_ => {
         atualizarNomeNoCard(id, nome);
+        if (areaVoltarGerenciar) areaVoltarGerenciar.nome = nome;
         fecharModalArea();
         document.getElementById("areaIdEdicao").value = "";
     })
@@ -143,39 +157,23 @@ window.abrirArea = function (elemento) {
     window.location.href = `/areasTrabalho/${id}/${name}`;
 }
 
-// Menu de contexto (botão direito)
-window.abrirMenuContexto = function (event, elemento) {
-    event.preventDefault();
-    event.stopPropagation();
+// Renomear a área escolhida na tela de Gerenciar (só o administrador)
+let areaVoltarGerenciar = null; // área cujos membros devem reabrir depois do modal de renomear
 
-    const id = elemento.dataset.id;
-    const nome = elemento.dataset.nome;
+window.renomearAreaGerenciada = function () {
+    if (!areaSelecionadaGerenciar) return;
+    areaVoltarGerenciar = { id: areaSelecionadaGerenciar, nome: nomeAreaGerenciar };
 
-    areaAtualContexto.id = id;
-    areaAtualContexto.nome = nome;
+    // O modal de renomear fica por cima: o de gerenciar só some de vista e volta depois
+    document.getElementById('modalGerenciamento').style.display = 'none';
 
-    const menu = document.getElementById('menuContexto');
-    menu.style.display = 'block';
-    menu.style.left = event.pageX + 'px';
-    menu.style.top = event.pageY + 'px';
-
-    setTimeout(() => lucide.createIcons(), 10);
-}
-
-window.fecharMenuContexto = function () {
-    document.getElementById('menuContexto').style.display = 'none';
-}
-
-window.renomearAreaContexto = function () {
-    fecharMenuContexto();
     modoEdicao = true;
-    
     document.getElementById('tituloModalArea').textContent = 'Renomear Área de Trabalho';
-    document.getElementById('inputNomeArea').value = areaAtualContexto.nome;
-    document.getElementById('inputNomeArea').placeholder = areaAtualContexto.nome;
+    document.getElementById('inputNomeArea').value = areaVoltarGerenciar.nome;
+    document.getElementById('inputNomeArea').placeholder = areaVoltarGerenciar.nome;
     document.querySelector('.btn-criar').textContent = 'Salvar';
     configurarModalArea('pencil', 'Escolha o novo nome da área.');
-    document.getElementById('areaIdEdicao').value = areaAtualContexto.id;
+    document.getElementById('areaIdEdicao').value = areaVoltarGerenciar.id;
     document.getElementById('modalArea').style.display = 'flex';
 
     setTimeout(() => {
@@ -445,11 +443,8 @@ window.abrirModalExcluir = function () {
     // Preenche dinamicamente
     popularListaAreasExcluir(areas); // 'areas' deve ser a lista atual de áreas do usuário
 
-    // Desabilita botão de excluir
-    const btnExcluir = document.getElementById('btnConfirmarExclusao');
-    btnExcluir.disabled = true;
-
-    setTimeout(() => lucide.createIcons(), 10);
+    // Sem nada marcado: botão desabilitado e com o texto original (não o da última seleção)
+    atualizarBotaoExclusao();
 }
 
 window.fecharModalExcluir = function () {
@@ -471,26 +466,39 @@ window.atualizarSelecaoExclusao = function () {
         checkbox.closest('.area-item-excluir').classList.add('selecionada');
     });
 
-    // Habilita/desabilita botão de excluir
-    const btnExcluir = document.getElementById('btnConfirmarExclusao');
-    btnExcluir.disabled = areasSelecionadasExcluir.length === 0;
+    atualizarBotaoExclusao();
+}
 
-    // Atualiza texto do botão
-    if (areasSelecionadasExcluir.length > 0) {
-        const q = areasSelecionadasExcluir.length;
+// Habilita/desabilita o botão vermelho e acerta o texto. Sem área marcada ele volta sempre a
+// "Excluir Selecionadas" (desabilitado, com a dica de que falta escolher uma área).
+function atualizarBotaoExclusao() {
+    const btnExcluir = document.getElementById('btnConfirmarExclusao');
+    const q = areasSelecionadasExcluir.length;
+    btnExcluir.disabled = q === 0;
+
+    let icone = 'trash-2';
+    let texto = 'Excluir Selecionadas';
+    if (q > 0) {
         const qtdAdmin = areasSelecionadasExcluir.filter(areaEhAdmin).length;
         if (qtdAdmin === 0) {
-            btnExcluir.innerHTML = `<i data-lucide="log-out"></i> ${q === 1 ? 'Sair da área' : `Sair de ${q} áreas`}`;
+            icone = 'log-out';
+            texto = q === 1 ? 'Sair da Área' : `Sair de ${q} Áreas`;
         } else if (qtdAdmin === q) {
-            btnExcluir.innerHTML = `<i data-lucide="trash-2"></i> ${q === 1 ? 'Excluir área' : `Excluir ${q} áreas`}`;
+            texto = q === 1 ? 'Excluir Área' : `Excluir ${q} Áreas`;
         } else {
-            btnExcluir.innerHTML = `<i data-lucide="trash-2"></i> Excluir ou sair de ${q} áreas`;
+            texto = `Excluir ou Sair de ${q} Áreas`;
         }
-    } else {
-        btnExcluir.innerHTML = '<i data-lucide="trash-2"></i> Excluir Selecionadas';
     }
 
-    setTimeout(() => lucide.createIcons(), 10);
+    // Mesma dica dos botões de compartilhar quando falta escolher a área
+    if (q === 0) {
+        btnExcluir.title = 'Selecione uma área para excluir';
+    } else {
+        btnExcluir.removeAttribute('title');
+    }
+
+    btnExcluir.innerHTML = `<i data-lucide="${icone}"></i> ${texto}`;
+    lucide.createIcons();
 }
 
 function areaEhAdmin(areaId) {
@@ -548,7 +556,7 @@ window.confirmarExclusao = async function () {
     const confirmacao = await Aviso.confirmar({
         titulo: soSaida ? (varias ? 'Sair das áreas' : 'Sair da área')
             : soExclusao ? (varias ? 'Excluir áreas' : 'Excluir área')
-            : 'Excluir ou sair das áreas',
+            : 'Excluir ou Sair de Áreas',
         mensagem: `${aviso}\nDeseja continuar?`,
         confirmar: soSaida ? 'Sair' : soExclusao ? 'Excluir' : 'Continuar',
         perigo: idsAdmin.length > 0
@@ -721,6 +729,7 @@ window.abrirMembros = function (areaId, nomeArea) {
 
     // Só o administrador altera permissões e remove membros (o servidor também exige isso)
     const souAdmin = areaEhAdmin(areaSelecionadaGerenciar);
+    document.getElementById('btnRenomearArea').style.display = souAdmin ? 'inline-flex' : 'none';
     
     fetch(`/areasTrabalho/${areaSelecionadaGerenciar}/membros`)
         .then(res => res.json())
@@ -951,14 +960,6 @@ window.removerMembro = async function (membroId, membroNome, idArea) {
     }
 };
 
-// Fecha o menu de contexto ao clicar em qualquer lugar
-document.addEventListener('click', function(event) {
-    const menu = document.getElementById('menuContexto');
-    if (menu && !menu.contains(event.target)) {
-        fecharMenuContexto();
-    }
-});
-
 window.navegarPara = function (e, url) {
 
     // Redireciona
@@ -966,15 +967,15 @@ window.navegarPara = function (e, url) {
 }
 
 btnParaHoje.addEventListener('click', function() {
-    navegarPara("", "/menu")
+    navegarPara("", "/menu?view=hoje")
 });
 
 btnAgendadas.addEventListener('click', function() {
-    navegarPara("", "/menu")
+    navegarPara("", "/menu?view=agendadas")
 });
 
 btnTodasTarefas.addEventListener('click', function() {
-    navegarPara("", "/menu")
+    navegarPara("", "/menu?view=todas")
 });
 
 // Inicializa os ícones do Lucide ao carregar a página

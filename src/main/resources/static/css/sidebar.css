@@ -1,3 +1,20 @@
+/* Navegação entre telas sem piscar (Chrome/Edge): a barra lateral é a mesma nas duas telas, então
+   fica parada enquanto só o conteúdo faz uma transição rápida. Em outros navegadores é ignorado. */
+@view-transition {
+    navigation: auto;
+}
+
+.sidebar {
+    view-transition-name: sidebar;
+}
+
+::view-transition-old(root),
+::view-transition-new(root),
+::view-transition-old(sidebar),
+::view-transition-new(sidebar) {
+    animation-duration: 0.12s;
+}
+
 /* ===== Reset básico ===== */
 * {
     margin: 0;
@@ -149,8 +166,6 @@ body {
     font-size: 13px;
     font-weight: 600;
     color: #999;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
     padding: 4px 0;
     border-bottom: 1px solid #333;
     padding-bottom: 10px;
@@ -277,35 +292,93 @@ body {
 }
 
 /* ===== Barra lateral recolhida: só os ícones ===== */
+/* Nada muda de lugar ao recolher/expandir: o preenchimento é o mesmo nos dois estados, os
+   textos ficam sempre numa linha só e apenas somem (largura e opacidade animadas), então os
+   ícones não "pulam" enquanto a largura da barra muda. */
+.sidebar span,
+.sidebar .app-title,
+.sidebar .info {
+    white-space: nowrap;
+}
+
+.menu-item span,
+.nova-lista span,
+.btn-sair-sidebar span,
+.area-atual span {
+    max-width: 190px;
+    overflow: hidden;
+    transition: max-width 0.2s ease, opacity 0.15s ease;
+}
+
+.lista span {
+    min-width: 0;
+    max-width: 190px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: max-width 0.2s ease, opacity 0.15s ease;
+}
+
 .sidebar.recolhida {
     width: 68px;
     padding: 15px 10px;
 }
 
-.sidebar.recolhida .header-sidebar {
-    justify-content: center;
-    padding: 5px 0 15px 0;
+.app-title {
+    min-width: 0;
+    overflow: hidden;
 }
 
 .sidebar.recolhida .app-title,
 .sidebar.recolhida .info {
-    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.header-sidebar {
+    overflow: hidden;
+}
+
+.perfil {
+    overflow: hidden;
+    transition: background-color 0.2s, padding 0.2s ease;
 }
 
 .sidebar.recolhida .perfil {
-    justify-content: center;
-    padding: 8px 0;
+    padding: 10px 0 10px 1px;
 }
 
-/* Os textos ficam só escondidos visualmente (continuam lidos por leitores de tela e pelo
-   innerText usado para trocar o título da página) */
-.sidebar.recolhida span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
+.app-title {
+    max-width: 160px;
+    transition: max-width 0.2s ease, opacity 0.15s ease;
+}
+
+.header-sidebar {
+    transition: padding 0.2s ease;
+}
+
+.sidebar.recolhida .app-title {
+    max-width: 0;
+}
+
+.sidebar.recolhida .header-sidebar {
+    padding-left: 0;
+}
+
+.sidebar.recolhida .btn-recolher-sidebar {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Os textos continuam no HTML (lidos por leitores de tela e pelo innerText usado para trocar o
+   título da página); só ficam sem largura e transparentes */
+.sidebar.recolhida .menu-item span,
+.sidebar.recolhida .lista span,
+.sidebar.recolhida .nova-lista span,
+.sidebar.recolhida .btn-sair-sidebar span,
+.sidebar.recolhida .area-atual span {
+    max-width: 0;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .sidebar.recolhida .menu-item,
@@ -313,16 +386,37 @@ body {
 .sidebar.recolhida .nova-lista,
 .sidebar.recolhida .btn-sair-sidebar,
 .sidebar.recolhida .area-atual {
-    justify-content: center;
+    gap: 0;
+}
+
+.menu-item,
+.lista,
+.nova-lista,
+.btn-sair-sidebar,
+.area-atual {
+    transition: background 0.2s, color 0.2s, gap 0.2s ease, padding 0.2s ease;
+}
+
+.sidebar.recolhida .nova-lista {
+    justify-content: flex-start;
+}
+
+/* Ícones centralizados na barra estreita sem trocar o alinhamento (só o preenchimento anima) */
+.sidebar.recolhida .menu-item,
+.sidebar.recolhida .nova-lista,
+.sidebar.recolhida .btn-sair-sidebar,
+.sidebar.recolhida .lista,
+.sidebar.recolhida .area-atual {
+    padding-left: 11px; /* ícone de 24 px centralizado nos 46 px da barra recolhida */
+}
+
+.listas {
+    transition: padding-left 0.2s ease;
 }
 
 .sidebar.recolhida .listas {
     padding-left: 0;
-    border-left: none;
-}
-
-.sidebar.recolhida .btn-sair-sidebar {
-    padding-left: 0;
+    border-left-color: transparent;
 }
 
 /* ===== Modal de Perfil ===== */
@@ -683,11 +777,11 @@ body {
 
 /* Campos só de leitura: mais escuros que os inputs editáveis do resto do sistema */
 .valor-perfil {
-    background-color: #2a2a2a;
-    border: 1px solid #333;
+    background-color: #1e1e1e;
+    border: 1px solid #2c2c2c;
     padding: 10px 14px;
     border-radius: 8px;
-    color: #c8c8c8;
+    color: #a8a8a8;
     font-size: 14px;
     word-break: break-word;
     cursor: default;
@@ -828,4 +922,10 @@ body {
 
 #modalConfirmarLogout {
     z-index: 10000; /* Maior que o overlay-perfil (modal de Perfil), de onde o logout pode ser aberto */
+}
+/* Os ícones nunca encolhem durante a animação de recolher/expandir (antes passavam de 24 para
+   ~20 px e voltavam, o que parecia um "pulo") */
+.sidebar svg,
+.sidebar i {
+    flex-shrink: 0;
 }

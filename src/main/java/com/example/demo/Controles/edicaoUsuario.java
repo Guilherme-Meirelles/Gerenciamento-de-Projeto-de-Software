@@ -68,19 +68,10 @@ public class edicaoUsuario {
                 Usuario usuarioExistente = ur.findUsuarioById(id);
 
                 if (usuarioExistente != null) {
-                    String emailNovo = usuarioEditado.getEmail();
-
-                    if (!emailNovo.equals(usuarioExistente.getEmail())) {
-                        if (ur.findByEmail(emailNovo) != null) {
-                            model.addAttribute("mensagem", "Este e-mail já está em uso por outra conta!");
-                            return "edicaoUsuario";
-                        }
-                        // Muda o email: precisa confirmar de novo antes de logar
-                        usuarioExistente.setEmailVerificado(false);
-                    }
-
+                    // O e-mail é o login e a identidade da conta: não pode ser alterado aqui (o campo da tela
+                    // é somente leitura e qualquer valor enviado é ignorado). Assim um erro de digitação não
+                    // tranca a conta.
                     usuarioExistente.setNome(usuarioEditado.getNome());
-                    usuarioExistente.setEmail(emailNovo);
                     usuarioExistente.setDataNascimento(usuarioEditado.getDataNascimento());
 
                     if (vaiTrocarSenha) {

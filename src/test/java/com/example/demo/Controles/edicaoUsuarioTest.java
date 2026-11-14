@@ -70,39 +70,13 @@ class edicaoUsuarioTest {
     }
 
     @Test
-    void post_novoEmailJaEmUsoPorOutraConta_bloqueiaEdicao() {
-        Usuario existente = usuarioExistente(1L);
-        Usuario outraConta = usuarioExistente(2L);
-        outraConta.setEmail("outro@teste.com");
-        when(usuarioRepository.findUsuarioById(1L)).thenReturn(existente);
-        when(usuarioRepository.findByEmail("outro@teste.com")).thenReturn(outraConta);
-
-        Usuario edicao = new Usuario();
-        edicao.setNome("Fulano");
-        edicao.setEmail("outro@teste.com"); // já usado por outraConta
-        edicao.setDataNascimento("2000-01-01");
-
-        MockHttpServletRequest request = new MockHttpServletRequest();
-        SessaoUtil.autenticar(request, 1L);
-        BindingResult semErros = new BeanPropertyBindingResult(edicao, "usuario");
-        Model model = new ExtendedModelMap();
-
-        String view = controller.edicaoUsuario(edicao, request, semErros, model);
-
-        assertThat(view).isEqualTo("edicaoUsuario");
-        assertThat(model.getAttribute("mensagem")).isEqualTo("Este e-mail já está em uso por outra conta!");
-        verify(usuarioRepository, never()).save(any());
-    }
-
-    @Test
-    void post_trocandoEmail_resetaEmailVerificado() {
+    void post_tentandoTrocarEmail_ignoraONovoEmailEMantemOLogin() {
         Usuario existente = usuarioExistente(1L);
         when(usuarioRepository.findUsuarioById(1L)).thenReturn(existente);
-        when(usuarioRepository.findByEmail("novoemail@teste.com")).thenReturn(null);
 
         Usuario edicao = new Usuario();
-        edicao.setNome("Fulano");
-        edicao.setEmail("novoemail@teste.com");
+        edicao.setNome("Fulano Editado");
+        edicao.setEmail("novoemail@teste.com"); // o e-mail não é editável: deve ser ignorado
         edicao.setDataNascimento("2000-01-01");
 
         MockHttpServletRequest request = new MockHttpServletRequest();
@@ -113,13 +87,36 @@ class edicaoUsuarioTest {
         String view = controller.edicaoUsuario(edicao, request, semErros, model);
 
         assertThat(view).isEqualTo("login");
-        assertThat(existente.getEmail()).isEqualTo("novoemail@teste.com");
-        assertThat(existente.isEmailVerificado()).isFalse();
+        assertThat(existente.getEmail()).isEqualTo("fulano@teste.com");
+        assertThat(existente.isEmailVerificado()).isTrue();
+        assertThat(existente.getNome()).isEqualTo("Fulano Editado");
+        verify(usuarioRepository).save(existente);
+        verify(usuarioRepository, never()).findByEmail(any());
+    }
+
+    @Test
+    void post_semEmailNoFormulario_salvaMesmoAssim() {
+        Usuario existente = usuarioExistente(1L);
+        when(usuarioRepository.findUsuarioById(1L)).thenReturn(existente);
+
+        Usuario edicao = new Usuario();
+        edicao.setNome("Fulano Editado");
+        edicao.setDataNascimento("2000-01-01"); // sem e-mail
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        SessaoUtil.autenticar(request, 1L);
+        BindingResult semErros = new BeanPropertyBindingResult(edicao, "usuario");
+        Model model = new ExtendedModelMap();
+
+        String view = controller.edicaoUsuario(edicao, request, semErros, model);
+
+        assertThat(view).isEqualTo("login");
+        assertThat(existente.getEmail()).isEqualTo("fulano@teste.com");
         verify(usuarioRepository).save(existente);
     }
 
     @Test
-    void post_mantendoMesmoEmail_naoResetaEmailVerificado() {
+    void post_mantendoMesmoEmail_continuaVerificado() {
         Usuario existente = usuarioExistente(1L);
         when(usuarioRepository.findUsuarioById(1L)).thenReturn(existente);
 
