@@ -1,6 +1,6 @@
 # ToDaily
 
-Protótipo de um gerenciador de tarefas colaborativo, desenvolvido como trabalho da disciplina de Gerenciamento de Projetos de Software. Permite cadastro/login de usuários com confirmação por e-mail, criação de áreas de trabalho compartilháveis, listas e tarefas, além de recuperação de senha por e-mail.
+Protótipo de um gerenciador de tarefas colaborativo, desenvolvido como trabalho da disciplina de Gerenciamento de Projetos de Software. Permite cadastro/login de usuários com confirmação por e-mail, criação de áreas de trabalho compartilháveis, listas e tarefas, além de recuperação de senha por e-mail. Também tem lembretes de tarefas por e-mail e no sistema (sino de notificações), menu de acessibilidade (tamanho do texto, temas, alto contraste e redução de animações) e interface em português, inglês e espanhol.
 
 ## Stack
 
@@ -36,7 +36,7 @@ Se preferir usar outro host, porta, usuário, senha ou nome de banco, edite dire
 
 ## Configuração de e-mail
 
-O envio de e-mails (confirmação de cadastro, recuperação de senha, convites de área de trabalho) usa SMTP do Gmail, configurado em `src/main/resources/application.properties`. O usuário fica no próprio arquivo, mas **a senha não é escrita nele**: o arquivo apenas lê a variável de ambiente `MAIL_PASSWORD`, para que a senha nunca seja commitada.
+O envio de e-mails (confirmação de cadastro, recuperação de senha, convites de área de trabalho e lembretes de tarefas) usa SMTP do Gmail, configurado em `src/main/resources/application.properties`. O usuário fica no próprio arquivo, mas **a senha não é escrita nele**: o arquivo apenas lê a variável de ambiente `MAIL_PASSWORD`, para que a senha nunca seja commitada.
 
 ```properties
 spring.mail.username=<seu-email>@gmail.com
@@ -58,6 +58,14 @@ export MAIL_PASSWORD="sua-senha-de-app"
 ```
 
 > **Atenção:** use uma [senha de app](https://myaccount.google.com/apppasswords) do Gmail, nunca a senha normal da conta. O Gmail rejeita/reescreve o remetente quando ele não é a própria conta autenticada, então o `From` dos e-mails enviados é sempre esse mesmo endereço.
+
+## Idiomas
+
+A interface, as mensagens do servidor e os e-mails existem em português (Brasil, o padrão), inglês e espanhol. O idioma é escolhido nas telas de acesso e no perfil, e fica guardado no navegador e na conta. Os textos ficam em `src/main/resources/mensagens.properties` (português), `mensagens_en.properties` e `mensagens_es.properties`. Para acrescentar ou mudar um texto, edite os três arquivos com a mesma chave.
+
+## Lembretes de tarefas
+
+Todo dia às 08:00 (e ao iniciar a aplicação) o sistema envia um e-mail para quem é responsável por tarefas com notificação ativa que vencem hoje ou amanhã. Cada tarefa recebe um único lembrete. Para mudar o horário, defina a variável de ambiente `TODAILY_LEMBRETES_CRON` (por exemplo, `0 * * * * *` dispara todo minuto, útil para testar). Cada pessoa escolhe, no sino de notificações, se quer ser avisada por e-mail, no sistema ou nos dois.
 
 ## Rodando o projeto
 
@@ -87,6 +95,9 @@ src/main/java/com/example/demo/
 src/main/resources/
 ├── templates/         # Views Thymeleaf
 ├── static/             # CSS e JS
+├── mensagens.properties        # Textos em português (padrão)
+├── mensagens_en.properties     # Textos em inglês
+├── mensagens_es.properties     # Textos em espanhol
 └── application.properties
 ```
 

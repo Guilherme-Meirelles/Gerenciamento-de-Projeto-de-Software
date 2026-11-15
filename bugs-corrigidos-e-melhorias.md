@@ -181,6 +181,7 @@ Não são bugs: o comportamento anterior funcionava, mas destoava do restante do
 - O repositório tinha o projeto inteiro aninhado dentro de `Trabalho-Construcao-de-Software-main/`, com o `.git` na pasta pai (`Gerenciamento-de-Projeto-de-Software`). Movido tudo pra raiz do repo com `git mv` (preserva histórico).
 - `.idea/` estava sendo versionada e enviada pro remoto, porque o `.gitignore` só vivia dentro da pasta aninhada antes e nunca cobria a `.idea/` da raiz. Destrackeada.
 - README reescrito com descrição do projeto, stack, setup de banco e de e-mail, e como rodar.
+- README atualizado com idiomas (português, inglês e espanhol), lembretes de tarefas (horário e variável `TODAILY_LEMBRETES_CRON`), sino de notificações e menu de acessibilidade, e com os arquivos `mensagens*.properties` na estrutura do projeto.
 
 ## Bugs resolvidos pelo Guizé
 
