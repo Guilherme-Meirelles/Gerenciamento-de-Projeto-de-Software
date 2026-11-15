@@ -92,7 +92,7 @@
     <div class="secao-area" th:if="${not (isMenu ?: false)}">
         <div class="area-atual">
             <i data-lucide="briefcase"></i>
-            <span th:text="${areaName}"></span>
+            <span th:text="${areaName}" th:title="${areaName}"></span>
         </div>
 
         <!-- Botão Nova Lista -->
@@ -106,8 +106,7 @@
                     th:each="lista : ${listas}"
                     th:data-id="${lista.id}"
                     th:data-desc="${lista.descricao ?: ''}"
-                    th:title="${lista.nome}"
-                    oncontextmenu="mostrarMenuContexto(event, 'menuContextoLista', this)">
+                    th:title="${lista.nome}">
                 <i data-lucide="list"></i>
                 <span th:text="${lista.nome}"></span>
             </button>
@@ -256,11 +255,13 @@
             <form class="form-lista">
                 <div class="campo-lista">
                     <label for="nome-lista"><span th:text="#{sidebar.nomeLista}">Nome da Lista</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
-                    <input type="text" id="nome-lista" placeholder="Nova Lista" th:placeholder="#{sidebar.phNomeLista}" />
+                    <input type="text" id="nome-lista" placeholder="Nova Lista" th:placeholder="#{sidebar.phNomeLista}" maxlength="100" /><!-- mesmo valor de Lista.NOME_MAX -->
+                    <span class="contador-caracteres" id="contador-nome-lista" aria-hidden="true"></span>
                 </div>
                 <div class="campo-lista">
                     <label for="descricao-lista" th:text="#{sidebar.descricao}">Descrição</label>
-                    <textarea id="descricao-lista" rows="4" placeholder="Adicione uma descrição (opcional)" th:placeholder="#{sidebar.phDescricao}"></textarea>
+                    <textarea id="descricao-lista" rows="4" placeholder="Adicione uma descrição (opcional)" th:placeholder="#{sidebar.phDescricao}" maxlength="255"></textarea><!-- mesmo valor de Lista.DESCRICAO_MAX -->
+                    <span class="contador-caracteres" id="contador-descricao-lista" aria-hidden="true"></span>
                 </div>
                 <div class="botoes-acao-lista">
                     <button type="button" class="btn-ok" id="btnOkAddLista" onclick="confirmarCriacaoLista()" th:text="#{sidebar.ok}">OK</button>
@@ -279,11 +280,13 @@
             <form class="form-lista">
                 <div class="campo-lista">
                     <label for="nome-lista-edit"><span th:text="#{sidebar.nomeLista}">Nome da Lista</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
-                    <input type="text" id="nome-lista-edit" />
+                    <input type="text" id="nome-lista-edit" maxlength="100" />
+                    <span class="contador-caracteres" id="contador-nome-lista-edit" aria-hidden="true"></span>
                 </div>
                 <div class="campo-lista">
                     <label for="descricao-lista-edit" th:text="#{sidebar.descricao}">Descrição</label>
-                    <textarea id="descricao-lista-edit" rows="4" placeholder="Adicione uma descrição (opcional)" th:placeholder="#{sidebar.phDescricao}"></textarea>
+                    <textarea id="descricao-lista-edit" rows="4" placeholder="Adicione uma descrição (opcional)" th:placeholder="#{sidebar.phDescricao}" maxlength="255"></textarea>
+                    <span class="contador-caracteres" id="contador-descricao-lista-edit" aria-hidden="true"></span>
                 </div>
                 <div class="botoes-acao-lista">
                     <button type="button" class="btn-ok" id="btnOkEditLista" onclick="confirmarEdicaoLista()" th:text="#{sidebar.ok}">OK</button>

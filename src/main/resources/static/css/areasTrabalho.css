@@ -2,13 +2,16 @@
 .conteudo-areas {
     flex-grow: 1;
     background-color: #121212;
-    padding: 40px 60px;
+    padding: 30px; /* mesma margem das outras telas (.conteudo): o título fica no mesmo lugar ao trocar de tela */
     overflow-y: auto;
     position: relative;
 }
 
 .titulo {
-    margin-bottom: 40px;
+    /* Mesma altura do cabeçalho das listas (que tem os botões de filtrar e ordenar): o título fica exatamente no
+       mesmo lugar ao trocar de tela */
+    min-height: 48px;
+    margin-bottom: 30px;
 }
 
 .titulo h2 {
@@ -48,6 +51,15 @@
     justify-content: space-between;
     gap: 16px;
     position: relative;
+}
+
+.area-card[hidden] {
+    display: none;
+}
+
+/* Aviso "nada encontrado" ocupa a linha inteira do grid de áreas */
+.areas-grid .estado-vazio-tarefas {
+    grid-column: 1 / -1;
 }
 
 .area-card:hover {
@@ -475,6 +487,8 @@
     color: #fff;
     cursor: pointer;
     flex: 1;
+    min-width: 0; /* sem isso um nome sem espaços não encolhia e saía da caixa (aparecia barra de rolagem horizontal) */
+    overflow-wrap: anywhere;
 }
 
 .secao-metodos-compartilhamento {
@@ -643,12 +657,15 @@
     align-items: center;
     gap: 12px;
     flex: 1;
+    min-width: 0;
 }
 
 .area-item-gerenciar .nome-area {
     font-size: 15px;
     color: #fff;
     flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .area-item-gerenciar .seta-area {
@@ -1214,4 +1231,60 @@
 .area-item-excluir,
 .area-item-compartilhar {
     border-width: 1px;
+}
+
+
+/* Listas rolantes com itens em caixa: a barra de rolagem fica afastada das caixas (antes encostava nelas). A lista avança
+   sobre o preenchimento da janela, então sem barra os itens continuam com a mesma largura de antes. */
+.lista-areas-compartilhar,
+.lista-areas-excluir,
+.lista-areas-gerenciar,
+.lista-membros {
+    margin-right: -10px;
+    padding-right: 10px;
+}
+
+
+/* Nomes grandes (de área ou de pessoa) quebram a linha dentro da caixa em vez de empurrar o conteúdo para fora */
+.membro-info,
+.lista-areas-excluir,
+.lista-areas-compartilhar,
+.lista-areas-gerenciar,
+.lista-membros {
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.membro-info {
+    overflow-wrap: anywhere;
+}
+
+
+/* Ordem manual: o cartão pode ser segurado e arrastado */
+.area-card.arrastavel { cursor: grab; }
+.area-card.arrastavel:active { cursor: grabbing; }
+.area-card.arrastando {
+    opacity: 0.45;
+    outline: 2px dashed #4caf50;
+    outline-offset: -2px;
+}
+
+
+/* Nome de área grande termina em "…" (o nome inteiro aparece na dica ao passar o mouse).
+   No cartão cabem até 2 linhas; nas listas das janelas, 1 linha. */
+.area-card h3 {
+    max-width: 100%;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.area-item-compartilhar label,
+.area-item-excluir label,
+.area-item-gerenciar .nome-area {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }

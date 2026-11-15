@@ -24,7 +24,18 @@ public class ListaService {
     @Autowired
     private AreaTrabalhoRepository areaRepository;
 
+    private void validarTamanhos(String nome, String descricao) {
+        if (nome != null && nome.length() > Lista.NOME_MAX) {
+            throw new TextoMuitoLongoException(Mensagens.get("msg.lista.nomeLongo", Lista.NOME_MAX));
+        }
+        if (descricao != null && descricao.length() > Lista.DESCRICAO_MAX) {
+            throw new TextoMuitoLongoException(Mensagens.get("msg.lista.descricaoLonga", Lista.DESCRICAO_MAX));
+        }
+    }
+
     public Lista criarLista(Long areaId, String nome, String descricao) {
+        validarTamanhos(nome, descricao);
+
         AreaTrabalho area = areaRepository.findById(areaId)
                 .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.area.naoEncontrada")));
 
@@ -42,6 +53,8 @@ public class ListaService {
     }
 
     public Lista editarLista(Long id, String nome, String desc) {
+        validarTamanhos(nome, desc);
+
         Lista lista = listaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.lista.naoEncontrada")));
 

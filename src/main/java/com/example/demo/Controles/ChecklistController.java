@@ -25,6 +25,7 @@ import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.ChecklistService;
 import com.example.demo.Serviços.PermissaoAreaService;
+import com.example.demo.Serviços.TextoMuitoLongoException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -105,8 +106,12 @@ public class ChecklistController {
         }
 
         String descricao = (String) body.get("descricao");
-        ItemChecklist item = checklistService.adicionarItem(tarefaId, descricao);
-        return ResponseEntity.ok(item);
+        try {
+            ItemChecklist item = checklistService.adicionarItem(tarefaId, descricao);
+            return ResponseEntity.ok(item);
+        } catch (TextoMuitoLongoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/checklists/itens/{itemId}")
@@ -122,8 +127,12 @@ public class ChecklistController {
         String descricao = (String) body.get("descricao");
         Boolean concluido = body.get("concluido") != null ? Boolean.valueOf(body.get("concluido").toString()) : null;
 
-        ItemChecklist item = checklistService.editarItem(itemId, descricao, concluido);
-        return ResponseEntity.ok(item);
+        try {
+            ItemChecklist item = checklistService.editarItem(itemId, descricao, concluido);
+            return ResponseEntity.ok(item);
+        } catch (TextoMuitoLongoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/checklists/itens/{itemId}")

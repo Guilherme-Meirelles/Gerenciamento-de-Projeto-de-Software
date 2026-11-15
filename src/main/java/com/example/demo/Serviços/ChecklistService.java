@@ -46,8 +46,15 @@ public class ChecklistService {
         return tarefa.getChecklist();
     }
 
+    private void validarDescricao(String descricao) {
+        if (descricao != null && descricao.length() > ItemChecklist.DESCRICAO_MAX) {
+            throw new TextoMuitoLongoException(Mensagens.get("msg.checklist.itemLongo", ItemChecklist.DESCRICAO_MAX));
+        }
+    }
+
     @Transactional
     public ItemChecklist adicionarItem(Long tarefaId, String descricao) {
+        validarDescricao(descricao);
         Checklist checklist = obterOuCriarChecklist(tarefaId);
 
         ItemChecklist item = new ItemChecklist();
@@ -59,6 +66,7 @@ public class ChecklistService {
     }
 
     public ItemChecklist editarItem(Long itemId, String descricao, Boolean concluido) {
+        validarDescricao(descricao);
         ItemChecklist item = itemChecklistRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.checklist.itemNaoEncontrado")));
 

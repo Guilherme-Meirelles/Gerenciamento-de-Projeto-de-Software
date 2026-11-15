@@ -20,6 +20,9 @@ public class ParticipacaoArea {
     @Enumerated(EnumType.STRING)
     private PermissaoArea permissao;
 
+    // Posição da área na tela "Áreas de Trabalho" deste usuário (ordem manual, por arrastar). Nula = ainda não ordenada.
+    private Integer posicao;
+
     public ParticipacaoArea() {}
 
     public ParticipacaoArea(Usuario usuario, AreaTrabalho area, PermissaoArea permissao) {
@@ -33,6 +36,8 @@ public class ParticipacaoArea {
     public AreaTrabalho getArea() { return area; }
     public PermissaoArea getPermissao() { return permissao; }
     public void setPermissao(PermissaoArea permissao) { this.permissao = permissao; }
+    public Integer getPosicao() { return posicao; }
+    public void setPosicao(Integer posicao) { this.posicao = posicao; }
     public void setUsuario(Usuario usuario) {this.usuario = usuario;}
     public void setArea(AreaTrabalho area) {this.area = area;}
 

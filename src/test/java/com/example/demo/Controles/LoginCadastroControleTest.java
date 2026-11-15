@@ -480,4 +480,81 @@ class LoginCadastroControleTest {
             org.springframework.context.i18n.LocaleContextHolder.resetLocaleContext();
         }
     }
+
+    // ---------- limites de tamanho (nome, e-mail e senha) ----------
+
+    @Test
+    void cadastro_nomeMaiorQueOLimite_naoSalva() {
+        Usuario usuario = usuarioValido();
+        usuario.setNome("a".repeat(Usuario.NOME_MAX + 1));
+        Model model = new ExtendedModelMap();
+
+        String view = controller.cadastroUsuario(usuario, new BeanPropertyBindingResult(usuario, "usuario"), model);
+
+        assertThat(view).isEqualTo("cadastro");
+        assertThat(model.getAttribute("mensagem")).isEqualTo("O nome pode ter no máximo 60 caracteres.");
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void cadastro_nomeNoLimiteExato_aceita() {
+        Usuario usuario = usuarioValido();
+        usuario.setNome("a".repeat(Usuario.NOME_MAX));
+
+        String view = controller.cadastroUsuario(usuario, new BeanPropertyBindingResult(usuario, "usuario"), new ExtendedModelMap());
+
+        assertThat(view).isEqualTo("login");
+        verify(usuarioRepository).save(usuario);
+    }
+
+    @Test
+    void cadastro_emailMaiorQueOLimite_naoSalva() {
+        Usuario usuario = usuarioValido();
+        usuario.setEmail("a".repeat(Usuario.EMAIL_MAX) + "@teste.com");
+        Model model = new ExtendedModelMap();
+
+        String view = controller.cadastroUsuario(usuario, new BeanPropertyBindingResult(usuario, "usuario"), model);
+
+        assertThat(view).isEqualTo("cadastro");
+        assertThat(model.getAttribute("mensagem")).isEqualTo("O e-mail pode ter no máximo 254 caracteres.");
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void cadastro_senhaMaiorQueOLimite_naoSalva() {
+        Usuario usuario = usuarioValido();
+        usuario.setSenha("Aa1!" + "a".repeat(Usuario.SENHA_MAX)); // forte, mas longa demais para o BCrypt
+        Model model = new ExtendedModelMap();
+
+        String view = controller.cadastroUsuario(usuario, new BeanPropertyBindingResult(usuario, "usuario"), model);
+
+        assertThat(view).isEqualTo("cadastro");
+        assertThat(model.getAttribute("mensagem")).isEqualTo("A senha pode ter no máximo 72 caracteres.");
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void cadastro_dataDeNascimentoAusenteOuMalEscrita_naoSalvaENaoQuebra() {
+        for (String ruim : new String[] {null, "", "05/04/2002", "2002-13-40", "1850-01-01"}) {
+            Usuario usuario = usuarioValido();
+            usuario.setDataNascimento(ruim);
+            Model model = new ExtendedModelMap();
+
+            String view = controller.cadastroUsuario(usuario, new BeanPropertyBindingResult(usuario, "usuario"), model);
+
+            assertThat(view).as("data %s", ruim).isEqualTo("cadastro");
+            assertThat(model.getAttribute("mensagem")).isEqualTo("Data de nascimento inválida.");
+        }
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void cadastro_dataDeNascimentoDeHoje_aceita() {
+        Usuario usuario = usuarioValido();
+        usuario.setDataNascimento(java.time.LocalDate.now().toString());
+
+        String view = controller.cadastroUsuario(usuario, new BeanPropertyBindingResult(usuario, "usuario"), new ExtendedModelMap());
+
+        assertThat(view).isEqualTo("login");
+    }
 }

@@ -142,6 +142,18 @@ class TarefaControllerTest {
     }
 
     @Test
+    void criarTarefa_tituloMuitoLongo_retorna400ComMensagemENaoCria() {
+        Cenario cenario = montarCenario();
+        ResponseEntity<?> resposta = controller.criarTarefa(
+                corpoTarefa(cenario.lista().getId(), "a".repeat(Tarefa.TITULO_MAX + 1)),
+                requestAutenticado(cenario.editor().getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat((String) resposta.getBody()).contains(String.valueOf(Tarefa.TITULO_MAX));
+        assertThat(tarefaRepository.findByListaOrigemId(cenario.lista().getId())).isEmpty();
+    }
+
+    @Test
     void listarPorLista_observador_consegueLer() {
         Cenario cenario = montarCenario();
         ResponseEntity<?> resposta = controller.listarPorLista(cenario.lista().getId(), requestAutenticado(cenario.observador().getId()));

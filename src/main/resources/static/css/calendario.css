@@ -22,23 +22,23 @@
     max-width: 420px;
     color: #ffffff;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
-    animation: slideUp 0.3s ease;
+    animation: calendario-entrada 0.2s ease;
     transition: max-width 0.2s ease;
 }
 
 .modal-calendario.modo-ano {
-    max-width: 640px;
+    max-width: 700px;
 }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Conteúdo que entra numa troca de visão (mês/ano, outro mês, lista do dia) aparece aos poucos */
+.cal-entrando {
+    animation: calendario-entrada 0.24s ease;
+}
+
+/* Só aparece aos poucos: mover a janela ao abrir dava a impressão de que ela "tremia" */
+@keyframes calendario-entrada {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* ===== Header do Calendário ===== */
@@ -181,12 +181,13 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 18px;
     margin-bottom: 20px;
-    max-height: 60vh;
+    /* Só rola se a janela for baixa demais; antes o limite de 60% da altura fazia a barra aparecer em anos com meses de 6 semanas */
+    max-height: calc(100vh - 190px);
     overflow-y: auto;
 }
 
 .mini-mes-titulo {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: #ddd;
     text-align: center;
@@ -210,22 +211,41 @@
 
 .mini-mes-dias-semana span {
     text-align: center;
-    font-size: 8px;
+    font-size: 9px;
     color: #777;
 }
 
 .mini-mes-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
+    /* Sempre 6 linhas: todos os meses e anos têm a mesma altura e a janela não muda de tamanho ao navegar */
+    grid-template-rows: repeat(6, 18px);
     gap: 1px;
 }
 
+/* Cada dia é um círculo de tamanho fixo (antes ocupava a célula inteira e virava uma elipse esticada) */
 .mini-mes-dia {
+    width: 18px;
+    height: 18px;
+    margin: 0 auto;
+    display: block;
     text-align: center;
-    font-size: 9px;
-    line-height: 1.9;
+    font-size: 10px;
+    line-height: 18px; /* centraliza o número no círculo (com flex ele ficava até 1 px fora do centro em alguns zooms) */
     color: #bbb;
     border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.mini-mes-dia:hover {
+    background-color: #3a3a3a;
+    color: #fff;
+}
+
+.mini-mes-dia:focus-visible {
+    outline: 2px solid #b8b8b8;
+    outline-offset: 1px;
 }
 
 .mini-mes-dia.tem-tarefa {
@@ -234,10 +254,18 @@
     color: #fff;
 }
 
+.mini-mes-dia.tem-tarefa:hover {
+    background-color: rgba(76, 175, 80, 0.5);
+}
+
 .mini-mes-dia.hoje {
     background-color: #4caf50;
     color: #fff;
     font-weight: 700;
+}
+
+.mini-mes-dia.hoje:hover {
+    background-color: #5cbd5e;
 }
 
 /* ===== Tarefas do dia selecionado ===== */

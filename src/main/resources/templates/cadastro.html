@@ -28,19 +28,26 @@
     <form id="cadastroForm" action="/cadastro" method="post" novalidate>
 
         <label for="nome" th:text="#{comum.nome}">Nome</label>
-        <input type="text" id="nome" name="nome" placeholder="Maria Silva" th:placeholder="#{cadastro.phNome}" required />
+        <input type="text" id="nome" name="nome" placeholder="João Silva" th:placeholder="#{cadastro.phNome}" maxlength="60" required /><!-- mesmo valor de Usuario.NOME_MAX -->
 
         <label for="email" th:text="#{comum.email}">E-mail</label>
-        <input type="email" id="email" name="email" placeholder="maria.silva@exemplo.com" th:placeholder="#{cadastro.phEmail}" required />
+        <input type="email" id="email" name="email" placeholder="joao.silva@exemplo.com" th:placeholder="#{cadastro.phEmail}" maxlength="254" required /><!-- mesmo valor de Usuario.EMAIL_MAX -->
 
-        <label for="dataNasc" th:text="#{comum.dataNascimento}">Data de Nascimento</label>
-        <input type="date" id="dataNasc" name="dataNascimento" required />
+        <label for="dataNascTexto" th:text="#{comum.dataNascimento}">Data de Nascimento</label>
+        <div class="campo-data">
+            <input type="text" id="dataNascTexto" inputmode="numeric" maxlength="10" autocomplete="off" required />
+            <input type="hidden" id="dataNasc" name="dataNascimento" />
+            <button type="button" class="btn-calendario-data" id="btnDataNasc" th:aria-label="#{js.data.abrir}" aria-label="Mostrar seletor de datas">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </button>
+            <input type="date" id="dataNascSeletor" class="seletor-data-oculto" tabindex="-1" aria-hidden="true" />
+        </div>
 
         <label for="senha" th:text="#{comum.senha}">Senha</label>
-        <input type="password" id="senha" name="senha" placeholder="Mínimo de 8 caracteres" th:placeholder="#{cadastro.phSenha}" required />
+        <input type="password" id="senha" name="senha" placeholder="Mínimo de 8 caracteres" th:placeholder="#{cadastro.phSenha}" maxlength="72" required /><!-- mesmo valor de Usuario.SENHA_MAX -->
 
         <label for="confirmar" th:text="#{comum.confirmarSenha}">Confirmar Senha</label>
-        <input type="password" id="confirmar" name="confirmarSenha" placeholder="Repita a senha" th:placeholder="#{cadastro.phConfirmar}" required />
+        <input type="password" id="confirmar" name="confirmarSenha" placeholder="Repita a senha" th:placeholder="#{cadastro.phConfirmar}" maxlength="72" required />
 
         <div class="botoes botoes-dupla">
             <button type="button" class="btn secundario" onclick="window.location.href='/login'" th:text="#{comum.voltar}">Voltar</button>
@@ -51,6 +58,7 @@
 </div>
 
 <script src="/js/validacao.js"></script>
+<script src="/js/dataNascimento.js"></script>
 <script>
     const form = document.getElementById("cadastroForm");
     const erro = document.getElementById("erro");
@@ -61,10 +69,19 @@
     dataNasc.max = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0") + "-" + String(hoje.getDate()).padStart(2, "0");
     dataNasc.min = "1900-01-01";
 
+    // O que a pessoa digita (no formato do idioma) fica em dataNascTexto; dataNasc guarda AAAA-MM-DD para o servidor
+    const dataNascTexto = document.getElementById("dataNascTexto");
+    DataNascimento.iniciar({
+        texto: dataNascTexto,
+        iso: dataNasc,
+        seletor: document.getElementById("dataNascSeletor"),
+        botao: document.getElementById("btnDataNasc")
+    });
+
     Validacao.limparAoDigitar(form, erro);
 
     form.addEventListener("submit", function (e) {
-        const campos = ["nome", "email", "dataNasc", "senha", "confirmar"].map(id => document.getElementById(id));
+        const campos = ["nome", "email", "dataNascTexto", "senha", "confirmar"].map(id => document.getElementById(id));
         const [nome, email, , senha, confirmar] = campos;
         let mensagem = "";
         let primeiro = null;
@@ -88,7 +105,7 @@
                 falha(email, t("js.form.emailInvalido"));
             }
             if (dataNasc.value > dataNasc.max || dataNasc.value < dataNasc.min) {
-                falha(dataNasc, t("js.form.dataInvalida"));
+                falha(dataNascTexto, t("js.form.dataInvalida"));
             }
             const faltando = Validacao.requisitosFaltando(senha.value);
             if (faltando.length) {

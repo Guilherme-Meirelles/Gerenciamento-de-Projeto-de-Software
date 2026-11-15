@@ -101,6 +101,24 @@ class ListaControllerTest {
     }
 
     @Test
+    void criarLista_nomeMuitoLongo_retorna400ComMensagemENaoCria() {
+        Usuario dono = criarUsuario("dono-longo@teste.com");
+        AreaTrabalho area = new AreaTrabalho();
+        area.setNome("Área");
+        area.setDono(dono);
+        entityManager.persistAndFlush(area);
+        Usuario editor = criarUsuario("editor-longo@teste.com");
+        entityManager.persistAndFlush(new ParticipacaoArea(editor, area, PermissaoArea.EDITOR));
+        entityManager.clear();
+
+        ResponseEntity<?> resposta = controller.criarLista(area.getId(), "a".repeat(Lista.NOME_MAX + 1), null, requestAutenticado(editor.getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat((String) resposta.getBody()).contains(String.valueOf(Lista.NOME_MAX));
+        assertThat(listaRepository.findByAreaId(area.getId())).isEmpty();
+    }
+
+    @Test
     void deletarLista_naoParticipante_retorna403ENaoApaga() {
         Usuario dono = criarUsuario("dono4@teste.com");
         AreaTrabalho area = new AreaTrabalho();

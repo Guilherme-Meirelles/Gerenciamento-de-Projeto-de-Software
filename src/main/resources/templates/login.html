@@ -31,7 +31,7 @@
     </form>
     <form id="loginForm" action="/login" method="post" novalidate>
         <label for="login" th:text="#{login.campo}">Login</label>
-        <input type="text" id="login" name="email" th:classappend="${credenciaisInvalidas != null} ? 'campo-invalido'" required />
+        <input type="text" id="login" name="email" maxlength="254" th:classappend="${credenciaisInvalidas != null} ? 'campo-invalido'" required />
 
         <label for="senha" th:text="#{comum.senha}">Senha</label>
         <input type="password" id="senha" name="senha" th:classappend="${credenciaisInvalidas != null} ? 'campo-invalido'" required />

@@ -27,7 +27,7 @@
 
 
         <label for="email" th:text="#{comum.email}">E-mail</label>
-        <input type="email" id="email" name="email" placeholder="email@exemplo.com" th:placeholder="#{recuperar.phEmail}" th:classappend="${erro != null} ? 'campo-invalido'" required>
+        <input type="email" id="email" name="email" placeholder="email@exemplo.com" th:placeholder="#{recuperar.phEmail}" maxlength="254" th:classappend="${erro != null} ? 'campo-invalido'" required>
         <button type="submit" class="btn" th:text="#{recuperar.botao}">CONFIRMAR</button>
         <button type="button" class="btn secundario" onclick="window.location.href='/login'" th:text="#{comum.voltar}">Voltar</button>
     </form>

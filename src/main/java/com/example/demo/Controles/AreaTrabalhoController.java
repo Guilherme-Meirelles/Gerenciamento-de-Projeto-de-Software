@@ -1,5 +1,7 @@
 package com.example.demo.Controles;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.demo.Serviços.Idioma.Mensagens;
 import com.example.demo.ConsultasBD.*;
 import com.example.demo.Entidades.*;
@@ -32,6 +34,8 @@ import java.util.stream.Collectors;
 
 @Controller
 public class AreaTrabalhoController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AreaTrabalhoController.class);
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -94,7 +98,11 @@ public class AreaTrabalhoController {
         model.addAttribute("email", usuario.getEmail());
         model.addAttribute("dataNascimento", MenuController.dataParaExibicao(usuario.getDataNascimento()));
 
-        List<ParticipacaoArea> participacaoAreas = participacaoAreaRepository.findByUsuario(usuario);
+        // Na ordem que o usuário arrastou; as ainda sem posição (áreas novas) vêm depois, na ordem de entrada
+        List<ParticipacaoArea> participacaoAreas = new ArrayList<>(participacaoAreaRepository.findByUsuario(usuario));
+        participacaoAreas.sort(Comparator
+                .comparing((ParticipacaoArea p) -> p.getPosicao() == null ? Integer.MAX_VALUE : p.getPosicao())
+                .thenComparing(ParticipacaoArea::getId));
 
         model.addAttribute("usuario", usuario);
         model.addAttribute("isMenu", true);
@@ -157,6 +165,10 @@ public class AreaTrabalhoController {
             return "USER_NOT_FOUND";
         }
 
+        if (nome.length() > AreaTrabalho.NOME_MAX) {
+            return "NAME_TOO_LONG"; // o JS mostra o aviso no idioma do usuário
+        }
+
         AreaTrabalho area = new AreaTrabalho();
         area.setNome(nome);
         area.setDono(usuario);
@@ -174,6 +186,35 @@ public class AreaTrabalhoController {
         return area.getId().toString(); // o JS recebe esse ID e adiciona no HTML
     }
 
+    // Ordem manual das áreas (arrastar e soltar): recebe {"ids": [...]} com os ids das áreas na nova ordem.
+    // A ordem é de cada usuário (fica na participação dele), então não muda a tela de ninguém mais.
+    @PutMapping("/areasTrabalho/ordem")
+    @Transactional
+    public ResponseEntity<?> reordenarAreas(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        String usuarioIdStr = SessaoUtil.getUsuarioId(request);
+        if (usuarioIdStr == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Long usuarioId = Long.parseLong(usuarioIdStr);
+
+        if (!(body.get("ids") instanceof List<?> bruto)) return ResponseEntity.badRequest().build();
+        List<Long> ids;
+        try {
+            // LinkedHashSet descarta ids repetidos sem mudar a ordem
+            ids = new ArrayList<>(bruto.stream().map(o -> Long.valueOf(o.toString()))
+                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        int posicao = 0;
+        for (Long areaId : ids) {
+            ParticipacaoArea participacao = participacaoAreaRepository.findByUsuarioIdAndAreaId(usuarioId, areaId);
+            if (participacao == null) continue; // área de que o usuário não participa: ignora, sem mexer em nada
+            participacao.setPosicao(posicao++);
+            participacaoAreaRepository.save(participacao);
+        }
+        return ResponseEntity.ok().build();
+    }
+
     @PutMapping("/areasTrabalho/{id}/renomear")
     public ResponseEntity<String> renomearArea(@PathVariable Long id,
                                             @RequestBody(required = false) String body,
@@ -182,6 +223,9 @@ public class AreaTrabalhoController {
         String novoNome = request.getParameter("nome");
         if (novoNome == null || novoNome.trim().isEmpty()) {
             return ResponseEntity.badRequest().body("INVALID_NAME");
+        }
+        if (novoNome.length() > AreaTrabalho.NOME_MAX) {
+            return ResponseEntity.badRequest().body("NAME_TOO_LONG");
         }
 
         String usuarioId = SessaoUtil.getUsuarioId(request);
@@ -708,8 +752,8 @@ public class AreaTrabalhoController {
             return ResponseEntity.ok(Map.of("success", true, "message", Mensagens.get("msg.area.membroRemovido")));
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.erroInterno", e.getMessage())));
+            LOG.error("Erro ao remover membro da área.", e);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.erroInterno")));
         }
     }
 }

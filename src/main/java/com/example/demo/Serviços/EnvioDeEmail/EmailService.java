@@ -1,5 +1,7 @@
 package com.example.demo.Serviços.EnvioDeEmail;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.demo.Entidades.AreaTrabalho;
 import com.example.demo.Entidades.PermissaoArea;
 import com.example.demo.Entidades.Tarefa;
@@ -26,6 +28,8 @@ import com.example.demo.Serviços.Idioma.Mensagens;
 
 @Service
 public class EmailService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(EmailService.class);
 
     @Autowired
     private JavaMailSender mailSender;
@@ -71,10 +75,10 @@ public class EmailService {
             helper.setText(template, true);
 
             mailSender.send(message);
-            System.out.println("Email enviado com sucesso!");
+            LOG.info("E-mail de recuperação de senha enviado.");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("Falha ao enviar o e-mail de recuperação de senha.", e);
             throw new RuntimeException(e.getMessage(), e);
         }
     }
@@ -110,10 +114,10 @@ public class EmailService {
             helper.setText(template, true);
 
             mailSender.send(message);
-            System.out.println("Email enviado com sucesso!");
+            LOG.info("E-mail de convite para área de trabalho enviado.");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("Falha ao enviar o e-mail de convite para área de trabalho.", e);
             throw new RuntimeException(e.getMessage(), e);
         }
     }
@@ -139,10 +143,10 @@ public class EmailService {
             helper.setText(template, true);
 
             mailSender.send(message);
-            System.out.println("Email enviado com sucesso!");
+            LOG.info("E-mail de confirmação de cadastro enviado.");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("Falha ao enviar o e-mail de confirmação de cadastro.", e);
             throw new RuntimeException(e.getMessage(), e);
         }
     }
@@ -173,10 +177,10 @@ public class EmailService {
             helper.setText(template, true);
 
             mailSender.send(message);
-            System.out.println("Email de lembrete enviado com sucesso!");
+            LOG.info("E-mail de lembrete de tarefa enviado.");
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error("Falha ao enviar o e-mail de lembrete de tarefa.", e);
             throw new RuntimeException(e.getMessage(), e);
         }
     }

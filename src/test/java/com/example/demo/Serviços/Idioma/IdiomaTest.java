@@ -82,7 +82,7 @@ class IdiomaTest {
     @Test
     void textosComParametrosSubstituemOValor() {
         LocaleContextHolder.setLocale(Locale.ENGLISH);
-        assertThat(Mensagens.get("msg.email.erroEnvio", "falhou")).isEqualTo("Error sending email! falhou");
+        assertThat(Mensagens.get("msg.lista.nomeLongo", 100)).isEqualTo("The list name can have at most 100 characters.");
     }
 
     @Test

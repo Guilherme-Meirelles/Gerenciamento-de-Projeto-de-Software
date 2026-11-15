@@ -1,5 +1,7 @@
 package com.example.demo.Controles;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.demo.Serviços.Idioma.Idioma;
 import com.example.demo.Serviços.Idioma.IdiomaLocaleResolver;
 import com.example.demo.Serviços.Idioma.Mensagens;
@@ -23,11 +25,14 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.time.Year;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
 @Controller
 public class LoginCadastroControle {
+
+    private static final Logger LOG = LoggerFactory.getLogger(LoginCadastroControle.class);
 
     @Autowired
     private UsuarioRepository ur;
@@ -51,6 +56,23 @@ public class LoginCadastroControle {
         return senha.matches("(?s)(?=.*\\p{Lu})(?=.*\\p{Ll})(?=.*\\d)(?=.*[^\\p{L}\\p{N}\\s]).*");
     }
 
+    // Data de nascimento (aaaa-mm-dd) ausente, mal escrita, de antes de 1900 ou no futuro: o navegador já barra,
+    // mas o servidor não pode confiar nisso (e antes quebrava com erro 500 se o campo viesse vazio).
+    static boolean dataNascimentoInvalida(String dataIso) {
+        if (dataIso == null) return true;
+        try {
+            LocalDate data = LocalDate.parse(dataIso);
+            return data.isAfter(LocalDate.now()) || data.getYear() < 1900;
+        } catch (DateTimeParseException e) {
+            return true;
+        }
+    }
+
+    // O BCrypt só considera os 72 primeiros bytes da senha; passar disso seria ignorado sem aviso
+    static boolean senhaLonga(String senha) {
+        return senha != null && senha.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > Usuario.SENHA_MAX;
+    }
+
     @GetMapping("/login")
     public String login() {
         return "login";
@@ -69,8 +91,23 @@ public class LoginCadastroControle {
             return "cadastro";
         }
 
+        if (usuario.getNome() != null && usuario.getNome().length() > Usuario.NOME_MAX) {
+            model.addAttribute("mensagem", Mensagens.get("msg.nome.longo", Usuario.NOME_MAX));
+            return "cadastro";
+        }
+
+        if (usuario.getEmail() != null && usuario.getEmail().length() > Usuario.EMAIL_MAX) {
+            model.addAttribute("mensagem", Mensagens.get("msg.email.longo", Usuario.EMAIL_MAX));
+            return "cadastro";
+        }
+
         if (usuario.getSenha().length() < 8) {
             model.addAttribute("mensagem", Mensagens.get("msg.senha.curta"));
+            return "cadastro";
+        }
+
+        if (senhaLonga(usuario.getSenha())) {
+            model.addAttribute("mensagem", Mensagens.get("msg.senha.longa", Usuario.SENHA_MAX));
             return "cadastro";
         }
 
@@ -79,10 +116,9 @@ public class LoginCadastroControle {
             return "cadastro";
         }
 
-        if (Long.parseLong(usuario.getDataNascimento().substring(0, 4)) > Year.now().getValue()) {
+        if (dataNascimentoInvalida(usuario.getDataNascimento())) {
             model.addAttribute("mensagem", Mensagens.get("msg.ano.invalido"));
             return "cadastro";
-
         }
 
         if (ur.findByEmail(usuario.getEmail()) != null) {
@@ -171,7 +207,8 @@ public class LoginCadastroControle {
             model.addAttribute("mensagem", Mensagens.get("msg.email.reenviado"));
 
         } catch (Exception e) {
-            model.addAttribute("erro", Mensagens.get("msg.email.erroEnvio", e.getMessage()));
+            LOG.error("Não foi possível reenviar o e-mail de verificação.", e);
+            model.addAttribute("erro", Mensagens.get("msg.email.erroEnvio"));
         }
 
         return "login";

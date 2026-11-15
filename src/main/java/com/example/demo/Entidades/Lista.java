@@ -8,10 +8,17 @@ import java.util.Set;
 @Entity
 public class Lista {
 
+    // Limites de texto, iguais aos da tarefa (título 100 e descrição 255). O sidebar.html repete esses números
+    // no maxlength; os dois lugares precisam mudar juntos.
+    public static final int NOME_MAX = 100;
+    public static final int DESCRICAO_MAX = 255;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(length = NOME_MAX)
     private String nome;
+    @Column(length = DESCRICAO_MAX)
     private String descricao;
 
     @ManyToOne(fetch = FetchType.LAZY)

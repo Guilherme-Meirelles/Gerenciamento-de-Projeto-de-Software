@@ -100,6 +100,10 @@ i {
     height: 20px;
 }
 
+.btn-mais-lista[hidden] {
+    display: none;
+}
+
 /* --- Menu de Filtro e Ordenação --- */
 .menu-filtro {
     position: fixed;
@@ -347,6 +351,7 @@ i {
 
 .tarefa-conteudo {
     flex-grow: 1;
+    min-width: 0; /* sem isso um texto comprido sem espaços empurra os botões de editar e remover para fora do card */
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -356,6 +361,7 @@ i {
     font-size: 16px;
     font-weight: 500;
     color: #fff;
+    overflow-wrap: anywhere; /* quebra também palavras sem espaço */
 }
 
 .tarefa-titulo.concluida {
@@ -367,6 +373,13 @@ i {
     font-size: 14px;
     color: #bbb;
     line-height: 1.4;
+    overflow-wrap: anywhere;
+    /* No card a descrição ocupa no máximo 3 linhas (o texto inteiro aparece ao abrir a tarefa) */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .tarefa-info {
@@ -577,6 +590,7 @@ i {
 }
 
 .titulo-modal-tarefa {
+    text-align: center;
     font-size: 22px;
     font-weight: 600;
     margin-bottom: 25px;
@@ -599,6 +613,27 @@ i {
     font-size: 14px;
     color: #d6d6d6;
     font-weight: 500;
+}
+
+/* Contador de caracteres (ex.: 12/100) no canto de baixo do campo. Herda a cor do tema; no limite fica em negrito. */
+.contador-caracteres {
+    align-self: flex-end;
+    margin-top: -4px;
+    font-size: 12px;
+    line-height: 1;
+    color: inherit;
+    opacity: 0.85;
+    font-variant-numeric: tabular-nums;
+}
+
+.contador-caracteres.no-limite {
+    font-weight: 700;
+    opacity: 1;
+}
+
+/* Na janela de detalhes (só leitura) o contador não faz sentido */
+.tarefa-somente-leitura .contador-caracteres {
+    display: none;
 }
 
 .campo-tarefa input,
@@ -1199,6 +1234,7 @@ input[type="checkbox"].toggle-switch::before {
 }
 
 .titulo-modal-checklist {
+    text-align: center;
     font-size: 22px;
     font-weight: 600;
     margin-bottom: 20px;
@@ -1785,18 +1821,21 @@ a.checklist-nome:hover {
 
 /* Regras para Truncar o Subtítulo da Lista (Descrição Longa) */
 #subtitulo-principal {
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* no máximo 2 linhas; o texto inteiro aparece ao passar o mouse */
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-
-    max-width: 300px;
-
-    display: block;
+    overflow-wrap: anywhere;
+    max-width: 100%;
 
     font-size: 14px;
+    line-height: 1.35;
     color: #b0b0b0;
-    margin-left: 10px;
-    margin-right: 15px;
+}
+
+#subtitulo-principal:empty {
+    display: none;
 }
 
 .titulo-info {
@@ -1805,16 +1844,21 @@ a.checklist-nome:hover {
     width: 100%;
 }
 
-/* Título e data/descrição na mesma linha de base (o texto menor não "flutua" acima do maior) */
+/* Título em cima e descrição (ou data) logo abaixo; um título comprido é cortado com "…" e nunca passa por cima dos botões de filtro */
 .titulo-texto {
     display: flex;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    flex: 1;
     min-width: 0;
 }
 
-/* Ajuste para o Título Principal: Permite que o título ocupe apenas o espaço necessário e não seja truncado. */
 #titulo-principal {
-    flex-shrink: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ===== Adicionar/Editar Lista no mesmo estilo dos demais modais (como Nova Área) ===== */
@@ -2438,4 +2482,12 @@ a.checklist-nome:hover {
     width: 48px;
     height: 48px;
     margin: 0 auto 15px;
+}
+
+
+/* Listas rolantes com itens em caixa: a barra de rolagem fica afastada das caixas (antes encostava nelas) */
+.lista-checklists,
+.lista-notificacoes {
+    margin-right: -10px;
+    padding-right: 10px;
 }

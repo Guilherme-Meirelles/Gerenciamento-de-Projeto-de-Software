@@ -22,7 +22,83 @@
     <!-- Conteúdo principal - Áreas de Trabalho -->
     <main class="conteudo-areas">
         <div class="titulo">
-            <h2 th:text="#{sidebar.areasTrabalho}">Áreas de Trabalho</h2>
+            <div class="titulo-info">
+                <div class="titulo-texto">
+                    <h2 th:text="#{sidebar.areasTrabalho}">Áreas de Trabalho</h2>
+                </div>
+                <div class="titulo-acoes">
+                    <button class="btn-filtro" id="btnFiltroAreas" title="Filtrar áreas" th:title="#{areas.filtrarAreas}">
+                        <i data-lucide="filter"></i>
+                    </button>
+                    <button class="btn-ordenar" id="btnOrdenarAreas" title="Ordenar áreas" th:title="#{areas.ordenarAreas}">
+                        <i data-lucide="arrow-up-down"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu de Filtro das áreas (mesmo estilo do filtro das tarefas) -->
+        <div class="menu-filtro" id="menuFiltroAreas" style="display: none;">
+            <h4 class="menu-filtro-titulo" th:text="#{menu.filtrarPor}">Filtrar por</h4>
+
+            <div class="campo-filtro">
+                <input type="text" id="filtroTextoAreas" placeholder="Pesquisa..." th:placeholder="#{menu.phPesquisa}" maxlength="100" />
+            </div>
+
+            <button class="menu-filtro-item" data-filtro="todas">
+                <i data-lucide="briefcase"></i> <span th:text="#{areas.filtroTodas}">Todas as áreas</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-filtro="minhas">
+                <i data-lucide="user"></i> <span th:text="#{areas.filtroMinhas}">Criadas por mim</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-filtro="compartilhadas">
+                <i data-lucide="share-2"></i> <span th:text="#{areas.filtroCompartilhadas}">Compartilhadas comigo</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-filtro="ADMIN">
+                <i data-lucide="shield"></i> <span th:text="#{areas.administrador}">Administrador</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-filtro="EDITOR">
+                <i data-lucide="pencil"></i> <span th:text="#{areas.editor}">Editor</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-filtro="OBSERVADOR">
+                <i data-lucide="eye"></i> <span th:text="#{areas.observador}">Observador</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+        </div>
+
+        <!-- Menu de Ordenação das áreas; clicar de novo na opção marcada volta à ordem original -->
+        <div class="menu-filtro" id="menuOrdenarAreas" style="display: none;">
+            <h4 class="menu-filtro-titulo" th:text="#{menu.ordenarPor}">Ordenar por</h4>
+
+            <button class="menu-filtro-item" data-ordem="nome-az">
+                <i data-lucide="arrow-down-a-z"></i> <span th:text="#{areas.ordemNomeAz}">Nome (A a Z)</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-ordem="nome-za">
+                <i data-lucide="arrow-down-z-a"></i> <span th:text="#{areas.ordemNomeZa}">Nome (Z a A)</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-ordem="recentes">
+                <i data-lucide="calendar-plus"></i> <span th:text="#{areas.ordemRecentes}">Mais recentes</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-ordem="antigas">
+                <i data-lucide="calendar-clock"></i> <span th:text="#{areas.ordemAntigas}">Mais antigas</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-ordem="manual" th:title="#{areas.ordemManualDica}" title="Segure uma área e arraste para a posição que quiser">
+                <i data-lucide="grip-vertical"></i> <span th:text="#{areas.ordemManual}">Manual</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
+            <button class="menu-filtro-item" data-ordem="permissao">
+                <i data-lucide="shield"></i> <span th:text="#{areas.ordemPermissao}">Permissão</span>
+                <i data-lucide="check" class="menu-filtro-marca"></i>
+            </button>
         </div>
 
         <!-- Renderiza cada área do usuário -->
@@ -33,9 +109,10 @@
                  th:data-id="${participacao.area.id}"
                  th:data-nome="${participacao.area.nome}"
                  th:data-permissao="${participacao.permissao}"
+                 th:data-minha="${participacao.area.dono != null and participacao.area.dono.id == usuario.id}"
                  onclick="abrirArea(this)">
 
-                <h3 th:text="${participacao.area.nome}"></h3>
+                <h3 th:text="${participacao.area.nome}" th:title="${participacao.area.nome}"></h3>
                 <span class="badge-permissao"
                       th:classappend="${#strings.toLowerCase(participacao.permissao.name())}"
                       th:text="${participacao.permissao.name() == 'ADMIN' ? #messages.msg('areas.administrador') : (participacao.permissao.name() == 'EDITOR' ? #messages.msg('areas.editor') : #messages.msg('areas.observador'))}"></span>
@@ -79,7 +156,8 @@
                 <input type="hidden" id="areaIdEdicao">
                 <div class="campo-modal">
                     <label th:text="#{areas.nomeArea}">Nome da área</label>
-                    <input type="text" id="inputNomeArea" placeholder="Ex: Projetos Pessoais" th:placeholder="#{areas.phNomeArea}" autofocus required />
+                    <input type="text" id="inputNomeArea" placeholder="Ex: Projetos Pessoais" th:placeholder="#{areas.phNomeArea}" maxlength="60" autofocus required /><!-- mesmo valor de AreaTrabalho.NOME_MAX -->
+                    <span class="contador-caracteres" id="contadorNomeArea" aria-hidden="true"></span>
                 </div>
 
                 <div class="botoes-modal">
@@ -158,7 +236,7 @@
             <form id="emailForm" class="formulario-nova-area" novalidate onsubmit="enviarViaAjax(); return false;">
                 <div class="campo-modal">
                     <label for="email" th:text="#{comum.email}">E-mail</label>
-                    <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" th:placeholder="#{areas.phEmail}" required>
+                    <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" th:placeholder="#{areas.phEmail}" maxlength="254" required>
                 </div>
 
                 <div class="botoes-modal">

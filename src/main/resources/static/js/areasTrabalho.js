@@ -17,6 +17,7 @@ window.abrirModalNovaArea = function () {
     modoEdicao = false;
     document.getElementById('tituloModalArea').textContent = t('js.areas.novaTitulo');
     document.getElementById('inputNomeArea').value = '';
+    atualizarContadorNomeArea();
     document.getElementById('inputNomeArea').placeholder = t('js.areas.phNome');
     document.querySelector('.btn-criar').textContent = t('js.areas.criar');
     configurarModalArea('briefcase', t('js.areas.novaDesc'));
@@ -45,6 +46,7 @@ function atualizarBotaoSalvarArea() {
 }
 
 document.getElementById('inputNomeArea').addEventListener('input', atualizarBotaoSalvarArea);
+document.getElementById('inputNomeArea').addEventListener('input', atualizarContadorNomeArea);
 
 window.fecharModalArea = function () {
     document.getElementById('modalArea').style.display = 'none';
@@ -59,6 +61,16 @@ window.fecharModalArea = function () {
     }
 }
 
+// Contador de caracteres do nome da área (ex.: 12/60); o limite vem do maxlength do campo
+function atualizarContadorNomeArea() {
+    const campo = document.getElementById('inputNomeArea');
+    const contador = document.getElementById('contadorNomeArea');
+    if (!campo || !contador) return;
+    contador.textContent = campo.value.length + '/' + campo.maxLength;
+    contador.classList.toggle('no-limite', campo.value.length >= campo.maxLength);
+}
+document.addEventListener('DOMContentLoaded', atualizarContadorNomeArea);
+
 window.adicionarCardArea = function (id, nome) {
     const grid = document.getElementById("areasGrid");
 
@@ -67,10 +79,13 @@ window.adicionarCardArea = function (id, nome) {
     card.setAttribute("data-nome", nome);
     card.setAttribute("data-id", id);
     card.setAttribute("data-permissao", "ADMIN"); // quem cria a área é o administrador
+    card.setAttribute("data-minha", "true");
+    card.dataset.ordem = String(proximaOrdemArea++); // posição original, para voltar à ordem padrão depois de ordenar
     card.onclick = () => abrirArea(card);
 
     const h3 = document.createElement("h3");
     h3.textContent = nome;
+    h3.title = nome;
 
     // Quem cria a área é o administrador
     const badge = document.createElement("span");
@@ -82,14 +97,16 @@ window.adicionarCardArea = function (id, nome) {
     grid.insertBefore(card, grid.lastElementChild); // insere antes do "+"
 
     lucide.createIcons(); // atualiza ícones se necessário
+    aplicarFiltroEOrdemAreas();
 }
 
 window.atualizarNomeNoCard = function (id, novoNome) {
     const card = document.querySelector(`.area-card[data-id="${id}"]`);
     if (card) {
         const h3 = card.querySelector("h3");
-        if (h3) h3.textContent = novoNome;
+        if (h3) { h3.textContent = novoNome; h3.title = novoNome; }
         card.dataset.nome = novoNome;
+        aplicarFiltroEOrdemAreas();
     }
 }
 
@@ -100,6 +117,11 @@ window.salvarArea = function (event) {
     const nome = document.getElementById("inputNomeArea").value.trim();
     if (!nome) {
         Aviso.mostrar(t('js.areas.nomeInvalido'), 'erro');
+        return;
+    }
+    const maxNome = document.getElementById('inputNomeArea').maxLength;
+    if (nome.length > maxNome) {
+        Aviso.mostrar(t('js.areas.nomeLongo', maxNome), 'erro');
         return;
     }
 
@@ -115,6 +137,10 @@ window.salvarArea = function (event) {
                 window.location.href = "/login";
                 return;
             }
+            if (newId === "NAME_TOO_LONG") {
+                Aviso.mostrar(t('js.areas.nomeLongo', maxNome), 'erro');
+                return;
+            }
             adicionarCardArea(newId, nome);
             fecharModalArea();
             document.getElementById("areaIdEdicao").value = "";
@@ -122,8 +148,6 @@ window.salvarArea = function (event) {
         return;
     }
 
-    console.log(id);
-    console.log(encodeURIComponent(id))
 
     // RENOMEAR (com id)
     fetch(`/areasTrabalho/${encodeURIComponent(id)}/renomear`, {
@@ -135,6 +159,7 @@ window.salvarArea = function (event) {
         if (res.status === 200) return res.text();
         if (res.status === 404) throw new Error("NOT_FOUND");
         if (res.status === 403) throw new Error("NOT_OWNER");
+        if (res.status === 400) throw new Error("NAME_TOO_LONG");
         throw new Error("UNKNOWN");
     })
     .then(_ => {
@@ -146,6 +171,7 @@ window.salvarArea = function (event) {
     .catch(err => {
         if (err.message === "NOT_FOUND") Aviso.mostrar(t('js.areas.naoEncontrada'), 'erro');
         else if (err.message === "NOT_OWNER") Aviso.mostrar(t('js.areas.semPermissaoRenomear'), 'erro');
+        else if (err.message === "NAME_TOO_LONG") Aviso.mostrar(t('js.areas.nomeLongo', document.getElementById('inputNomeArea').maxLength), 'erro');
         else Aviso.mostrar(t('js.areas.erroRenomear'), 'erro');
         fecharModalArea();
     });
@@ -170,6 +196,7 @@ window.renomearAreaGerenciada = function () {
     modoEdicao = true;
     document.getElementById('tituloModalArea').textContent = t('js.areas.renomearTitulo');
     document.getElementById('inputNomeArea').value = areaVoltarGerenciar.nome;
+    atualizarContadorNomeArea();
     document.getElementById('inputNomeArea').placeholder = areaVoltarGerenciar.nome;
     document.querySelector('.btn-criar').textContent = t('js.areas.salvar');
     configurarModalArea('pencil', t('js.areas.renomearDesc'));
@@ -204,6 +231,7 @@ window.carregarAreasCompartilhamento = function (areas) {
         const label = document.createElement('label');
         label.htmlFor = input.id;
         label.textContent = area.nome;
+        label.title = area.nome;
 
         div.appendChild(input);
         div.appendChild(label);
@@ -512,8 +540,13 @@ function nomeDaArea(areaId) {
 }
 
 // "Teste" | "Teste" e "Outra" | "A", "B" e "C"
+// Nomes muito grandes são abreviados com "…" para não estourar a caixa do aviso
+function abreviarNome(nome, max = 30) {
+    return nome.length > max ? nome.slice(0, max).trimEnd() + '…' : nome;
+}
+
 function listarNomes(ids) {
-    const nomes = ids.map(id => `"${nomeDaArea(id)}"`);
+    const nomes = ids.map(id => `"${abreviarNome(nomeDaArea(id))}"`);
     return nomes.length > 1
         ? nomes.slice(0, -1).join(', ') + ' ' + t('js.areas.eSep') + ' ' + nomes[nomes.length - 1]
         : nomes[0];
@@ -606,6 +639,7 @@ window.popularListaAreasExcluir = function (areas) {
         const label = document.createElement('label');
         label.setAttribute('for', 'excluir-' + area.id);
         label.textContent = area.nome;
+        label.title = area.nome;
 
         // O que vai acontecer com a área: administrador exclui, os demais só saem
         const dica = document.createElement('span');
@@ -677,6 +711,7 @@ window.abrirModalGerenciamento = function () {
         const nome = document.createElement('span');
         nome.className = 'nome-area';
         nome.textContent = area.nome;
+        nome.title = area.nome;
 
         // Papel do usuário nesta área (Administrador, Editor ou Observador)
         const badge = document.createElement('span');
@@ -933,7 +968,6 @@ window.removerMembro = async function (membroId, membroNome, idArea) {
         }
 
         // --- 2. Sucesso: Atualiza a Interface ---
-        console.log('Membro removido com sucesso:', membroId);
 
         const membroCard = document.querySelector(`.membro-item[data-membro-id="${membroId}"]`);
 
@@ -981,4 +1015,236 @@ btnTodasTarefas.addEventListener('click', function() {
 // Inicializa os ícones do Lucide ao carregar a página
 document.addEventListener('DOMContentLoaded', function() {
     lucide.createIcons();
+});
+
+// ===== Filtrar e ordenar as áreas (mesmo padrão do filtro e da ordenação das tarefas) =====
+// Tudo roda no navegador sobre os cartões que já estão na tela; o cartão "Nova área" fica sempre por último.
+let proximaOrdemArea = 0;
+let filtroPermissaoAreas = 'todas';
+let ordemAreas = null;
+
+function normalizarTexto(texto) {
+    return (texto || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function aplicarFiltroEOrdemAreas() {
+    const grid = document.getElementById('areasGrid');
+    if (!grid) return;
+    const cartaoNova = grid.querySelector('.area-add');
+    const cartoes = Array.from(grid.querySelectorAll('.area-card:not(.area-add)'));
+    const busca = normalizarTexto(document.getElementById('filtroTextoAreas').value.trim());
+    const pesoPermissao = { ADMIN: 0, EDITOR: 1, OBSERVADOR: 2 };
+    const nome = c => normalizarTexto(c.dataset.nome);
+    const original = (a, b) => Number(a.dataset.ordem) - Number(b.dataset.ordem);
+
+    cartoes.sort((a, b) => {
+        if (ordemAreas === 'nome-az') return nome(a).localeCompare(nome(b)) || original(a, b);
+        if (ordemAreas === 'nome-za') return nome(b).localeCompare(nome(a)) || original(a, b);
+        // O id cresce com a criação da área, então serve como "data de criação"
+        if (ordemAreas === 'recentes') return Number(b.dataset.id) - Number(a.dataset.id);
+        if (ordemAreas === 'antigas') return Number(a.dataset.id) - Number(b.dataset.id);
+        if (ordemAreas === 'permissao') {
+            return (pesoPermissao[a.dataset.permissao] - pesoPermissao[b.dataset.permissao]) || nome(a).localeCompare(nome(b)) || original(a, b);
+        }
+        return original(a, b);
+    });
+
+    let visiveis = 0;
+    // No modo manual os cartões podem ser arrastados (só os de verdade, nunca o "Nova área")
+    cartoes.forEach(c => {
+        c.draggable = ordemAreas === 'manual';
+        c.classList.toggle('arrastavel', ordemAreas === 'manual');
+    });
+
+    cartoes.forEach(c => {
+        const passaFiltro = filtroPermissaoAreas === 'todas'
+            || (filtroPermissaoAreas === 'minhas' && c.dataset.minha === 'true')
+            || (filtroPermissaoAreas === 'compartilhadas' && c.dataset.minha !== 'true')
+            || c.dataset.permissao === filtroPermissaoAreas;
+        const passa = passaFiltro
+            && (!busca || nome(c).includes(busca));
+        c.hidden = !passa;
+        if (passa) visiveis++;
+        grid.insertBefore(c, cartaoNova);
+    });
+
+    // Nenhuma área combina com o filtro: mostra o aviso (o cartão "Nova área" continua disponível)
+    let vazio = document.getElementById('areasNadaEncontrado');
+    if (visiveis === 0 && cartoes.length > 0) {
+        if (!vazio) {
+            vazio = document.createElement('div');
+            vazio.id = 'areasNadaEncontrado';
+            vazio.className = 'estado-vazio-tarefas';
+            vazio.innerHTML = '<i data-lucide="search-x"></i><strong></strong><span></span>';
+            vazio.querySelector('strong').textContent = t('js.areas.nadaEncontrado');
+            vazio.querySelector('span').textContent = t('js.areas.nadaEncontradoTexto');
+            grid.insertBefore(vazio, grid.firstChild);
+            lucide.createIcons();
+        }
+    } else if (vazio) {
+        vazio.remove();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const btnFiltro = document.getElementById('btnFiltroAreas');
+    const btnOrdenar = document.getElementById('btnOrdenarAreas');
+    const menuFiltro = document.getElementById('menuFiltroAreas');
+    const menuOrdenar = document.getElementById('menuOrdenarAreas');
+    if (!btnFiltro || !btnOrdenar || !menuFiltro || !menuOrdenar) return;
+
+    document.querySelectorAll('#areasGrid .area-card:not(.area-add)').forEach(c => { c.dataset.ordem = String(proximaOrdemArea++); });
+
+    function abrirMenu(menu, botao, outro) {
+        const aberto = menu.style.display === 'block';
+        outro.style.display = 'none';
+        menu.style.display = aberto ? 'none' : 'block';
+        if (!aberto) {
+            const rect = botao.getBoundingClientRect();
+            menu.style.left = (rect.right - 220) + 'px';
+            menu.style.top = (rect.bottom + 5) + 'px';
+        }
+    }
+
+    btnFiltro.addEventListener('click', e => { e.stopPropagation(); abrirMenu(menuFiltro, btnFiltro, menuOrdenar); });
+    btnOrdenar.addEventListener('click', e => { e.stopPropagation(); abrirMenu(menuOrdenar, btnOrdenar, menuFiltro); });
+
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.menu-filtro') && !e.target.closest('.btn-filtro') && !e.target.closest('.btn-ordenar')) {
+            menuFiltro.style.display = 'none';
+            menuOrdenar.style.display = 'none';
+        }
+    });
+
+    document.getElementById('filtroTextoAreas').addEventListener('input', aplicarFiltroEOrdemAreas);
+    document.getElementById('filtroTextoAreas').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') menuFiltro.style.display = 'none';
+    });
+
+    // Clicar de novo na opção marcada desmarca (volta ao padrão)
+    menuFiltro.querySelectorAll('.menu-filtro-item').forEach(item => {
+        item.addEventListener('click', function () {
+            const desmarcar = this.classList.contains('active');
+            menuFiltro.querySelectorAll('.menu-filtro-item').forEach(b => b.classList.remove('active'));
+            filtroPermissaoAreas = desmarcar ? 'todas' : this.dataset.filtro;
+            if (!desmarcar) this.classList.add('active');
+            aplicarFiltroEOrdemAreas();
+            menuFiltro.style.display = 'none';
+        });
+    });
+
+    menuOrdenar.querySelectorAll('.menu-filtro-item').forEach(item => {
+        item.addEventListener('click', function () {
+            const desmarcar = this.classList.contains('active');
+            menuOrdenar.querySelectorAll('.menu-filtro-item').forEach(b => b.classList.remove('active'));
+            ordemAreas = desmarcar ? null : this.dataset.ordem;
+            if (!desmarcar) this.classList.add('active');
+            // Ao entrar no modo manual, a ordem que está na tela vira a ordem salva
+            const entrouNoManual = ordemAreas === 'manual' && !desmarcar;
+            // Salva antes de reaplicar a ordenação: assim a tela continua exatamente como estava
+            if (entrouNoManual) salvarOrdemAreas(idsAreasNaTela());
+            aplicarFiltroEOrdemAreas();
+            menuOrdenar.style.display = 'none';
+        });
+    });
+});
+
+
+// Ao trocar o idioma a página recarrega: o filtro, a pesquisa e a ordem das áreas voltam como estavam (só nesta aba)
+(function () {
+    const CHAVE = 'todaily.idioma.filtroAreas';
+    const original = window.trocarIdioma;
+    if (typeof original === 'function') {
+        window.trocarIdioma = function (lang) {
+            try {
+                sessionStorage.setItem(CHAVE, JSON.stringify({
+                    filtro: filtroPermissaoAreas,
+                    ordem: ordemAreas,
+                    texto: document.getElementById('filtroTextoAreas').value
+                }));
+            } catch (e) { /* sem armazenamento: volta ao padrão */ }
+            return original(lang);
+        };
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        try {
+            const salvo = JSON.parse(sessionStorage.getItem(CHAVE) || 'null');
+            sessionStorage.removeItem(CHAVE);
+            if (!salvo) return;
+            filtroPermissaoAreas = salvo.filtro || 'todas';
+            ordemAreas = salvo.ordem || null;
+            document.getElementById('filtroTextoAreas').value = salvo.texto || '';
+            document.querySelectorAll('#menuFiltroAreas .menu-filtro-item').forEach(b =>
+                b.classList.toggle('active', b.dataset.filtro === filtroPermissaoAreas && filtroPermissaoAreas !== 'todas'));
+            document.querySelectorAll('#menuOrdenarAreas .menu-filtro-item').forEach(b =>
+                b.classList.toggle('active', !!ordemAreas && b.dataset.ordem === ordemAreas));
+            aplicarFiltroEOrdemAreas();
+        } catch (e) { /* estado guardado inválido: ignora */ }
+    });
+})();
+
+// ===== Ordem manual das áreas: segurar o cartão e arrastar até a posição desejada =====
+let cartaoArrastado = null;
+let ordemAntesDoArraste = [];
+
+function idsAreasNaTela() {
+    return Array.from(document.querySelectorAll('#areasGrid .area-card:not(.area-add)')).map(c => Number(c.dataset.id));
+}
+
+async function salvarOrdemAreas(ids) {
+    // A nova ordem vira a "original" dos cartões, para que ela continue valendo ao trocar de ordenação e voltar
+    ids.forEach((id, i) => {
+        const c = document.querySelector(`#areasGrid .area-card[data-id="${id}"]`);
+        if (c) c.dataset.ordem = i;
+    });
+    try {
+        const resposta = await fetch('/areasTrabalho/ordem', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids })
+        });
+        if (!resposta.ok) throw new Error('Falha ao salvar a ordem');
+    } catch (erro) {
+        console.error(erro);
+        Aviso.mostrar(t('js.areas.erroOrdem'), 'erro');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    const grid = document.getElementById('areasGrid');
+    if (!grid) return;
+
+    // Delegação: vale também para áreas criadas depois, sem religar nada
+    grid.addEventListener('dragstart', function (e) {
+        const card = e.target.closest ? e.target.closest('.area-card:not(.area-add)') : null;
+        if (!card || ordemAreas !== 'manual') { e.preventDefault(); return; }
+        cartaoArrastado = card;
+        ordemAntesDoArraste = idsAreasNaTela();
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', card.dataset.id);
+        // adia a classe para o navegador tirar a "foto" do arraste ainda com a aparência normal
+        setTimeout(() => card.classList.add('arrastando'), 0);
+    });
+
+    grid.addEventListener('dragover', function (e) {
+        if (!cartaoArrastado) return;
+        const alvo = e.target.closest('.area-card:not(.area-add)');
+        if (!alvo || alvo === cartaoArrastado || alvo.hidden) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const caixa = alvo.getBoundingClientRect();
+        const depois = e.clientX > caixa.left + caixa.width / 2;
+        const referencia = depois ? alvo.nextElementSibling : alvo;
+        if (referencia !== cartaoArrastado) grid.insertBefore(cartaoArrastado, referencia);
+    });
+
+    grid.addEventListener('drop', function (e) { e.preventDefault(); });
+
+    grid.addEventListener('dragend', function () {
+        if (!cartaoArrastado) return;
+        cartaoArrastado.classList.remove('arrastando');
+        cartaoArrastado = null;
+        const nova = idsAreasNaTela();
+        if (nova.join(',') !== ordemAntesDoArraste.join(',')) salvarOrdemAreas(nova);
+    });
 });

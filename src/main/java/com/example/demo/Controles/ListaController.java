@@ -27,6 +27,7 @@ import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.ListaService;
 import com.example.demo.Serviços.PermissaoAreaService;
+import com.example.demo.Serviços.TextoMuitoLongoException;
 import com.example.demo.Serviços.TarefaService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,8 +85,12 @@ public class ListaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Lista lista = listaService.criarLista(areaId, nome, descricao);
-        return ResponseEntity.ok(lista);
+        try {
+            Lista lista = listaService.criarLista(areaId, nome, descricao);
+            return ResponseEntity.ok(lista);
+        } catch (TextoMuitoLongoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{listaId}/tarefas")
@@ -139,8 +144,12 @@ public class ListaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Lista lista = listaService.editarLista(id, nome, descricao);
-        return ResponseEntity.ok(lista);
+        try {
+            Lista lista = listaService.editarLista(id, nome, descricao);
+            return ResponseEntity.ok(lista);
+        } catch (TextoMuitoLongoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")

@@ -29,10 +29,10 @@
 
         <input type="hidden" name="token" th:value="${token}">
         <label for="senha" th:text="#{comum.senha}">Senha</label>
-        <input type="password" id="senha" name="senha" required />
+        <input type="password" id="senha" name="senha" maxlength="72" required />
 
         <label for="confirmarSenha" th:text="#{comum.confirmarSenha}">Confirmar Senha</label>
-        <input type="password" id="confirmarSenha" name="confirmarSenha" required />
+        <input type="password" id="confirmarSenha" name="confirmarSenha" maxlength="72" required />
 
         <button type="submit" class="btn" th:text="#{comum.confirmar}">Confirmar</button>
 

@@ -1,5 +1,7 @@
 package com.example.demo.Controles;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.example.demo.Serviços.Idioma.Mensagens;
 import com.example.demo.ConsultasBD.*;
 import com.example.demo.Entidades.*;
@@ -22,6 +24,8 @@ import static com.example.demo.Entidades.PermissaoArea.*;
 
 @Controller
 public class CompartilharAreadeTrabalho {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CompartilharAreadeTrabalho.class);
 
     @Autowired
     private UsuarioRepository usuarioRepository;
@@ -72,21 +76,16 @@ public class CompartilharAreadeTrabalho {
                 return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.permissaoConviteInvalida")));
             }
 
+            // Só Editor/Admin da área pode convidar gente pra ela; Observador é read-only.
+            // Checado antes de olhar o e-mail, para que quem não pode convidar receba sempre o mesmo "não".
+            if (!permissaoAreaService.podeEditar(remetente.getId(), idArea)) {
+                return ResponseEntity.status(403).body(Map.of("success", false, "message", Mensagens.get("msg.area.semPermissaoConvidar")));
+            }
+
             AreaTrabalho area = areaTrabalhoRepository.findById(idArea).get();
             Usuario destinatario = usuarioRepository.findByEmail(email);
-            if (area == null) {
-
-                System.out.println("Erro 2");
-            } else if (destinatario == null) {
-
-                System.out.println("Erro 3");
-            } else {
-
-                // Só Editor/Admin da área pode convidar gente pra ela; Observador é read-only.
-                if (!permissaoAreaService.podeEditar(remetente.getId(), idArea)) {
-                    return ResponseEntity.status(403).body(Map.of("success", false, "message", Mensagens.get("msg.area.semPermissaoConvidar")));
-                }
-
+            // E-mail sem conta: a resposta é a mesma de um convite enviado, para não revelar quem tem conta no sistema
+            if (destinatario != null) {
                 String tokenString = UUID.randomUUID().toString();
 
                 Token token = new Token();
@@ -102,8 +101,6 @@ public class CompartilharAreadeTrabalho {
                 String nomeUsuario = remetente.getNome();
 
                 emailService.enviarEmailCompartilharAreaTrabalho(destinatario, nomeUsuario, area, tokenString, nivel);
-
-                System.out.println("Acerto");
             }
 
             return ResponseEntity.ok(Map.of("success", true, "message", Mensagens.get("msg.convite.enviado")));
@@ -157,7 +154,7 @@ public class CompartilharAreadeTrabalho {
 
         } catch (Exception e){
 
-            System.out.println("Erro: " + e.getMessage());
+            LOG.error("Erro ao processar o convite da área.", e);
             model.addAttribute("erro", Mensagens.get("msg.convite.erroProcessarSemPonto"));
             return "login";
         }

@@ -115,4 +115,27 @@ class ChecklistServiceTest {
         assertThatThrownBy(() -> checklistService.adicionarItem(999L, "x"))
                 .isInstanceOf(RuntimeException.class);
     }
+
+    @Test
+    void descricaoMaiorQueOLimite_recusaAoAdicionarEAoEditar() {
+        montarTarefa();
+        ItemChecklist item = checklistService.adicionarItem(tarefa.getId(), "Curto");
+        String longa = "a".repeat(ItemChecklist.DESCRICAO_MAX + 1);
+
+        assertThatThrownBy(() -> checklistService.adicionarItem(tarefa.getId(), longa))
+                .isInstanceOf(TextoMuitoLongoException.class)
+                .hasMessageContaining(String.valueOf(ItemChecklist.DESCRICAO_MAX));
+        assertThatThrownBy(() -> checklistService.editarItem(item.getId(), longa, null))
+                .isInstanceOf(TextoMuitoLongoException.class);
+        assertThat(item.getDescricao()).isEqualTo("Curto");
+    }
+
+    @Test
+    void descricaoNoLimiteExato_aceita() {
+        montarTarefa();
+
+        ItemChecklist item = checklistService.adicionarItem(tarefa.getId(), "a".repeat(ItemChecklist.DESCRICAO_MAX));
+
+        assertThat(item.getId()).isNotNull();
+    }
 }

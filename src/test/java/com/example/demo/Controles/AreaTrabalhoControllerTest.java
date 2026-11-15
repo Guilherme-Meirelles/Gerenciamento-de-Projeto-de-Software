@@ -94,7 +94,110 @@ class AreaTrabalhoControllerTest {
         assertThat(participacao.getPermissao()).isEqualTo(PermissaoArea.ADMIN);
     }
 
+    @Test
+    void criarArea_nomeMaiorQueOLimite_recusaESemCriar() {
+        Usuario usuario = criarUsuario("criador-longo@teste.com");
+        entityManager.clear();
+
+        String resultado = controller.criarArea("a".repeat(AreaTrabalho.NOME_MAX + 1), requestAutenticado(usuario.getId()));
+
+        assertThat(resultado).isEqualTo("NAME_TOO_LONG");
+        assertThat(areaTrabalhoRepository.findAll()).isEmpty();
+    }
+
+    @Test
+    void criarArea_nomeNoLimiteExato_aceita() {
+        Usuario usuario = criarUsuario("criador-limite@teste.com");
+        entityManager.clear();
+
+        String resultado = controller.criarArea("a".repeat(AreaTrabalho.NOME_MAX), requestAutenticado(usuario.getId()));
+
+        assertThat(Long.valueOf(resultado)).isNotNull();
+    }
+
+    // ---------- ordem manual das áreas (por usuário) ----------
+
+    private AreaTrabalho criarAreaCom(Usuario dono, String nome) {
+        AreaTrabalho area = new AreaTrabalho();
+        area.setNome(nome);
+        area.setDono(dono);
+        entityManager.persistAndFlush(area);
+        entityManager.persistAndFlush(new ParticipacaoArea(dono, area, PermissaoArea.ADMIN));
+        return area;
+    }
+
+    @Test
+    void reordenarAreas_salvaAOrdemSoParaOUsuarioELogoAPaginaLista() {
+        Usuario usuario = criarUsuario("ordem-a@teste.com");
+        Usuario outro = criarUsuario("ordem-b@teste.com");
+        AreaTrabalho a1 = criarAreaCom(usuario, "A1");
+        AreaTrabalho a2 = criarAreaCom(usuario, "A2");
+        AreaTrabalho a3 = criarAreaCom(usuario, "A3");
+        entityManager.persistAndFlush(new ParticipacaoArea(outro, a1, PermissaoArea.EDITOR));
+        Long id1 = a1.getId(), id2 = a2.getId(), id3 = a3.getId();
+        entityManager.clear();
+
+        ResponseEntity<?> resposta = controller.reordenarAreas(Map.of("ids", List.of(id3, id1, id2)), requestAutenticado(usuario.getId()));
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Model model = new ExtendedModelMap();
+        controller.areasTrabalho(model, requestAutenticado(usuario.getId()));
+        @SuppressWarnings("unchecked")
+        List<ParticipacaoArea> lista = (List<ParticipacaoArea>) model.getAttribute("participacoes");
+        assertThat(lista).extracting(p -> p.getArea().getId()).containsExactly(id3, id1, id2);
+        // A ordem do outro usuário não foi mexida
+        assertThat(participacaoAreaRepository.findByUsuarioIdAndAreaId(outro.getId(), id1).getPosicao()).isNull();
+    }
+
+    @Test
+    void reordenarAreas_ignoraAreaDeQueOUsuarioNaoParticipa() {
+        Usuario usuario = criarUsuario("ordem-c@teste.com");
+        Usuario dono = criarUsuario("ordem-d@teste.com");
+        AreaTrabalho propria = criarAreaCom(usuario, "Própria");
+        AreaTrabalho alheia = criarAreaCom(dono, "Alheia");
+        Long idPropria = propria.getId(), idAlheia = alheia.getId();
+        entityManager.clear();
+
+        ResponseEntity<?> resposta = controller.reordenarAreas(Map.of("ids", List.of(idAlheia, idPropria)), requestAutenticado(usuario.getId()));
+        entityManager.flush();
+        entityManager.clear();
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(participacaoAreaRepository.findByUsuarioIdAndAreaId(usuario.getId(), idPropria).getPosicao()).isEqualTo(0);
+        assertThat(participacaoAreaRepository.findByUsuarioIdAndAreaId(dono.getId(), idAlheia).getPosicao()).isNull();
+    }
+
+    @Test
+    void reordenarAreas_naoLogadoOuCorpoInvalido() {
+        assertThat(controller.reordenarAreas(Map.of("ids", List.of(1L)), requestAutenticado(null)).getStatusCode())
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
+        Usuario usuario = criarUsuario("ordem-e@teste.com");
+        assertThat(controller.reordenarAreas(Map.of("ids", "nada"), requestAutenticado(usuario.getId())).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
     // ---------- renomearArea (só o dono) ----------
+
+    @Test
+    void renomearArea_nomeMaiorQueOLimite_retorna400EMantemONome() {
+        Usuario dono = criarUsuario("dono-renomear-longo@teste.com");
+        AreaTrabalho area = new AreaTrabalho();
+        area.setNome("Original");
+        area.setDono(dono);
+        entityManager.persistAndFlush(area);
+        Long areaId = area.getId();
+        entityManager.clear();
+
+        MockHttpServletRequest request = requestAutenticado(dono.getId());
+        request.setParameter("nome", "a".repeat(AreaTrabalho.NOME_MAX + 1));
+        ResponseEntity<String> resposta = controller.renomearArea(areaId, null, request);
+
+        assertThat(resposta.getStatusCode().value()).isEqualTo(400);
+        assertThat(resposta.getBody()).isEqualTo("NAME_TOO_LONG");
+        assertThat(areaTrabalhoRepository.findById(areaId).orElseThrow().getNome()).isEqualTo("Original");
+    }
 
     @Test
     void renomearArea_naoEhDono_retorna403() {

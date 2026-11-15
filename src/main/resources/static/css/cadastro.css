@@ -198,3 +198,56 @@ input[readonly]:focus {
     box-shadow: none;
     background-color: #1a1a1a;
 }
+
+
+/* ===== Data de nascimento digitada no formato do idioma (ver /js/dataNascimento.js) ===== */
+.campo-data {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.campo-data input[type="text"] {
+    padding-right: 46px; /* espaço para o botão do calendário */
+}
+
+.btn-calendario-data {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 46px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: 10px;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.btn-calendario-data svg {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-calendario-data:focus-visible {
+    outline: 2px solid #888;
+    outline-offset: -2px;
+}
+
+/* Campo de data do navegador, invisível: só serve para abrir o calendário pelo botão */
+.campo-data .seletor-data-oculto {
+    position: absolute;
+    top: 38px;
+    right: 14px;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+    color-scheme: dark;
+}

@@ -27,7 +27,14 @@ public class CategoriaService {
     @Autowired
     private TarefaRepository tarefaRepository;
 
+    private void validarNome(String nome) {
+        if (nome != null && nome.length() > Categoria.NOME_MAX) {
+            throw new TextoMuitoLongoException(Mensagens.get("msg.categoria.nomeLongo", Categoria.NOME_MAX));
+        }
+    }
+
     public Categoria criarCategoria(Long areaId, String nome, String cor) {
+        validarNome(nome);
         AreaTrabalho area = areaTrabalhoRepository.findById(areaId)
                 .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.area.naoEncontrada")));
 
@@ -40,6 +47,7 @@ public class CategoriaService {
     }
 
     public Categoria editarCategoria(Long id, String nome, String cor) {
+        validarNome(nome);
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.categoria.naoEncontrada")));
 

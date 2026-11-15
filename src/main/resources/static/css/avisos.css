@@ -119,6 +119,7 @@ input.campo-invalido:focus {
     color: #d0d0d0;
     margin: 0;
     white-space: pre-line; /* respeita as quebras de linha da mensagem */
+    overflow-wrap: anywhere; /* um nome sem espaços não passa da caixa */
 }
 
 .aviso-botoes {
@@ -184,8 +185,9 @@ input.campo-invalido:focus {
 }
 
 @keyframes caixa-aviso-entrada {
-    from { opacity: 0; transform: translateY(8px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    /* Só aparece aos poucos; subir e aumentar a janela ao abrir dava a impressão de que ela "tremia" */
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .confirma-acao,

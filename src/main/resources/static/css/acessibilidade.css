@@ -447,3 +447,20 @@ html.acess-contraste .idioma-seletor select,
 html.acess-contraste .campo-perfil select.idioma-select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") !important;
 }
+
+/* ===== Barra de rolagem fina e discreta em todo o sistema (página, listas, janelas, campos), na cor de cada tema ===== */
+:root { --rolagem-cor: #5a5a5a; }
+html.tema-claro { --rolagem-cor: #a0a0a0; }
+html.acess-contraste { --rolagem-cor: #ffffff; }
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rolagem-cor) transparent;
+}
+
+html.acess-contraste * { scrollbar-color: #ffffff #000000; }
+
+/* ===== Botão do calendário do campo de data de nascimento: a cor do ícone acompanha o tema ===== */
+html.tema-claro .btn-calendario-data { color: #1a1a1a; }
+html.tema-claro .campo-data .seletor-data-oculto { color-scheme: light; }
+html.acess-contraste .btn-calendario-data { color: #ffffff; }

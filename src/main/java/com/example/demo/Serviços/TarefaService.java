@@ -24,6 +24,15 @@ import com.example.demo.Entidades.Usuario;
 @Service
 public class TarefaService {
 
+    private void validarTamanhos(String titulo, String descricao) {
+        if (titulo != null && titulo.length() > Tarefa.TITULO_MAX) {
+            throw new TextoMuitoLongoException(Mensagens.get("msg.tarefa.tituloLongo", Tarefa.TITULO_MAX));
+        }
+        if (descricao != null && descricao.length() > Tarefa.DESCRICAO_MAX) {
+            throw new TextoMuitoLongoException(Mensagens.get("msg.tarefa.descricaoLonga", Tarefa.DESCRICAO_MAX));
+        }
+    }
+
     @Autowired
     private TarefaRepository tarefaRepository;
 
@@ -39,6 +48,8 @@ public class TarefaService {
     public Tarefa criarTarefa(Long listaId, String titulo, String descricao, Integer cor,
                               String dataFim, List<Long> responsavelIds, Boolean notificacoes,
                               List<Long> categoriaIds, String repeticao) {
+
+        validarTamanhos(titulo, descricao);
 
         Lista lista = listaRepository.findById(listaId)
                 .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.lista.naoEncontrada")));
@@ -67,6 +78,8 @@ public class TarefaService {
     public Tarefa editarTarefa(Long id, Long listaId, String titulo, String descricao, Integer cor,
                                String dataFim, List<Long> responsavelIds, Boolean notificacoes,
                                List<Long> categoriaIds, String repeticao) {
+
+        validarTamanhos(titulo, descricao);
 
         Tarefa tarefa = tarefaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.tarefa.naoEncontrada")));

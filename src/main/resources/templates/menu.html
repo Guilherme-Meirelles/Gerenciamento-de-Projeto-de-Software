@@ -43,6 +43,11 @@
                     <button class="btn-ordenar" id="btnOrdenar" title="Ordenar tarefas" th:title="#{menu.ordenarTarefas}">
                     <i data-lucide="arrow-up-down"></i>
                     </button>
+                    <!-- Só aparece quando uma lista está aberta (e o usuário pode editar): abre Editar Lista / Remover Lista -->
+                    <button class="btn-ordenar btn-mais-lista" id="btnMaisLista" hidden title="Opções da lista" th:title="#{menu.opcoesLista}"
+                            aria-haspopup="menu" aria-label="Opções da lista" th:aria-label="#{menu.opcoesLista}">
+                        <i data-lucide="ellipsis"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -62,7 +67,7 @@
             <h4 class="menu-filtro-titulo" th:text="#{menu.filtrarPor}">Filtrar por</h4>
 
             <div class="campo-filtro">
-                <input type="text" id="filtroTexto" placeholder="Pesquisa..." th:placeholder="#{menu.phPesquisa}" />
+                <input type="text" id="filtroTexto" placeholder="Pesquisa..." th:placeholder="#{menu.phPesquisa}" maxlength="100" />
             </div>
 
             <button class="menu-filtro-item" data-filtro="todas">
@@ -154,13 +159,17 @@
             <!-- TÍTULO -->
             <div class="campo-tarefa">
                 <label><span th:text="#{menu.titulo}">Título</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
-                <input type="text" id="tarefaTitulo" placeholder="Digite o título da tarefa" th:placeholder="#{menu.phTitulo}" />
+                <input type="text" id="tarefaTitulo" placeholder="Digite o título da tarefa" th:placeholder="#{menu.phTitulo}"
+                       maxlength="100" /><!-- mesmo valor de Tarefa.TITULO_MAX -->
+                <span class="contador-caracteres" id="contadorTitulo" aria-hidden="true"></span>
             </div>
 
             <!-- DESCRIÇÃO -->
             <div class="campo-tarefa">
                 <label th:text="#{sidebar.descricao}">Descrição</label>
-                <textarea id="tarefaDescricao" rows="3" placeholder="Adicione uma descrição (opcional)" th:placeholder="#{sidebar.phDescricao}"></textarea>
+                <textarea id="tarefaDescricao" rows="4" placeholder="Adicione uma descrição (opcional)" th:placeholder="#{sidebar.phDescricao}"
+                          maxlength="255"></textarea><!-- mesmo valor de Tarefa.DESCRICAO_MAX -->
+                <span class="contador-caracteres" id="contadorDescricao" aria-hidden="true"></span>
             </div>
 
             <!-- DATA -->
@@ -242,7 +251,7 @@
         </div>
 
         <div class="campo-checklist campo-novo-item-checklist">
-            <input type="text" id="novoItemChecklistInput" placeholder="Nova subatividade" th:placeholder="#{menu.phNovoItem}" />
+            <input type="text" id="novoItemChecklistInput" placeholder="Nova subatividade" th:placeholder="#{menu.phNovoItem}" maxlength="100" /><!-- mesmo valor de ItemChecklist.DESCRICAO_MAX -->
             <button type="button" class="btn-novo-checklist" id="btnAdicionarItemChecklist" title="Adicionar item" th:title="#{menu.adicionarItem}">
                 <i data-lucide="plus"></i>
             </button>
@@ -329,7 +338,7 @@
         <form class="form-checklist">
             <div class="campo-checklist">
                 <label><span th:text="#{menu.nomeCategoria}">Nome da Categoria</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
-                <input type="text" id="categoriaNome" placeholder="Digite o nome da categoria" th:placeholder="#{menu.phNomeCategoria}" />
+                <input type="text" id="categoriaNome" placeholder="Digite o nome da categoria" th:placeholder="#{menu.phNomeCategoria}" maxlength="40" /><!-- mesmo valor de Categoria.NOME_MAX -->
             </div>
 
             <div class="campo-checklist">

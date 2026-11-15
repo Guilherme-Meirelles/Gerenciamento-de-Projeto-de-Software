@@ -168,4 +168,21 @@ class RecuperarSenhaControllerTest {
         assertThat(token.isUsado()).isFalse();
         verify(usuarioRepository, never()).save(any());
     }
+
+    @Test
+    void redefinirSenha_senhaMaiorQueOLimite_naoAlteraSenhaENaoGastaOToken() {
+        Usuario usuario = usuarioExistente();
+        String senhaAntigaHash = usuario.getSenha();
+        Token token = new Token("longa", usuario.getEmail(), LocalDateTime.now().plusMinutes(5), false);
+        when(tokenRepository.findByToken("longa")).thenReturn(token);
+
+        Model model = new ExtendedModelMap();
+        String view = controller.redefinirSenha("Aa1!" + "a".repeat(Usuario.SENHA_MAX), "longa", model, new MockHttpServletRequest());
+
+        assertThat(view).isEqualTo("redefinicaoSenha");
+        assertThat(model.getAttribute("erro")).isEqualTo("A senha pode ter no máximo 72 caracteres.");
+        assertThat(usuario.getSenha()).isEqualTo(senhaAntigaHash);
+        assertThat(token.isUsado()).isFalse();
+        verify(usuarioRepository, never()).save(any());
+    }
 }

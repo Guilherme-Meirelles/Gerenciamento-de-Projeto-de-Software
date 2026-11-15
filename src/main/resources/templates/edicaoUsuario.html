@@ -27,21 +27,28 @@
     <form id="cadastroForm" action="/edicaoUsuario" method="post" novalidate onsubmit="return validarFormulario()" th:object="${usuario}">
 
         <label for="nome"><span th:text="#{comum.nome}">Nome</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
-        <input type="text" id="nome" name="nome" th:value="*{nome}" required />
+        <input type="text" id="nome" name="nome" th:value="*{nome}" maxlength="60" required /><!-- mesmo valor de Usuario.NOME_MAX -->
 
         <label for="email" th:text="#{comum.email}">E-mail</label>
         <input type="email" id="email" name="email" th:value="*{email}" readonly tabindex="-1"
                title="O e-mail é o seu login e não pode ser alterado" th:title="#{edicao.emailTitulo}" />
         <p class="info" th:text="#{edicao.emailDica}">O e-mail é o seu login e não pode ser alterado.</p>
 
-        <label for="dataNasc"><span th:text="#{comum.dataNascimento}">Data de Nascimento</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
-        <input type="date" id="dataNasc" name="dataNascimento" th:value="*{dataNascimento}" required />
+        <label for="dataNascTexto"><span th:text="#{comum.dataNascimento}">Data de Nascimento</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
+        <div class="campo-data">
+            <input type="text" id="dataNascTexto" th:value="${dataNascimentoExibicao}" inputmode="numeric" maxlength="10" autocomplete="off" required />
+            <input type="hidden" id="dataNasc" name="dataNascimento" th:value="*{dataNascimento}" />
+            <button type="button" class="btn-calendario-data" id="btnDataNasc" th:aria-label="#{js.data.abrir}" aria-label="Mostrar seletor de datas">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </button>
+            <input type="date" id="dataNascSeletor" class="seletor-data-oculto" tabindex="-1" aria-hidden="true" />
+        </div>
 
         <label for="senha" th:text="#{edicao.novaSenha}">Nova Senha</label>
-        <input type="password" id="senha" name="senha" minlength="8" placeholder="Deixe em branco para manter a senha atual" th:placeholder="#{edicao.phSenha}" />
+        <input type="password" id="senha" name="senha" minlength="8" maxlength="72" placeholder="Deixe em branco para manter a senha atual" th:placeholder="#{edicao.phSenha}" />
 
         <label for="confirmar" th:text="#{edicao.confirmarNovaSenha}">Confirmar Nova Senha</label>
-        <input type="password" id="confirmar" name="confirmarSenha" minlength="8" placeholder="Deixe em branco para manter a senha atual" th:placeholder="#{edicao.phSenha}" />
+        <input type="password" id="confirmar" name="confirmarSenha" minlength="8" maxlength="72" placeholder="Deixe em branco para manter a senha atual" th:placeholder="#{edicao.phSenha}" />
 
         <div class="botoes botoes-dupla">
             <button type="button" class="btn secundario" onclick="window.location.href='/menu'" th:text="#{comum.cancelar}">Cancelar</button>
@@ -54,13 +61,29 @@
 </div>
 
 <script src="/js/validacao.js"></script>
+<script src="/js/dataNascimento.js"></script>
 <script>
+    // Data de nascimento no formato do idioma (dataNascTexto); dataNasc guarda AAAA-MM-DD para o servidor
+    (function () {
+        const dataNasc = document.getElementById("dataNasc");
+        const hoje = new Date();
+        dataNasc.max = hoje.getFullYear() + "-" + String(hoje.getMonth() + 1).padStart(2, "0") + "-" + String(hoje.getDate()).padStart(2, "0");
+        dataNasc.min = "1900-01-01";
+        DataNascimento.iniciar({
+            texto: document.getElementById("dataNascTexto"),
+            iso: dataNasc,
+            seletor: document.getElementById("dataNascSeletor"),
+            botao: document.getElementById("btnDataNasc")
+        });
+    })();
+
     Validacao.limparAoDigitar(document.getElementById("cadastroForm"), document.getElementById("erro"));
 
     function validarFormulario() {
         const nome = document.getElementById("nome");
         const email = document.getElementById("email");
         const dataNasc = document.getElementById("dataNasc");
+        const dataNascTexto = document.getElementById("dataNascTexto");
         const senha = document.getElementById("senha");
         const confirmar = document.getElementById("confirmar");
         const erro = document.getElementById("erro");
@@ -72,9 +95,9 @@
             if (!primeiro) { primeiro = campo; mensagem = texto; }
         }
 
-        [nome, email, dataNasc, senha, confirmar].forEach(c => Validacao.marcar(c, false));
+        [nome, email, dataNascTexto, senha, confirmar].forEach(c => Validacao.marcar(c, false));
 
-        const vazios = [nome, email, dataNasc].filter(c => !c.value.trim());
+        const vazios = [nome, email, dataNascTexto].filter(c => !c.value.trim());
         if (vazios.length) {
             vazios.forEach(c => Validacao.marcar(c, true));
             primeiro = vazios[0];
@@ -82,6 +105,9 @@
         } else {
             if (!Validacao.emailValido(email.value.trim())) {
                 falha(email, t("js.form.emailInvalido"));
+            }
+            if (!dataNasc.value || dataNasc.value > dataNasc.max || dataNasc.value < dataNasc.min) {
+                falha(dataNascTexto, t("js.form.dataInvalida"));
             }
             // Só valida a senha se o usuário decidiu trocá-la
             if (senha.value.length > 0 || confirmar.value.length > 0) {

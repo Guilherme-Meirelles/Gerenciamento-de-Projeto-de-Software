@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const dataFormatada = `${dia}/${mes}/${ano}`;
 
-    document.getElementById("subtitulo-principal").textContent = `- ${dataFormatada}`;
+    document.getElementById("subtitulo-principal").textContent = dataFormatada;
 
     window.mudarTituloPrincipal = function (elementoClicado) {
 
@@ -295,12 +295,21 @@ document.addEventListener('DOMContentLoaded', function() {
         // Atualiza o título
         if (tituloH2) {
             tituloH2.innerText = novoTitulo;
+            tituloH2.title = novoTitulo; // o título pode aparecer cortado com "…"; o tooltip mostra o nome inteiro
         }
 
         if(desc){
             subtituloSpan.innerText = desc;
+            subtituloSpan.title = desc;
         }else{
             subtituloSpan.innerText = "";
+            subtituloSpan.removeAttribute('title');
+        }
+
+        // O botão "⋯" (Editar/Remover lista) só existe quando uma lista está aberta e o usuário pode editar
+        const btnMaisLista = document.getElementById('btnMaisLista');
+        if (btnMaisLista) {
+            btnMaisLista.hidden = !(elementoClicado.classList.contains('lista') && window.podeEditar !== false);
         }
 
         // Atualiza o subtítulo (só mostra data para "Para Hoje")
@@ -311,8 +320,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 const mes = String(hoje.getMonth() + 1).padStart(2, "0");
                 const ano = String(hoje.getFullYear()).slice(-2); // pega só os dois últimos dígitos
                 const dataFormatada = `${dia}/${mes}/${ano}`;
-                subtituloSpan.innerText = `- ${dataFormatada}`;
+                subtituloSpan.innerText = dataFormatada;
             }
+        }
+    }
+
+    // Botão "⋯" do cabeçalho: menu com Editar Lista e Remover Lista, sempre da lista que está aberta
+    {
+        const btnMaisLista = document.getElementById('btnMaisLista');
+        const menuLista = document.getElementById('menuContextoLista');
+        if (btnMaisLista && menuLista) {
+            btnMaisLista.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const aberta = menuLista.style.display === 'block';
+                document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none');
+                if (aberta) return;
+
+                const listaAberta = document.querySelector('.lista.active');
+                if (!listaAberta) return;
+                listaParaRemover = listaAberta; // é a lista que os itens do menu (Editar/Remover) vão usar
+
+                const rect = btnMaisLista.getBoundingClientRect();
+                menuLista.style.display = 'block';
+                menuLista.style.left = (rect.right + window.scrollX - menuLista.offsetWidth) + 'px';
+                menuLista.style.top = (rect.bottom + window.scrollY + 6) + 'px';
+            });
         }
     }
 
@@ -330,6 +362,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 btn.classList.remove('active');
         });
     }
+
+    // Lista que estava aberta (a URL guarda ?lista=ID): ao recarregar ou trocar o idioma, volta para ela
+    const listaDaUrl = new URLSearchParams(window.location.search).get('lista');
 
     // Ativa a aba inicial (hoje/agendadas/todas). "Para Hoje", "Agendadas" e "Todas as
     // Tarefas" são visões globais (todas as áreas de trabalho): ao navegar para cá vindo de
@@ -378,6 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
         lista.classList.add('active');
         const listaId = lista.getAttribute('data-id');
         listaAtual = +listaId
+        history.replaceState(null, '', window.location.pathname + '?lista=' + listaId);
 
         resetFiltro()
         resetOrdem()
@@ -391,6 +427,16 @@ document.addEventListener('DOMContentLoaded', function() {
         lista.addEventListener('click', () => clickLista(lista));
     });
 
+    if (listaDaUrl) {
+        const botaoLista = Array.from(listas).find(l => l.getAttribute('data-id') === listaDaUrl);
+        if (botaoLista) {
+            clickLista(botaoLista);
+        } else {
+            // lista que não existe mais (apagada): limpa o parâmetro
+            history.replaceState(null, '', window.location.pathname);
+        }
+    }
+
     window.adicionarListaNaTela = function (lista) {
         const container = document.getElementById("listasContainer");
         const btn = document.createElement("button");
@@ -398,7 +444,6 @@ document.addEventListener('DOMContentLoaded', function() {
         btn.dataset.id = lista.id;
         btn.dataset.desc = lista.descricao || ''
         btn.onclick = () => clickLista(btn);
-        btn.oncontextmenu = (e) => mostrarMenuContexto(e, "menuContextoLista", btn);
 
         btn.innerHTML = `
             <i data-lucide="list"></i>
@@ -537,6 +582,44 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // Ao trocar o idioma a página recarrega: guarda (só nesta aba) o filtro, a pesquisa e a ordem da lista aberta
+    // e devolve tudo igual quando a página volta, em vez de limpar.
+    const CHAVE_FILTRO_IDIOMA = 'todaily.idioma.filtroTarefas';
+    const trocarIdiomaOriginal = window.trocarIdioma;
+    if (typeof trocarIdiomaOriginal === 'function') {
+        window.trocarIdioma = function (lang) {
+            try {
+                sessionStorage.setItem(CHAVE_FILTRO_IDIOMA, JSON.stringify({
+                    caminho: window.location.pathname,
+                    lista: String(listaAtual),
+                    filtro: filtroAtivo,
+                    texto: document.getElementById('filtroTexto').value,
+                    ordem: ordenacaoAtiva
+                }));
+            } catch (e) { /* sem armazenamento: o filtro só volta ao padrão */ }
+            return trocarIdiomaOriginal(lang);
+        };
+    }
+
+    try {
+        const salvo = JSON.parse(sessionStorage.getItem(CHAVE_FILTRO_IDIOMA) || 'null');
+        sessionStorage.removeItem(CHAVE_FILTRO_IDIOMA);
+        if (salvo && salvo.caminho === window.location.pathname && salvo.lista === String(listaAtual)
+                && (salvo.filtro !== 'todas' || salvo.texto || salvo.ordem)) {
+            filtroAtivo = salvo.filtro || 'todas';
+            ordenacaoAtiva = salvo.ordem || null;
+            document.getElementById('filtroTexto').value = salvo.texto || '';
+            document.querySelectorAll('#menuFiltro .menu-filtro-item').forEach(b =>
+                b.classList.toggle('active', b.dataset.filtro === filtroAtivo && filtroAtivo !== 'todas'));
+            document.querySelectorAll('#menuOrdenar .menu-filtro-item').forEach(b =>
+                b.classList.toggle('active', !!ordenacaoAtiva && b.dataset.ordem === ordenacaoAtiva));
+            if (listaAtual == 'hoje') carregarTarefasHoje();
+            else if (listaAtual == 'agendadas') carregarTarefasAgendadas();
+            else if (listaAtual == 'todas') carregarTarefasTodas();
+            else carregarTarefas(listaAtual);
+        }
+    } catch (e) { /* estado guardado inválido: ignora */ }
+
     // Modal de confirmação de remoção
     btnCancelarRemocao.addEventListener('click', function() {
         modalConfirmarRemocao.style.display = 'none';
@@ -589,6 +672,25 @@ document.addEventListener('DOMContentLoaded', function() {
         limparFormulario();
     });
 
+    // Contador de caracteres do título e da descrição (ex.: 12/100). Os limites vêm do maxlength do campo,
+    // que a página preenche com os mesmos valores do servidor.
+    function atualizarContador(campoId, contadorId) {
+        const campo = document.getElementById(campoId);
+        const contador = document.getElementById(contadorId);
+        if (!campo || !contador) return;
+        const max = campo.maxLength;
+        const tamanho = campo.value.length;
+        contador.textContent = tamanho + '/' + max;
+        contador.classList.toggle('no-limite', tamanho >= max);
+    }
+    function atualizarContadores() {
+        atualizarContador('tarefaTitulo', 'contadorTitulo');
+        atualizarContador('tarefaDescricao', 'contadorDescricao');
+    }
+    document.getElementById('tarefaTitulo').addEventListener('input', atualizarContadores);
+    document.getElementById('tarefaDescricao').addEventListener('input', atualizarContadores);
+    atualizarContadores(); // já aparece 0/100 e 0/255 ao abrir a janela, antes de digitar
+
     // Ação do botão OK - Adicionar ou Editar tarefa
     btnOkTarefa.addEventListener("click", async function () {
 
@@ -612,6 +714,19 @@ document.addEventListener('DOMContentLoaded', function() {
             mostrarAviso(faltando, () => {
                 document.getElementById(!listaId ? 'tarefaLista' : 'tarefaTitulo').focus();
             });
+            return;
+        }
+
+        // Tarefas antigas podem ter título/descrição maiores que o limite atual: avisa em vez de falhar calado
+        const maxTitulo = document.getElementById('tarefaTitulo').maxLength;
+        const maxDescricao = document.getElementById('tarefaDescricao').maxLength;
+        if (titulo.length > maxTitulo) {
+            document.getElementById('tarefaTitulo').classList.add('campo-invalido');
+            mostrarAviso(t('js.tarefa.tituloLongo', maxTitulo), () => document.getElementById('tarefaTitulo').focus());
+            return;
+        }
+        if (descricao.length > maxDescricao) {
+            mostrarAviso(t('js.tarefa.descricaoLonga', maxDescricao), () => document.getElementById('tarefaDescricao').focus());
             return;
         }
 
@@ -653,10 +768,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!resposta.ok) {
                 const txt = await resposta.text();
-                throw new Error(t('js.tarefa.erroSalvar', txt));
+                // 400 = o servidor recusou o conteúdo e já mandou a mensagem pronta, no idioma do usuário
+                throw new Error(resposta.status === 400 && txt ? txt : t('js.tarefa.erroSalvar', txt));
             }
 
             tarefaCriadaOuEditada = await resposta.json();
+        } catch (erro) {
+            // Antes o erro se perdia e o botão OK "não fazia nada"; agora a janela continua aberta com o aviso
+            mostrarAviso(erro && erro.message ? erro.message : t('js.tarefa.erroSalvar', ''));
+            return;
         } finally {
             btnOkTarefa.disabled = false;
         }
@@ -736,6 +856,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarefaLista').value = '';
         document.getElementById('tarefaTitulo').value = '';
         document.getElementById('tarefaDescricao').value = '';
+        atualizarContadores();
         document.getElementById('tarefaDataFim').value = '';
         definirResponsaveisSelecionados([]);
         alternarListaResponsaveis(false);
@@ -803,6 +924,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.getElementById('tarefaTitulo').value = tarefa.titulo;
         document.getElementById('tarefaDescricao').value = tarefa.descricao;
+        atualizarContadores();
         document.getElementById('tarefaDataFim').value = tarefa.dataFim;
         definirResponsaveisSelecionados(tarefa.responsavelIds);
         definirNotificacoesSemAnimar(tarefa.notificacoes);
@@ -840,6 +962,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.getElementById("tarefaTitulo").value = tarefa.titulo;
         document.getElementById("tarefaDescricao").value = tarefa.descricao || "";
+        atualizarContadores();
         document.getElementById("tarefaDataFim").value = tarefa.dataFim || "";
         definirResponsaveisSelecionados(tarefa.responsavelIds);
         definirNotificacoesSemAnimar(tarefa.notificacoes || false);
@@ -868,6 +991,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.atualizarTituloPagina = function (listaId) {
         const tituloPrincipal = document.getElementById('titulo-principal');
         tituloPrincipal.textContent = nomesListas[listaId] || t('js.menu.paraHoje');
+        tituloPrincipal.title = tituloPrincipal.textContent;
     }
 
     window.renderizarTarefas = function (listaFiltro) {
@@ -877,7 +1001,6 @@ document.addEventListener('DOMContentLoaded', function() {
         let tarefasFiltradas;
 
         const textoFiltro = document.getElementById("filtroTexto").value;
-        console.log(textoFiltro)
 
         if(listaFiltro === "hoje"){
             const hoje = new Date();
@@ -1031,6 +1154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const descricao = document.createElement('div');
                 descricao.className = 'tarefa-descricao';
                 descricao.textContent = tarefa.descricao;
+                descricao.title = tarefa.descricao; // no card o texto é cortado em 3 linhas; o tooltip mostra tudo
                 conteudo.appendChild(descricao);
             }
 
@@ -1454,7 +1578,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            Aviso.mostrar(t('js.checklist.erroAdicionar'), 'erro');
+            Aviso.mostrar(resposta.status === 400 ? await resposta.text() : t('js.checklist.erroAdicionar'), 'erro');
             return;
         }
 
@@ -1523,7 +1647,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            Aviso.mostrar(t('js.checklist.erroRenomear'), 'erro');
+            Aviso.mostrar(resposta.status === 400 ? await resposta.text() : t('js.checklist.erroRenomear'), 'erro');
             return;
         }
 
@@ -1607,6 +1731,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.className = 'checklist-item-input';
+                input.maxLength = 100; // mesmo valor de ItemChecklist.DESCRICAO_MAX
                 input.value = item.descricao;
 
                 const salvar = () => renomearItemChecklist(item, input.value.trim());
@@ -2094,7 +2219,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (!resposta.ok) {
-            Aviso.mostrar(t('js.categoria.erroSalvar'), 'erro');
+            Aviso.mostrar(resposta.status === 400 ? await resposta.text() : t('js.categoria.erroSalvar'), 'erro');
             return;
         }
 

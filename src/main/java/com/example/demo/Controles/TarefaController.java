@@ -27,6 +27,7 @@ import com.example.demo.Entidades.Tarefa;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.PermissaoAreaService;
 import com.example.demo.Serviços.TarefaService;
+import com.example.demo.Serviços.TextoMuitoLongoException;
 import com.example.demo.ConsultasBD.ListaRepository;
 import com.example.demo.ConsultasBD.ParticipacaoAreaRepository;
 import com.example.demo.ConsultasBD.TarefaRepository;
@@ -94,7 +95,12 @@ public class TarefaController {
         List<Long> categoriaIds = extrairCategoriaIds(body);
         String repeticao = (String) body.get("repeticao");
 
-        Tarefa tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsaveis, notificacoes, categoriaIds, repeticao);
+        Tarefa tarefa;
+        try {
+            tarefa = tarefaService.criarTarefa(listaId, titulo, descricao, cor, dataFim, responsaveis, notificacoes, categoriaIds, repeticao);
+        } catch (TextoMuitoLongoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
 
         return ResponseEntity.ok(tarefaParaJson(tarefa));
     }
@@ -125,7 +131,12 @@ public class TarefaController {
         List<Long> categoriaIds = extrairCategoriaIds(body);
         String repeticao = (String) body.get("repeticao");
 
-        Tarefa tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsaveis, notificacoes, categoriaIds, repeticao);
+        Tarefa tarefa;
+        try {
+            tarefa = tarefaService.editarTarefa(id, listaId, titulo, descricao, cor, dataFim, responsaveis, notificacoes, categoriaIds, repeticao);
+        } catch (TextoMuitoLongoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
 
         return ResponseEntity.ok(tarefaParaJson(tarefa));
     }

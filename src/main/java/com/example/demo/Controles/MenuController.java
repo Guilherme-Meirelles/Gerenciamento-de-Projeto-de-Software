@@ -54,12 +54,6 @@ public class MenuController {
         return "menu"; // Retorna a view, não redirect
     }
 
-    @GetMapping("/sidebar")
-    public String sidebar() {
-
-        return "sidebar";
-    }
-
     @PostMapping("/removerConta")
     public String exclusaoDeConta(
             @ModelAttribute Usuario usuarioSenha,
@@ -142,10 +136,17 @@ public class MenuController {
     }
 
 
-    /** Converte a data guardada (aaaa-mm-dd) para dd/mm/aaaa, o formato mostrado no perfil em todas as telas. */
+    /**
+     * Converte a data guardada (aaaa-mm-dd) para o formato do idioma do usuário (dd/mm/aaaa em português e
+     * espanhol, mm/dd/aaaa em inglês), o mesmo mostrado no perfil, na edição de conta e nos e-mails.
+     */
     static String dataParaExibicao(String dataIso) {
         if (dataIso != null && dataIso.matches("\\d{4}-\\d{2}-\\d{2}.*")) {
-            return dataIso.substring(8, 10) + "/" + dataIso.substring(5, 7) + "/" + dataIso.substring(0, 4);
+            String ano = dataIso.substring(0, 4);
+            String mes = dataIso.substring(5, 7);
+            String dia = dataIso.substring(8, 10);
+            return Mensagens.get("email.formatoData")
+                    .replace("dd", dia).replace("MM", mes).replace("yyyy", ano);
         }
         return dataIso;
     }

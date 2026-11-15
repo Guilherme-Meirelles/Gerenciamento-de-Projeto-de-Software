@@ -106,4 +106,27 @@ class CategoriaServiceTest {
         assertThat(tarefaRecarregada).isNotNull(); // a tarefa continua existindo
         assertThat(tarefaRecarregada.getCategorias()).isEmpty(); // só perdeu a categoria
     }
+
+    @Test
+    void nomeMaiorQueOLimite_recusaAoCriarEAoEditar() {
+        montarArea();
+        Categoria existente = categoriaService.criarCategoria(area.getId(), "Curta", "#ff0000");
+        String longo = "a".repeat(Categoria.NOME_MAX + 1);
+
+        assertThatThrownBy(() -> categoriaService.criarCategoria(area.getId(), longo, "#ff0000"))
+                .isInstanceOf(TextoMuitoLongoException.class)
+                .hasMessageContaining(String.valueOf(Categoria.NOME_MAX));
+        assertThatThrownBy(() -> categoriaService.editarCategoria(existente.getId(), longo, "#ff0000"))
+                .isInstanceOf(TextoMuitoLongoException.class);
+        assertThat(categoriaService.listarPorArea(area.getId())).hasSize(1);
+    }
+
+    @Test
+    void nomeNoLimiteExato_aceita() {
+        montarArea();
+
+        Categoria criada = categoriaService.criarCategoria(area.getId(), "a".repeat(Categoria.NOME_MAX), "#ff0000");
+
+        assertThat(criada.getId()).isNotNull();
+    }
 }

@@ -11,6 +11,9 @@ public class Categoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    public static final int NOME_MAX = 40; // o campo do HTML repete esse valor em maxlength
+    @Column(length = NOME_MAX)
     private String nome;
     private String cor;
 

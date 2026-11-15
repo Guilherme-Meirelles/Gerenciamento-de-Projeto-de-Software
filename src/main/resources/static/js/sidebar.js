@@ -22,7 +22,8 @@ function aplicarEstadoSidebar(recolhida) {
     sidebar.querySelectorAll('.menu-item, .lista, .nova-lista, .btn-sair-sidebar, .area-atual').forEach(el => {
         const rotulo = el.querySelector('span');
         if (!rotulo) return;
-        if (recolhida || el.classList.contains('lista')) {
+        // O nome da lista e o da área podem estar cortados com "…": a dica mostra o nome inteiro
+        if (recolhida || el.classList.contains('lista') || el.classList.contains('area-atual')) {
             el.title = rotulo.textContent.trim();
         } else {
             el.removeAttribute('title');
@@ -68,6 +69,26 @@ function definirValorCampo(campo, valor) {
     campo.dispatchEvent(new Event('input'));
 }
 
+// Contador de caracteres (ex.: 12/100) dos campos de Adicionar/Editar Lista; o limite vem do maxlength do campo
+function ligarContador(campoId, contadorId) {
+    const campo = document.getElementById(campoId);
+    const contador = document.getElementById(contadorId);
+    if (!campo || !contador) return;
+    const atualizar = () => {
+        contador.textContent = campo.value.length + '/' + campo.maxLength;
+        contador.classList.toggle('no-limite', campo.value.length >= campo.maxLength);
+    };
+    campo.addEventListener('input', atualizar);
+    atualizar(); // aparece 0/100 já ao abrir a janela
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    ligarContador('nome-lista', 'contador-nome-lista');
+    ligarContador('descricao-lista', 'contador-descricao-lista');
+    ligarContador('nome-lista-edit', 'contador-nome-lista-edit');
+    ligarContador('descricao-lista-edit', 'contador-descricao-lista-edit');
+});
+
 // Botões "OK" de Adicionar/Editar Lista ficam apagados, com a mensagem, enquanto o nome estiver vazio
 document.addEventListener('DOMContentLoaded', function () {
     Aviso.exigirTexto(document.getElementById('nome-lista'), document.getElementById('btnOkAddLista'),
@@ -90,7 +111,7 @@ window.fecharModalPerfil = function (nomeModal) {
 
     const desc = document.getElementById("descricao-lista");
     if(desc){
-        desc.value = "";
+        definirValorCampo(desc, "");
     }
 
     // Limpa a mensagem de erro da foto de perfil, se existir
@@ -105,26 +126,7 @@ window.fecharModalPerfil = function (nomeModal) {
 }
 
 /**
- * Mostra o menu de contexto (clique direito)
- */
-window.mostrarMenuContexto = function (event, menuId, elemento) {
-    event.preventDefault();
-
-    // Guarda o botão da lista clicada
-    listaParaRemover = elemento;
-
-    // Esconde todos os menus de contexto
-    document.querySelectorAll('.context-menu').forEach(menu => menu.style.display = 'none');
-
-    // Mostra o menu específico na posição do mouse
-    const menu = document.getElementById(menuId);
-    menu.style.display = 'block';
-    menu.style.left = (event.pageX + 5) + 'px';
-    menu.style.top = (event.pageY + 5) + 'px';
-}
-
-/**
- * Fecha menus de contexto ao clicar fora
+ * Fecha o menu "⋯" da lista (e os outros menus suspensos) ao clicar fora
  */
 window.addEventListener('click', (e) => {
     if (!e.target.closest('.context-menu-item')) {
@@ -135,7 +137,7 @@ window.addEventListener('click', (e) => {
 });
 
 /**
- * Fecha menus de contexto ao rolar a página
+ * Fecha esses menus ao rolar a página
  */
 window.addEventListener('scroll', () => {
     document.querySelectorAll('.context-menu').forEach(menu => {
@@ -434,7 +436,6 @@ window.adicionarListaNaTela = function (lista) {
     btn.className = "lista";
     btn.dataset.id = lista.id;
     btn.dataset.desc = lista.descricao || ''
-    btn.oncontextmenu = (e) => mostrarMenuContexto(e, "menuContextoLista", btn);
 
     btn.innerHTML = `
         <i data-lucide="list"></i>
@@ -478,7 +479,7 @@ window.abrirModalEditarLista = function () {
 
     definirValorCampo(document.getElementById("nome-lista-edit"), nomeAtual);
     // Lista sem descrição: campo vazio (antes aparecia "undefined")
-    document.getElementById("descricao-lista-edit").value = desc || '';
+    definirValorCampo(document.getElementById("descricao-lista-edit"), desc || '');
 
     document.querySelectorAll('.context-menu').forEach(menu => menu.style.display = 'none');
 
@@ -497,7 +498,6 @@ window.abrirModalRemoverLista = function () {
 
 window.confirmarCriacaoLista = async function () {
     const nome = document.getElementById("nome-lista").value.trim();
-    definirValorCampo(document.getElementById("nome-lista"), "");
     const descricao = document.getElementById("descricao-lista").value.trim();
     const areaId = window.areaAtualId; // ID da área carregada na página
     
@@ -506,11 +506,21 @@ window.confirmarCriacaoLista = async function () {
         return;
     }
 
+    if (nome.length > 100) { Aviso.mostrar(t('js.lista.nomeLongo', 100), 'erro'); return; }
+    if (descricao.length > 255) { Aviso.mostrar(t('js.lista.descricaoLonga', 255), 'erro'); return; }
+
     const response = await fetch("/listas", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ areaId, nome, descricao })
     });
+
+    if (!response.ok) {
+        const txt = await response.text();
+        Aviso.mostrar(response.status === 400 ? txt : t('js.lista.erroSalvar'), 'erro');
+        return;
+    }
+    definirValorCampo(document.getElementById("nome-lista"), "");
 
     const novaLista = await response.json();
 
@@ -531,16 +541,30 @@ window.confirmarEdicaoLista = async function () {
         return;
     }
 
+    if (nome.length > 100) { Aviso.mostrar(t('js.lista.nomeLongo', 100), 'erro'); return; }
+    if (desc.length > 255) { Aviso.mostrar(t('js.lista.descricaoLonga', 255), 'erro'); return; }
+
     const response = await fetch(`/listas/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ nome: nome, descricao: desc})
     });
 
+    if (!response.ok) {
+        const txt = await response.text();
+        Aviso.mostrar(response.status === 400 ? txt : t('js.lista.erroSalvar'), 'erro');
+        return;
+    }
+
     const atualizada = await response.json();
 
     listaSelecionada.querySelector("span").textContent = atualizada.nome;
     listaSelecionada.dataset.desc = desc || ''
+
+    // A lista editada é a que está aberta: o título e a descrição do cabeçalho acompanham
+    if (listaSelecionada.classList.contains('active') && window.mudarTituloPrincipal) {
+        window.mudarTituloPrincipal(listaSelecionada);
+    }
 
     fecharModalPerfil("modalEditLista");
 };
@@ -550,12 +574,17 @@ window.confirmarRemocaoLista = async function () {
 
     await fetch(`/listas/${listaParaRemoverId}`, { method: "DELETE" });
 
-    document.querySelector(`button.lista[data-id='${listaParaRemoverId}']`)?.remove();
+    const botaoRemovido = document.querySelector(`button.lista[data-id='${listaParaRemoverId}']`);
+    const eraAAberta = !!botaoRemovido && botaoRemovido.classList.contains('active');
+    botaoRemovido?.remove();
 
     listaParaRemoverId = null;
     listaParaRemover = null;
 
     fecharModalPerfil("modalRemoveLista");
+
+    // A lista removida era a que estava aberta: recarrega a área (sem a lista) em vez de deixar suas tarefas na tela
+    if (eraAAberta) location.reload();
 };
 
 // Abre o modal de confirmação de logout

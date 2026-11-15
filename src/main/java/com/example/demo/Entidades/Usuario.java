@@ -12,6 +12,12 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Limites (os campos do HTML repetem esses valores em maxlength: se mudar aqui, mude lá também)
+    public static final int NOME_MAX = 60;
+    public static final int EMAIL_MAX = 254;   // tamanho máximo de um endereço de e-mail (RFC 5321)
+    public static final int SENHA_MAX = 72;    // o BCrypt só usa os 72 primeiros bytes da senha
+
+    @Column(length = NOME_MAX)
     private String nome;
     private String email;
 

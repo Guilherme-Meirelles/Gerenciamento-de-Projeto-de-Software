@@ -15,6 +15,10 @@ public class AreaTrabalho {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Limite do nome; o areasTrabalho.html repete esse número no maxlength (os dois precisam mudar juntos).
+    public static final int NOME_MAX = 60;
+
+    @Column(length = NOME_MAX)
     private String nome;
 
     @ManyToOne

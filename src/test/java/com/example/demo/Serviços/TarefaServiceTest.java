@@ -27,6 +27,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import({TarefaService.class, ChecklistService.class, AnexoService.class})
@@ -100,6 +101,57 @@ class TarefaServiceTest {
         assertThat(tarefa.getCategorias()).extracting(Categoria::getId).containsExactly(categoria.getId());
         assertThat(tarefa.getRepeticao()).isEqualTo(Repeticao.DIARIA);
         assertThat(tarefa.getDataFim()).isEqualTo(LocalDate.of(2026, 12, 31));
+    }
+
+    @Test
+    void criarTarefa_tituloMaiorQueOLimite_recusaESemSalvar() {
+        montarCenarioBasico();
+        long antes = tarefaRepository.count();
+
+        assertThatThrownBy(() -> tarefaService.criarTarefa(
+                lista.getId(), "a".repeat(Tarefa.TITULO_MAX + 1), null, null, null, null, null, null, null))
+                .isInstanceOf(TextoMuitoLongoException.class)
+                .hasMessageContaining(String.valueOf(Tarefa.TITULO_MAX));
+        assertThat(tarefaRepository.count()).isEqualTo(antes);
+    }
+
+    @Test
+    void criarTarefa_descricaoMaiorQueOLimite_recusaESemSalvar() {
+        montarCenarioBasico();
+        long antes = tarefaRepository.count();
+
+        assertThatThrownBy(() -> tarefaService.criarTarefa(
+                lista.getId(), "Título", "b".repeat(Tarefa.DESCRICAO_MAX + 1), null, null, null, null, null, null))
+                .isInstanceOf(TextoMuitoLongoException.class)
+                .hasMessageContaining(String.valueOf(Tarefa.DESCRICAO_MAX));
+        assertThat(tarefaRepository.count()).isEqualTo(antes);
+    }
+
+    @Test
+    void criarTarefa_noLimiteExato_aceita() {
+        montarCenarioBasico();
+
+        Tarefa tarefa = tarefaService.criarTarefa(
+                lista.getId(), "a".repeat(Tarefa.TITULO_MAX), "b".repeat(Tarefa.DESCRICAO_MAX),
+                null, null, null, null, null, null);
+
+        assertThat(tarefa.getId()).isNotNull();
+    }
+
+    @Test
+    void editarTarefa_textoMaiorQueOLimite_recusaEMantemOQueEstavaSalvo() {
+        montarCenarioBasico();
+        Tarefa tarefa = tarefaService.criarTarefa(
+                lista.getId(), "Original", "Descrição original", null, null, null, null, null, null);
+
+        assertThatThrownBy(() -> tarefaService.editarTarefa(
+                tarefa.getId(), lista.getId(), "a".repeat(Tarefa.TITULO_MAX + 1), "x", null, null, null, null, null, null))
+                .isInstanceOf(TextoMuitoLongoException.class);
+
+        em.clear();
+        Tarefa salva = tarefaRepository.findById(tarefa.getId()).orElseThrow();
+        assertThat(salva.getTitulo()).isEqualTo("Original");
+        assertThat(salva.getDescricao()).isEqualTo("Descrição original");
     }
 
     @Test

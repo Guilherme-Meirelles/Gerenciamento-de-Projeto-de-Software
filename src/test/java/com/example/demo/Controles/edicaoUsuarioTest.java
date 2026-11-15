@@ -205,4 +205,65 @@ class edicaoUsuarioTest {
                 "A senha precisa ter letra maiúscula, letra minúscula, número e caractere especial.");
         verify(usuarioRepository, never()).save(any());
     }
+
+    // ---------- limites de tamanho ----------
+
+    @Test
+    void post_nomeMaiorQueOLimite_naoSalva() {
+        Usuario existente = usuarioExistente(1L);
+        when(usuarioRepository.findUsuarioById(1L)).thenReturn(existente);
+        Usuario edicao = new Usuario();
+        edicao.setNome("a".repeat(Usuario.NOME_MAX + 1));
+        edicao.setDataNascimento("2000-01-01");
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        SessaoUtil.autenticar(request, 1L);
+        Model model = new ExtendedModelMap();
+
+        String view = controller.edicaoUsuario(edicao, request, new BeanPropertyBindingResult(edicao, "usuario"), model);
+
+        assertThat(view).isEqualTo("edicaoUsuario");
+        assertThat(model.getAttribute("mensagem")).isEqualTo("O nome pode ter no máximo 60 caracteres.");
+        assertThat(existente.getNome()).isEqualTo("Fulano");
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void post_novaSenhaMaiorQueOLimite_naoSalva() {
+        Usuario existente = usuarioExistente(1L);
+        when(usuarioRepository.findUsuarioById(1L)).thenReturn(existente);
+        Usuario edicao = new Usuario();
+        edicao.setNome("Fulano");
+        edicao.setDataNascimento("2000-01-01");
+        edicao.setSenha("Aa1!" + "a".repeat(Usuario.SENHA_MAX));
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        SessaoUtil.autenticar(request, 1L);
+        Model model = new ExtendedModelMap();
+
+        String view = controller.edicaoUsuario(edicao, request, new BeanPropertyBindingResult(edicao, "usuario"), model);
+
+        assertThat(view).isEqualTo("edicaoUsuario");
+        assertThat(model.getAttribute("mensagem")).isEqualTo("A senha pode ter no máximo 72 caracteres.");
+        verify(usuarioRepository, never()).save(any());
+    }
+
+    @Test
+    void post_dataDeNascimentoInvalida_voltaParaAEdicaoSemSalvar() {
+        Usuario existente = usuarioExistente(1L);
+        when(usuarioRepository.findUsuarioById(1L)).thenReturn(existente);
+        for (String ruim : new String[] {null, "", "2002-13-40", java.time.LocalDate.now().plusDays(1).toString()}) {
+            Usuario edicao = new Usuario();
+            edicao.setNome("Fulano");
+            edicao.setDataNascimento(ruim);
+            MockHttpServletRequest request = new MockHttpServletRequest();
+            SessaoUtil.autenticar(request, 1L);
+            Model model = new ExtendedModelMap();
+
+            String view = controller.edicaoUsuario(edicao, request, new BeanPropertyBindingResult(edicao, "usuario"), model);
+
+            // antes devolvia a tela de cadastro (e quebrava com erro 500 se a data viesse vazia)
+            assertThat(view).as("data %s", ruim).isEqualTo("edicaoUsuario");
+            assertThat(model.getAttribute("mensagem")).isEqualTo("Data de nascimento inválida.");
+        }
+        verify(usuarioRepository, never()).save(any());
+    }
 }

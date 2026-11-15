@@ -153,10 +153,24 @@ body {
 }
 
 /* ===== Área de Trabalho atual (com suas listas indentadas embaixo) ===== */
+/* O nome da área e o botão "Nova Lista" ficam fixos; só a lista de listas rola (a barra começa abaixo do botão) */
 .secao-area {
     margin-top: 20px;
-    flex-grow: 1;
-    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.secao-area > .area-atual,
+.secao-area > .nova-lista {
+    flex-shrink: 0;
+}
+
+/* Quando as listas passam do tamanho da tela, só a seção das listas encolhe: o resto da sidebar (logo, perfil,
+   menu, "Sair") não pode ser espremido, senão tudo "sobe" alguns pixels ao entrar numa área. */
+.sidebar > *:not(.secao-area) {
+    flex-shrink: 0;
 }
 
 .area-atual {
@@ -201,6 +215,18 @@ body {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-height: 0;
+    overflow-y: auto;
+    /* A barra de rolagem vai para a margem da sidebar (e não colada nos itens): o espaço dela fica sempre reservado e
+       a área de rolagem avança sobre o preenchimento da sidebar, então o conteúdo continua alinhado. */
+    scrollbar-gutter: stable;
+    margin-right: -14px;
+    padding-right: 6px;
+}
+
+.sidebar.recolhida .listas {
+    margin-right: -9px;
+    padding-right: 1px;
 }
 
 .lista {
@@ -663,6 +689,7 @@ body {
 }
 
 .titulo-modal-perfil {
+    text-align: center;
     font-size: 22px;
     font-weight: 600;
     margin-bottom: 22px;
@@ -986,4 +1013,12 @@ body {
     width: 100%;
     box-sizing: border-box;
     cursor: pointer;
+}
+
+
+/* Nome da área muito grande: termina em "…" (o nome inteiro aparece na dica ao passar o mouse) */
+.area-atual span {
+    min-width: 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }

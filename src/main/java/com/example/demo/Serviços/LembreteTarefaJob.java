@@ -1,5 +1,7 @@
 package com.example.demo.Serviços;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -22,6 +24,8 @@ import com.example.demo.Serviços.EnvioDeEmail.EmailService;
 @Component
 public class LembreteTarefaJob {
 
+    private static final Logger LOG = LoggerFactory.getLogger(LembreteTarefaJob.class);
+
     @Autowired
     private TarefaRepository tarefaRepository;
 
@@ -39,7 +43,7 @@ public class LembreteTarefaJob {
             enviarLembretes();
         } catch (Exception e) {
             // falha aqui (banco, e-mail) não pode impedir o sistema de subir
-            e.printStackTrace();
+            LOG.error("Não foi possível enviar os lembretes ao iniciar.", e);
         }
     }
 
@@ -70,7 +74,7 @@ public class LembreteTarefaJob {
                 try {
                     emailService.enviarEmailLembreteTarefa(responsavel, tarefa);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LOG.error("Falha ao enviar o lembrete da tarefa {}.", tarefa.getId(), e);
                 }
             }
             tarefa.setLembreteEnviado(true);

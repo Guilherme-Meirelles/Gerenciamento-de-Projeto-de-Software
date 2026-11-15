@@ -104,6 +104,11 @@ public class RecuperarSenhaController {
                 model.addAttribute("erro", Mensagens.get("msg.senha.curtaPonto"));
                 return "redefinicaoSenha";
             }
+            if (LoginCadastroControle.senhaLonga(senha)) {
+                model.addAttribute("token", token);
+                model.addAttribute("erro", Mensagens.get("msg.senha.longa", Usuario.SENHA_MAX));
+                return "redefinicaoSenha";
+            }
             if (!LoginCadastroControle.senhaForte(senha)) {
                 model.addAttribute("token", token);
                 model.addAttribute("erro", Mensagens.get("msg.senha.fraca"));

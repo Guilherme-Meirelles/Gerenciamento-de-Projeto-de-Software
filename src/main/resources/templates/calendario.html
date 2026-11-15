@@ -121,6 +121,64 @@
                 atualizarTitulosNavegacao();
             }
 
+            // Troca de visão com transição lisa: a janela cresce ou encolhe até o novo tamanho (largura e altura) e o
+            // conteúdo novo aparece aos poucos. "mudar" faz a troca de verdade (e já deixa o DOM no estado final).
+            let animacaoCalendario = 0;
+            function animarTroca(mudar, animarVisao = true) {
+                const semAnimacao = document.documentElement.classList.contains('acess-sem-animacao')
+                    || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                    || modalCalendario.style.display === 'none';
+                if (semAnimacao) {
+                    mudar();
+                    return;
+                }
+
+                const token = ++animacaoCalendario;
+                const caixa = calendarioBox;
+                const larguraAntes = caixa.offsetWidth;
+                const alturaAntes = caixa.offsetHeight;
+                const tarefasVisiveisAntes = calendarioTarefasDia.style.display !== 'none';
+
+                // Tira qualquer animação em andamento antes de medir o tamanho final
+                caixa.style.transition = 'none';
+                caixa.style.width = '';
+                caixa.style.height = '';
+                mudar();
+                const larguraDepois = caixa.offsetWidth;
+                const alturaDepois = caixa.offsetHeight;
+
+                // Conteúdo novo aparece aos poucos
+                const novos = animarVisao ? [modoAno ? calendarioAnoGrid : calendarioCorpo] : [];
+                if (!tarefasVisiveisAntes && calendarioTarefasDia.style.display !== 'none') novos.push(calendarioTarefasDia);
+                novos.forEach(el => {
+                    el.classList.remove('cal-entrando');
+                    void el.offsetWidth;
+                    el.classList.add('cal-entrando');
+                });
+
+                if (larguraAntes === larguraDepois && alturaAntes === alturaDepois) {
+                    caixa.style.transition = '';
+                    return;
+                }
+
+                caixa.style.overflow = 'hidden';
+                caixa.style.width = larguraAntes + 'px';
+                caixa.style.height = alturaAntes + 'px';
+                void caixa.offsetWidth;
+                caixa.style.transition = 'width 0.24s ease, height 0.24s ease';
+                caixa.style.width = larguraDepois + 'px';
+                caixa.style.height = alturaDepois + 'px';
+
+                setTimeout(function() {
+                    if (token !== animacaoCalendario) return; // outra troca começou depois
+                    caixa.style.transition = '';
+                    caixa.style.width = '';
+                    caixa.style.height = '';
+                    caixa.style.overflow = '';
+                    novos.forEach(el => el.classList.remove('cal-entrando'));
+                }, 280);
+            }
+
             // O botão de seta navega por mês na visão mensal e por ano na visão anual
             function atualizarTitulosNavegacao() {
                 btnMesAnterior.title = modoAno ? t('js.cal.anoAnterior') : t('js.cal.mesAnterior');
@@ -156,69 +214,77 @@
 
             // Navegar para mês (ou ano, se estiver na visão anual) anterior
             btnMesAnterior.addEventListener('click', function() {
-                if (modoAno) {
-                    anoAtual--;
-                    renderizarAno();
-                    return;
-                }
-                mesAtual--;
-                if (mesAtual < 0) {
-                    mesAtual = 11;
-                    anoAtual--;
-                }
-                diaSelecionado = null;
-                calendarioTarefasDia.style.display = 'none';
-                renderizarCalendario();
-                lucide.createIcons();
+                animarTroca(function() {
+                    if (modoAno) {
+                        anoAtual--;
+                        renderizarAno();
+                        return;
+                    }
+                    mesAtual--;
+                    if (mesAtual < 0) {
+                        mesAtual = 11;
+                        anoAtual--;
+                    }
+                    diaSelecionado = null;
+                    calendarioTarefasDia.style.display = 'none';
+                    renderizarCalendario();
+                    lucide.createIcons();
+                });
             });
 
             // Navegar para próximo mês (ou ano, se estiver na visão anual)
             btnMesProximo.addEventListener('click', function() {
-                if (modoAno) {
-                    anoAtual++;
-                    renderizarAno();
-                    return;
-                }
-                mesAtual++;
-                if (mesAtual > 11) {
-                    mesAtual = 0;
-                    anoAtual++;
-                }
-                diaSelecionado = null;
-                calendarioTarefasDia.style.display = 'none';
-                renderizarCalendario();
-                lucide.createIcons();
+                animarTroca(function() {
+                    if (modoAno) {
+                        anoAtual++;
+                        renderizarAno();
+                        return;
+                    }
+                    mesAtual++;
+                    if (mesAtual > 11) {
+                        mesAtual = 0;
+                        anoAtual++;
+                    }
+                    diaSelecionado = null;
+                    calendarioTarefasDia.style.display = 'none';
+                    renderizarCalendario();
+                    lucide.createIcons();
+                });
             });
 
             // Voltar para hoje (sempre volta pra visão mês)
             btnHoje.addEventListener('click', function() {
-                const hoje = new Date();
-                mesAtual = hoje.getMonth();
-                anoAtual = hoje.getFullYear();
-                diaSelecionado = null;
-                calendarioTarefasDia.style.display = 'none';
-                sairDoModoAno();
-                renderizarCalendario();
-                lucide.createIcons();
+                animarTroca(function() {
+                    const hoje = new Date();
+                    mesAtual = hoje.getMonth();
+                    anoAtual = hoje.getFullYear();
+                    diaSelecionado = null;
+                    calendarioTarefasDia.style.display = 'none';
+                    sairDoModoAno();
+                    renderizarCalendario();
+                    lucide.createIcons();
+                });
             });
 
             // Alternar entre a visão mês e a visão ano (overview anual, tipo Google Calendar)
             btnVerAno.addEventListener('click', function() {
-                modoAno = !modoAno;
-                calendarioTarefasDia.style.display = 'none';
+                animarTroca(function() {
+                    modoAno = !modoAno;
+                    calendarioTarefasDia.style.display = 'none';
 
-                if (modoAno) {
-                    calendarioBox.classList.add('modo-ano');
-                    calendarioCorpo.style.display = 'none';
-                    calendarioAnoGrid.style.display = 'grid';
-                    btnVerAno.textContent = t('js.cal.verMes');
-                    atualizarTitulosNavegacao();
-                    renderizarAno();
-                } else {
-                    sairDoModoAno();
-                    renderizarCalendario();
-                    lucide.createIcons();
-                }
+                    if (modoAno) {
+                        calendarioBox.classList.add('modo-ano');
+                        calendarioCorpo.style.display = 'none';
+                        calendarioAnoGrid.style.display = 'grid';
+                        btnVerAno.textContent = t('js.cal.verMes');
+                        atualizarTitulosNavegacao();
+                        renderizarAno();
+                    } else {
+                        sairDoModoAno();
+                        renderizarCalendario();
+                        lucide.createIcons();
+                    }
+                });
             });
 
             // Função para renderizar o calendário
@@ -264,16 +330,18 @@
 
                     // Adicionar evento de clique
                     celula.addEventListener('click', function() {
-                        // Remover seleção anterior
-                        document.querySelectorAll('.calendario-dia').forEach(d => {
-                            d.classList.remove('selecionado');
-                        });
+                        animarTroca(function() {
+                            // Remover seleção anterior
+                            document.querySelectorAll('.calendario-dia').forEach(d => {
+                                d.classList.remove('selecionado');
+                            });
 
-                        // Adicionar seleção
-                        celula.classList.add('selecionado');
-                        diaSelecionado = dia;
+                            // Adicionar seleção
+                            celula.classList.add('selecionado');
+                            diaSelecionado = dia;
 
-                        mostrarTarefasDoDia(iso, dia);
+                            mostrarTarefasDoDia(iso, dia);
+                        }, false); // só a lista do dia aparece aos poucos; o mês fica parado
                     });
 
                     calendarioGrid.appendChild(celula);
@@ -290,12 +358,14 @@
                 titulo.textContent = mesesAbrev[mes];
                 titulo.title = t('js.cal.verMesDoAno', meses[mes], ano);
                 titulo.addEventListener('click', function() {
-                    mesAtual = mes;
-                    anoAtual = ano;
-                    diaSelecionado = null;
-                    sairDoModoAno();
-                    renderizarCalendario();
-                    lucide.createIcons();
+                    animarTroca(function() {
+                        mesAtual = mes;
+                        anoAtual = ano;
+                        diaSelecionado = null;
+                        sairDoModoAno();
+                        renderizarCalendario();
+                        lucide.createIcons();
+                    });
                 });
                 container.appendChild(titulo);
 
@@ -324,6 +394,29 @@
                     const celula = document.createElement('span');
                     celula.className = 'mini-mes-dia';
                     celula.textContent = dia;
+                    celula.tabIndex = 0;
+                    celula.setAttribute('role', 'button');
+                    celula.title = `${String(dia).padStart(2, '0')}/${String(mes + 1).padStart(2, '0')}/${ano}`;
+
+                    // Clicar num dia da visão anual abre esse mês com o dia selecionado
+                    const irParaODia = function() {
+                        animarTroca(function() {
+                            mesAtual = mes;
+                            anoAtual = ano;
+                            diaSelecionado = dia;
+                            sairDoModoAno();
+                            renderizarCalendario();
+                            mostrarTarefasDoDia(iso, dia);
+                            lucide.createIcons();
+                        });
+                    };
+                    celula.addEventListener('click', irParaODia);
+                    celula.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            irParaODia();
+                        }
+                    });
 
                     if (dia === hoje.getDate() && mes === hoje.getMonth() && ano === hoje.getFullYear()) {
                         celula.classList.add('hoje');

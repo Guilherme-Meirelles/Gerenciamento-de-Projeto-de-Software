@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import java.time.Year;
 
 @Controller
 public class edicaoUsuario {
@@ -36,6 +35,8 @@ public class edicaoUsuario {
 
             if (usuario != null) {
                 model.addAttribute("usuario", usuario);
+                // A data já vem escrita no formato do idioma, para aparecer junto com os outros campos
+                model.addAttribute("dataNascimentoExibicao", MenuController.dataParaExibicao(usuario.getDataNascimento()));
                 return "edicaoUsuario";
             }
         }
@@ -47,14 +48,25 @@ public class edicaoUsuario {
     public String edicaoUsuario(@ModelAttribute Usuario usuarioEditado, HttpServletRequest request, BindingResult result, Model model) {
 
         boolean vaiTrocarSenha = usuarioEditado.getSenha() != null && !usuarioEditado.getSenha().isBlank();
+        model.addAttribute("dataNascimentoExibicao", MenuController.dataParaExibicao(usuarioEditado.getDataNascimento()));
 
         if (result.hasErrors()) {
             model.addAttribute("mensagem", Mensagens.get("msg.edicao.erro"));
             return "edicaoUsuario";
 
-        } else if (Long.parseLong(usuarioEditado.getDataNascimento().substring(0, 4)) > Year.now().getValue()) {
+        } else if (LoginCadastroControle.dataNascimentoInvalida(usuarioEditado.getDataNascimento())) {
             model.addAttribute("mensagem", Mensagens.get("msg.ano.invalido"));
-            return "cadastro";
+            return "edicaoUsuario";
+        }
+
+        else if (usuarioEditado.getNome() != null && usuarioEditado.getNome().length() > Usuario.NOME_MAX) {
+            model.addAttribute("mensagem", Mensagens.get("msg.nome.longo", Usuario.NOME_MAX));
+            return "edicaoUsuario";
+        }
+
+        else if (vaiTrocarSenha && LoginCadastroControle.senhaLonga(usuarioEditado.getSenha())) {
+            model.addAttribute("mensagem", Mensagens.get("msg.senha.longa", Usuario.SENHA_MAX));
+            return "edicaoUsuario";
         }
 
         else if (vaiTrocarSenha && usuarioEditado.getSenha().length() < 8) {

@@ -111,6 +111,43 @@ class CompartilharAreadeTrabalhoTest {
     }
 
     @Test
+    void enviarNotificacao_semPermissaoParaEmailSemConta_tambemRetorna403() {
+        // Antes, quem não podia convidar recebia "enviado" se o e-mail não tinha conta; agora a permissão vem primeiro
+        Usuario remetente = usuario(1L, "dono@teste.com");
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(remetente));
+        when(usuarioRepository.findByEmail("semconta@teste.com")).thenReturn(null);
+        when(permissaoAreaService.podeEditar(1L, 10L)).thenReturn(false);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        SessaoUtil.autenticar(request, 1L);
+        Map<String, Object> dados = Map.of("email", "semconta@teste.com", "id_area", 10);
+
+        ResponseEntity<?> resposta = controller.enviarNotificacao(dados, request);
+
+        assertThat(resposta.getStatusCode().value()).isEqualTo(403);
+        verify(tokenRepository, never()).save(any());
+    }
+
+    @Test
+    void enviarNotificacao_emailSemConta_respondeComoSeTivesseEnviadoENaoGeraConvite() {
+        Usuario remetente = usuario(1L, "dono@teste.com");
+        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(remetente));
+        when(areaTrabalhoRepository.findById(10L)).thenReturn(Optional.of(area(10L)));
+        when(usuarioRepository.findByEmail("semconta@teste.com")).thenReturn(null);
+        when(permissaoAreaService.podeEditar(1L, 10L)).thenReturn(true);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        SessaoUtil.autenticar(request, 1L);
+        Map<String, Object> dados = Map.of("email", "semconta@teste.com", "id_area", 10);
+
+        ResponseEntity<?> resposta = controller.enviarNotificacao(dados, request);
+
+        assertThat(resposta.getStatusCode().value()).isEqualTo(200);
+        verify(tokenRepository, never()).save(any());
+        verify(emailService, never()).enviarEmailCompartilharAreaTrabalho(any(), anyString(), any(), anyString(), any());
+    }
+
+    @Test
     void enviarNotificacao_editorComPermissao_geraTokenEEnviaConvite() {
         Usuario remetente = usuario(1L, "dono@teste.com");
         Usuario destinatario = usuario(2L, "convidado@teste.com");

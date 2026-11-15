@@ -12,11 +12,19 @@ import java.util.Set;
 @Entity
 public class Tarefa {
 
+    // Limites de texto. O menu.html repete esses números no maxlength do título e da descrição, então os
+    // dois lugares precisam mudar juntos. A descrição fica em 255 porque é o tamanho da coluna que o banco
+    // já tem; aumentar exige alterar a coluna.
+    public static final int TITULO_MAX = 100;
+    public static final int DESCRICAO_MAX = 255;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = TITULO_MAX)
     private String titulo;
+    @Column(length = DESCRICAO_MAX)
     private String descricao;
     private Integer cor;
     private LocalDate dataFim;

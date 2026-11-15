@@ -20,6 +20,7 @@ import com.example.demo.Entidades.Categoria;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
 import com.example.demo.Serviços.CategoriaService;
 import com.example.demo.Serviços.PermissaoAreaService;
+import com.example.demo.Serviços.TextoMuitoLongoException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -70,8 +71,12 @@ public class CategoriaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Categoria categoria = categoriaService.criarCategoria(areaId, nome, cor);
-        return ResponseEntity.ok(categoria);
+        try {
+            Categoria categoria = categoriaService.criarCategoria(areaId, nome, cor);
+            return ResponseEntity.ok(categoria);
+        } catch (TextoMuitoLongoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
@@ -85,8 +90,12 @@ public class CategoriaController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        Categoria categoria = categoriaService.editarCategoria(id, nome, cor);
-        return ResponseEntity.ok(categoria);
+        try {
+            Categoria categoria = categoriaService.editarCategoria(id, nome, cor);
+            return ResponseEntity.ok(categoria);
+        } catch (TextoMuitoLongoException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

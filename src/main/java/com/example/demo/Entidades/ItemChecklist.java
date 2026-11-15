@@ -10,6 +10,8 @@ public class ItemChecklist {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    public static final int DESCRICAO_MAX = 100; // os campos do HTML repetem esse valor em maxlength
+    @Column(length = DESCRICAO_MAX)
     private String descricao;
     private Boolean concluido = false;
 

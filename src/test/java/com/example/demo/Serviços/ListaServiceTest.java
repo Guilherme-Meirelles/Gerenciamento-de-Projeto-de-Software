@@ -70,6 +70,42 @@ class ListaServiceTest {
     }
 
     @Test
+    void criarLista_nomeOuDescricaoMaioresQueOLimite_recusaESemSalvar() {
+        montarArea();
+
+        assertThatThrownBy(() -> listaService.criarLista(area.getId(), "a".repeat(Lista.NOME_MAX + 1), null))
+                .isInstanceOf(TextoMuitoLongoException.class)
+                .hasMessageContaining(String.valueOf(Lista.NOME_MAX));
+        assertThatThrownBy(() -> listaService.criarLista(area.getId(), "Lista", "b".repeat(Lista.DESCRICAO_MAX + 1)))
+                .isInstanceOf(TextoMuitoLongoException.class)
+                .hasMessageContaining(String.valueOf(Lista.DESCRICAO_MAX));
+        assertThat(listaService.listarPorArea(area.getId())).isEmpty();
+    }
+
+    @Test
+    void criarLista_noLimiteExato_aceita() {
+        montarArea();
+
+        Lista lista = listaService.criarLista(area.getId(), "a".repeat(Lista.NOME_MAX), "b".repeat(Lista.DESCRICAO_MAX));
+
+        assertThat(lista.getId()).isNotNull();
+    }
+
+    @Test
+    void editarLista_textoMaiorQueOLimite_recusaEMantemOQueEstavaSalvo() {
+        montarArea();
+        Lista lista = listaService.criarLista(area.getId(), "Original", "Descrição original");
+
+        assertThatThrownBy(() -> listaService.editarLista(lista.getId(), "a".repeat(Lista.NOME_MAX + 1), "x"))
+                .isInstanceOf(TextoMuitoLongoException.class);
+
+        em.clear();
+        Lista salva = listaService.getLista(lista.getId());
+        assertThat(salva.getNome()).isEqualTo("Original");
+        assertThat(salva.getDescricao()).isEqualTo("Descrição original");
+    }
+
+    @Test
     void getLista_inexistente_lancaExcecao() {
         assertThatThrownBy(() -> listaService.getLista(999L)).isInstanceOf(RuntimeException.class);
     }
