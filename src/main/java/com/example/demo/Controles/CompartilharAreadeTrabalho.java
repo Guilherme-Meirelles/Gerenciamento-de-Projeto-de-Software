@@ -1,5 +1,6 @@
 package com.example.demo.Controles;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
 import com.example.demo.ConsultasBD.*;
 import com.example.demo.Entidades.*;
 import com.example.demo.Serviços.Autentificador.SessaoUtil;
@@ -57,18 +58,18 @@ public class CompartilharAreadeTrabalho {
 
             String remetenteId = SessaoUtil.getUsuarioId(request);
             if (remetenteId == null) {
-                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Não autenticado"));
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", Mensagens.get("msg.area.naoAutenticado")));
             }
             Usuario remetente = usuarioRepository.findById(Long.parseLong(remetenteId)).orElse(null);
             if (remetente == null) {
-                return ResponseEntity.status(401).body(Map.of("success", false, "message", "Não autenticado"));
+                return ResponseEntity.status(401).body(Map.of("success", false, "message", Mensagens.get("msg.area.naoAutenticado")));
             }
 
             // Nível concedido pelo convite (Observador ou Editor); sem valor, assume Editor.
             Object permissaoBruta = dados.get("permissao");
             PermissaoArea nivel = permissaoBruta == null ? EDITOR : PermissaoArea.doConvite(String.valueOf(permissaoBruta));
             if (nivel == null) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Nível de permissão inválido. Use OBSERVADOR ou EDITOR."));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.permissaoConviteInvalida")));
             }
 
             AreaTrabalho area = areaTrabalhoRepository.findById(idArea).get();
@@ -83,7 +84,7 @@ public class CompartilharAreadeTrabalho {
 
                 // Só Editor/Admin da área pode convidar gente pra ela; Observador é read-only.
                 if (!permissaoAreaService.podeEditar(remetente.getId(), idArea)) {
-                    return ResponseEntity.status(403).body(Map.of("success", false, "message", "Você não tem permissão para convidar pessoas nesta área"));
+                    return ResponseEntity.status(403).body(Map.of("success", false, "message", Mensagens.get("msg.area.semPermissaoConvidar")));
                 }
 
                 String tokenString = UUID.randomUUID().toString();
@@ -105,10 +106,10 @@ public class CompartilharAreadeTrabalho {
                 System.out.println("Acerto");
             }
 
-            return ResponseEntity.ok(Map.of("success", true, "message", "Convite enviado!"));
+            return ResponseEntity.ok(Map.of("success", true, "message", Mensagens.get("msg.convite.enviado")));
 
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erro ao processar."));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.convite.erroProcessar")));
         }
     }
 
@@ -125,16 +126,16 @@ public class CompartilharAreadeTrabalho {
             AreaTrabalho area = areaTrabalhoRepository.findById(areaID).get();
 
             if (token == null || token.isUsado() || token.getExpiraEm().isBefore(LocalDateTime.now())) {
-                model.addAttribute("erro", "Link expirado ou inválido");
+                model.addAttribute("erro", Mensagens.get("msg.convite.expiradoOuInvalido"));
                 return "login";
             }
             else if (destinatario == null || area == null) {
-                model.addAttribute("erro", "Destinatário e área não encontrados");
+                model.addAttribute("erro", Mensagens.get("msg.convite.destinatarioNaoEncontrado"));
                 return "login";
             }
             else if (!areaID.equals(token.getAreaId()) || !destinatario.getEmail().equalsIgnoreCase(token.getEmail())) {
                 // Token válido, mas pra outra área/destinatário — impede reaproveitar um convite legítimo trocando os IDs na URL
-                model.addAttribute("erro", "Link expirado ou inválido");
+                model.addAttribute("erro", Mensagens.get("msg.convite.expiradoOuInvalido"));
                 return "login";
             }
             else{
@@ -147,7 +148,7 @@ public class CompartilharAreadeTrabalho {
                 }
                 token.setUsado(true);
                 tokenRepository.save(token);
-                model.addAttribute("mensagem", "Área compartilhada com sucesso");
+                model.addAttribute("mensagem", Mensagens.get("msg.convite.compartilhada"));
                 return "login";
             }
 
@@ -157,7 +158,7 @@ public class CompartilharAreadeTrabalho {
         } catch (Exception e){
 
             System.out.println("Erro: " + e.getMessage());
-            model.addAttribute("erro", "Erro ao processar");
+            model.addAttribute("erro", Mensagens.get("msg.convite.erroProcessarSemPonto"));
             return "login";
         }
 

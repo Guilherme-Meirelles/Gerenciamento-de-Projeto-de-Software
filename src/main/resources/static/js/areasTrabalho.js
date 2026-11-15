@@ -15,11 +15,11 @@ const btnTodasTarefas = document.querySelector('.menu-item:nth-child(3)');
 
 window.abrirModalNovaArea = function () {
     modoEdicao = false;
-    document.getElementById('tituloModalArea').textContent = 'Nova Área de Trabalho';
+    document.getElementById('tituloModalArea').textContent = t('js.areas.novaTitulo');
     document.getElementById('inputNomeArea').value = '';
-    document.getElementById('inputNomeArea').placeholder = 'Ex: Projetos Pessoais';
-    document.querySelector('.btn-criar').textContent = 'Criar';
-    configurarModalArea('briefcase', 'Dê um nome para a sua nova área.');
+    document.getElementById('inputNomeArea').placeholder = t('js.areas.phNome');
+    document.querySelector('.btn-criar').textContent = t('js.areas.criar');
+    configurarModalArea('briefcase', t('js.areas.novaDesc'));
     document.getElementById('modalArea').style.display = 'flex';
     document.getElementById('inputNomeArea').focus();
     setTimeout(() => lucide.createIcons(), 10);
@@ -38,7 +38,7 @@ function atualizarBotaoSalvarArea() {
     botao.disabled = vazio;
     // Mesmo padrão dos outros botões bloqueados: símbolo de bloqueado + mensagem
     if (vazio) {
-        botao.title = 'Digite o nome da área para continuar';
+        botao.title = t('js.areas.digiteNome');
     } else {
         botao.removeAttribute('title');
     }
@@ -75,7 +75,7 @@ window.adicionarCardArea = function (id, nome) {
     // Quem cria a área é o administrador
     const badge = document.createElement("span");
     badge.className = "badge-permissao admin";
-    badge.textContent = "Administrador";
+    badge.textContent = t('js.areas.administrador');
 
     card.appendChild(h3);
     card.appendChild(badge);
@@ -99,7 +99,7 @@ window.salvarArea = function (event) {
     const id = document.getElementById("areaIdEdicao").value;
     const nome = document.getElementById("inputNomeArea").value.trim();
     if (!nome) {
-        Aviso.mostrar('Nome inválido.', 'erro');
+        Aviso.mostrar(t('js.areas.nomeInvalido'), 'erro');
         return;
     }
 
@@ -144,9 +144,9 @@ window.salvarArea = function (event) {
         document.getElementById("areaIdEdicao").value = "";
     })
     .catch(err => {
-        if (err.message === "NOT_FOUND") Aviso.mostrar("Área não encontrada.", 'erro');
-        else if (err.message === "NOT_OWNER") Aviso.mostrar("Você não tem permissão para renomear esta área.", 'erro');
-        else Aviso.mostrar("Erro ao renomear área.", 'erro');
+        if (err.message === "NOT_FOUND") Aviso.mostrar(t('js.areas.naoEncontrada'), 'erro');
+        else if (err.message === "NOT_OWNER") Aviso.mostrar(t('js.areas.semPermissaoRenomear'), 'erro');
+        else Aviso.mostrar(t('js.areas.erroRenomear'), 'erro');
         fecharModalArea();
     });
 }
@@ -168,11 +168,11 @@ window.renomearAreaGerenciada = function () {
     document.getElementById('modalGerenciamento').style.display = 'none';
 
     modoEdicao = true;
-    document.getElementById('tituloModalArea').textContent = 'Renomear Área de Trabalho';
+    document.getElementById('tituloModalArea').textContent = t('js.areas.renomearTitulo');
     document.getElementById('inputNomeArea').value = areaVoltarGerenciar.nome;
     document.getElementById('inputNomeArea').placeholder = areaVoltarGerenciar.nome;
-    document.querySelector('.btn-criar').textContent = 'Salvar';
-    configurarModalArea('pencil', 'Escolha o novo nome da área.');
+    document.querySelector('.btn-criar').textContent = t('js.areas.salvar');
+    configurarModalArea('pencil', t('js.areas.renomearDesc'));
     document.getElementById('areaIdEdicao').value = areaVoltarGerenciar.id;
     document.getElementById('modalArea').style.display = 'flex';
 
@@ -211,7 +211,7 @@ window.carregarAreasCompartilhamento = function (areas) {
     });
 }
 
-const ROTULOS_PERMISSAO_CONVITE = { OBSERVADOR: 'Observador', EDITOR: 'Editor' };
+const ROTULOS_PERMISSAO_CONVITE = { OBSERVADOR: t('js.areas.observador'), EDITOR: t('js.areas.editor') };
 
 window.selecionarPermissaoConvite = function (permissao) {
     permissaoConviteSelecionada = permissao;
@@ -272,25 +272,25 @@ function enviarViaAjax() {
     // Validação no padrão das telas de login e cadastro (sem o balão nativo do navegador)
     if (!email) {
         Validacao.marcar(campo, true);
-        avisar('Informe o e-mail do usuário que receberá o convite.', 'erro');
+        avisar(t('js.areas.informeEmail'), 'erro');
         campo.focus();
         return;
     }
     if (!Validacao.emailValido(email)) {
         Validacao.marcar(campo, true);
-        avisar('Digite um e-mail válido, como nome@exemplo.com.', 'erro');
+        avisar(t('js.areas.emailInvalido'), 'erro');
         campo.focus();
         return;
     }
     if (!areaSelecionadaCompartilhar) {
-        avisar('Erro: ID da área não identificado.', 'erro');
+        avisar(t('js.areas.idNaoIdentificado'), 'erro');
         return;
     }
 
     Validacao.marcar(campo, false);
     const textoBotao = botao.textContent;
     botao.disabled = true;
-    botao.textContent = 'Enviando...';
+    botao.textContent = t('js.areas.enviando');
 
     fetch('/notificacaoArea', {
         method: 'POST',
@@ -309,12 +309,12 @@ function enviarViaAjax() {
                 avisar(data.message, 'sucesso');
                 campo.value = '';
             } else {
-                avisar(data.message || 'Erro ao processar.', 'erro');
+                avisar(data.message || t('js.areas.erroProcessar'), 'erro');
             }
         })
         .catch(error => {
             console.error('Erro:', error);
-            avisar('Erro de conexão com o servidor.', 'erro');
+            avisar(t('js.areas.erroConexao'), 'erro');
         })
         .finally(() => {
             botao.disabled = false;
@@ -340,7 +340,7 @@ window.abrirModalCompartilhar = function () {
 
     // Se a lista estiver vazia, pode ser útil avisar o usuário
     if (areas.length === 0) {
-        Aviso.mostrar('Você não possui permissão de administrador em nenhuma área para compartilhar.', 'alerta');
+        Aviso.mostrar(t('js.areas.semAdminCompartilhar'), 'alerta');
         fecharModalCompartilhar();
         return;
     }
@@ -396,14 +396,14 @@ window.atualizarSelecaoArea = function () {
         ['btnEmail', 'btnLink'].forEach(id => {
             const botao = document.getElementById(id);
             botao.disabled = true;
-            botao.title = 'Selecione uma área para compartilhar';
+            botao.title = t('js.areas.selecioneCompartilhar');
         });
     }
 }
 
 window.gerarLinkCompartilhamento = function () {
     if (!areaSelecionadaCompartilhar) {
-        Aviso.mostrar('Selecione uma área para compartilhar.', 'alerta');
+        Aviso.mostrar(t('js.areas.selecioneCompartilharPonto'), 'alerta');
         return;
     }
 
@@ -414,16 +414,16 @@ window.gerarLinkCompartilhamento = function () {
         .then(data => {
             if (data.link) {
                 navigator.clipboard.writeText(data.link)
-                    .then(() => Aviso.mostrar('Link copiado para a área de transferência!', 'sucesso'))
-                    .catch(() => Aviso.mostrar('Não foi possível copiar automaticamente. Link gerado: ' + data.link, 'alerta', 20000));
+                    .then(() => Aviso.mostrar(t('js.areas.linkCopiado'), 'sucesso'))
+                    .catch(() => Aviso.mostrar(t('js.areas.linkNaoCopiado', data.link), 'alerta', 20000));
                 fecharModalCompartilhar();
             } else {
-                Aviso.mostrar('Erro ao gerar o link.', 'erro');
+                Aviso.mostrar(t('js.areas.erroLink'), 'erro');
             }
         })
         .catch(err => {
             console.error(err);
-            Aviso.mostrar('Erro ao gerar o link. Tente novamente.', 'erro');
+            Aviso.mostrar(t('js.areas.erroLinkTente'), 'erro');
         });
 }
 
@@ -477,22 +477,22 @@ function atualizarBotaoExclusao() {
     btnExcluir.disabled = q === 0;
 
     let icone = 'trash-2';
-    let texto = 'Excluir Selecionadas';
+    let texto = t('js.areas.excluirSelecionadas');
     if (q > 0) {
         const qtdAdmin = areasSelecionadasExcluir.filter(areaEhAdmin).length;
         if (qtdAdmin === 0) {
             icone = 'log-out';
-            texto = q === 1 ? 'Sair da Área' : `Sair de ${q} Áreas`;
+            texto = q === 1 ? t('js.areas.sairDaArea') : t('js.areas.sairDeN', q);
         } else if (qtdAdmin === q) {
-            texto = q === 1 ? 'Excluir Área' : `Excluir ${q} Áreas`;
+            texto = q === 1 ? t('js.areas.excluirArea') : t('js.areas.excluirNAreas', q);
         } else {
-            texto = `Excluir ou Sair de ${q} Áreas`;
+            texto = t('js.areas.excluirOuSairN', q);
         }
     }
 
     // Mesma dica dos botões de compartilhar quando falta escolher a área
     if (q === 0) {
-        btnExcluir.title = 'Selecione uma área para excluir';
+        btnExcluir.title = t('js.areas.selecioneExcluir');
     } else {
         btnExcluir.removeAttribute('title');
     }
@@ -515,7 +515,7 @@ function nomeDaArea(areaId) {
 function listarNomes(ids) {
     const nomes = ids.map(id => `"${nomeDaArea(id)}"`);
     return nomes.length > 1
-        ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1]
+        ? nomes.slice(0, -1).join(', ') + ' ' + t('js.areas.eSep') + ' ' + nomes[nomes.length - 1]
         : nomes[0];
 }
 
@@ -528,7 +528,7 @@ function escaparHtml(texto) {
 
 window.confirmarExclusao = async function () {
     if (areasSelecionadasExcluir.length === 0) {
-        Aviso.mostrar('Selecione pelo menos uma área para excluir.', 'alerta');
+        Aviso.mostrar(t('js.areas.selecioneUmaExcluir'), 'alerta');
         return;
     }
 
@@ -537,11 +537,11 @@ window.confirmarExclusao = async function () {
     let aviso = '';
     if (idsAdmin.length > 0) {
         const um = idsAdmin.length === 1;
-        aviso += `Você é administrador de ${listarNomes(idsAdmin)}: ${um ? 'ela será excluída' : 'elas serão excluídas'} para todos os membros.\n`;
+        aviso += t(um ? 'js.areas.adminExcluida' : 'js.areas.adminExcluidas', listarNomes(idsAdmin)) + '\n';
     }
     if (idsSaida.length > 0) {
         const um = idsSaida.length === 1;
-        aviso += `Você não é administrador de ${listarNomes(idsSaida)}: você apenas sairá ${um ? 'dela' : 'delas'}, e ${um ? 'ela continuará' : 'elas continuarão'} existindo para os outros membros.\n`;
+        aviso += t(um ? 'js.areas.naoAdminSai' : 'js.areas.naoAdminSaiVarias', listarNomes(idsSaida)) + '\n';
     }
 
     const soSaida = idsAdmin.length === 0;
@@ -550,15 +550,15 @@ window.confirmarExclusao = async function () {
 
     // Nomes guardados antes de a requisição remover os cards da tela
     const resumo = [];
-    if (idsAdmin.length > 0) resumo.push(idsAdmin.length === 1 ? `${listarNomes(idsAdmin)} foi excluída` : `${idsAdmin.length} áreas excluídas`);
-    if (idsSaida.length > 0) resumo.push(idsSaida.length === 1 ? `você saiu de ${listarNomes(idsSaida)}` : `você saiu de ${idsSaida.length} áreas`);
+    if (idsAdmin.length > 0) resumo.push(idsAdmin.length === 1 ? t('js.areas.resExcluida', listarNomes(idsAdmin)) : t('js.areas.resExcluidas', idsAdmin.length));
+    if (idsSaida.length > 0) resumo.push(idsSaida.length === 1 ? t('js.areas.resSaiu', listarNomes(idsSaida)) : t('js.areas.resSaiuN', idsSaida.length));
 
     const confirmacao = await Aviso.confirmar({
-        titulo: soSaida ? (varias ? 'Sair das áreas' : 'Sair da área')
-            : soExclusao ? (varias ? 'Excluir áreas' : 'Excluir área')
-            : 'Excluir ou Sair de Áreas',
-        mensagem: `${aviso}\nDeseja continuar?`,
-        confirmar: soSaida ? 'Sair' : soExclusao ? 'Excluir' : 'Continuar',
+        titulo: soSaida ? (varias ? t('js.areas.tituloSairAreas') : t('js.areas.tituloSairArea'))
+            : soExclusao ? (varias ? t('js.areas.tituloExcluirAreas') : t('js.areas.tituloExcluirArea'))
+            : t('js.areas.tituloExcluirOuSair'),
+        mensagem: `${aviso}\n${t('js.areas.desejaContinuar')}`,
+        confirmar: soSaida ? t('js.areas.btnSair') : soExclusao ? t('js.areas.btnExcluir') : t('js.areas.btnContinuar'),
         perigo: idsAdmin.length > 0
     });
 
@@ -570,7 +570,7 @@ window.confirmarExclusao = async function () {
         body: JSON.stringify({ ids: areasSelecionadasExcluir })
     })
     .then(res => {
-        if (!res.ok) throw new Error('Erro ao excluir áreas');
+        if (!res.ok) throw new Error(t('js.areas.erroExcluir'));
         return res.json();
     })
     .then(resultado => {
@@ -579,7 +579,7 @@ window.confirmarExclusao = async function () {
             const card = document.querySelector(`.area-card[data-id="${areaId}"]`);
             if (card) card.remove();
         });
-        Aviso.mostrar(`Concluído: ${resumo.join(' e ')}.`, 'sucesso');
+        Aviso.mostrar(t('js.areas.concluido', resumo.join(' ' + t('js.areas.eSep') + ' ')), 'sucesso');
         fecharModalExcluir();
     })
     .catch(err => {
@@ -611,7 +611,7 @@ window.popularListaAreasExcluir = function (areas) {
         const dica = document.createElement('span');
         const admin = area.permissao === 'ADMIN';
         dica.className = 'dica-area-excluir' + (admin ? ' exclui' : '');
-        dica.textContent = admin ? 'Será excluída' : 'Você sairá';
+        dica.textContent = admin ? t('js.areas.seraExcluida') : t('js.areas.voceSaira');
 
         // Clique no item ignora label e checkbox
         item.onclick = (event) => {
@@ -653,7 +653,7 @@ window.abrirModalGerenciamento = function () {
     if (areas.length === 0) {
         const vazio = document.createElement('p');
         vazio.className = 'descricao-modal';
-        vazio.textContent = 'Você ainda não participa de nenhuma área de trabalho.';
+        vazio.textContent = t('js.areas.semAreas');
         listaAreas.appendChild(vazio);
     }
 
@@ -705,7 +705,7 @@ window.fecharModalGerenciamento = function () {
 
 // Nível real de permissão (admin/editor/observador) -> rótulo exibido
 function rotuloPermissao(permissao) {
-    return { admin: 'Administrador', editor: 'Editor', observador: 'Observador' }[permissao] || permissao;
+    return { admin: t('js.areas.administrador'), editor: t('js.areas.editor'), observador: t('js.areas.observador') }[permissao] || permissao;
 }
 
 // Mostra "Nome da área · N membros" abaixo do título da tela de membros
@@ -715,7 +715,7 @@ function atualizarSubtituloMembros(total) {
         subtitulo.textContent = nomeAreaGerenciar;
         return;
     }
-    subtitulo.textContent = `${nomeAreaGerenciar} · ${total} ${total === 1 ? 'membro' : 'membros'}`;
+    subtitulo.textContent = `${nomeAreaGerenciar} · ${total} ${total === 1 ? t('js.areas.membro') : t('js.areas.membrosPl')}`;
 }
 
 window.abrirMembros = function (areaId, nomeArea) {
@@ -757,13 +757,13 @@ window.abrirMembros = function (areaId, nomeArea) {
                     <div class="membro-acoes">
                         <button class="btn-acao-membro" ${dadosMembro} data-permissao="${escaparHtml(membro.permissao)}"
                                 onclick="abrirModalPermissao(this.dataset.id, this.dataset.nome, this.dataset.permissao)"
-                                ${ehAdmin ? 'disabled title="Administradores não têm a permissão alterada por aqui"' : ''}>
-                            <i data-lucide="shield"></i> Alterar Permissão
+                                ${ehAdmin ? `disabled title="${escaparHtml(t('js.areas.adminSemAlterar'))}"` : ''}>
+                            <i data-lucide="shield"></i> ${t('js.areas.alterarPermissao')}
                         </button>
                         <button class="btn-acao-membro remover" ${dadosMembro} data-area="${escaparHtml(areaSelecionadaGerenciar)}"
                                 onclick="removerMembro(this.dataset.id, this.dataset.nome, this.dataset.area)"
-                                ${ehAdmin ? 'disabled title="O administrador não pode ser removido"' : ''}>
-                            <i data-lucide="user-minus"></i> Remover
+                                ${ehAdmin ? `disabled title="${escaparHtml(t('js.areas.adminSemRemover'))}"` : ''}>
+                            <i data-lucide="user-minus"></i> ${t('js.areas.remover')}
                         </button>
                     </div>` : '';
 
@@ -809,8 +809,8 @@ window.voltarParaSelecao = function () {
 window.abrirModalPermissao = function (membroId, membroNome, permissaoAtual) {
     membroAtualPermissao = { id: membroId, nome: membroNome, permissaoAtual: permissaoAtual };
 
-    document.getElementById('tituloModalPermissao').textContent = `Alterar Permissão`;
-    document.getElementById('descModalPermissao').textContent = `Selecione o nível de permissão para ${membroNome}`;
+    document.getElementById('tituloModalPermissao').textContent = t('js.areas.alterarPermissao');
+    document.getElementById('descModalPermissao').textContent = t('js.areas.selecionePermissao', membroNome);
 
     // Marca a permissão atual
     document.querySelectorAll('input[name="permissaoMembro"]').forEach(radio => {
@@ -853,7 +853,7 @@ window.salvarPermissao = function () {
     const permissaoSelecionada = document.querySelector('input[name="permissaoMembro"]:checked');
 
     if (!permissaoSelecionada) {
-        Aviso.mostrar('Selecione uma permissão.', 'alerta');
+        Aviso.mostrar(t('js.areas.selecioneUmaPermissao'), 'alerta');
         return;
     }
 
@@ -871,7 +871,7 @@ window.salvarPermissao = function () {
         .then(async resposta => {
             const dados = await resposta.json().catch(() => ({}));
             if (!resposta.ok || dados.success === false) {
-                Aviso.mostrar(dados.message || 'Não foi possível alterar a permissão.', 'erro');
+                Aviso.mostrar(dados.message || t('js.areas.erroPermissao'), 'erro');
                 return;
             }
             // Atualiza a UI
@@ -893,10 +893,10 @@ window.salvarPermissao = function () {
                 }
             }
 
-            Aviso.mostrar(`Permissão de ${membro.nome} alterada para "${rotuloPermissao(novoNivel)}".`, 'sucesso');
+            Aviso.mostrar(t('js.areas.permissaoAlterada', membro.nome, rotuloPermissao(novoNivel)), 'sucesso');
             fecharModalPermissao();
         })
-        .catch(() => Aviso.mostrar('Erro de conexão ao alterar a permissão.', 'erro'));
+        .catch(() => Aviso.mostrar(t('js.areas.erroConexaoPermissao'), 'erro'));
 }
 
 // Adicionamos 'async' para poder esperar a resposta do servidor
@@ -904,9 +904,9 @@ window.removerMembro = async function (membroId, membroNome, idArea) {
 
     // Confirmação antes de qualquer coisa
     const confirmacao = await Aviso.confirmar({
-        titulo: 'Remover membro',
-        mensagem: `Tem certeza que deseja remover ${membroNome} desta área?\n\nEle perderá acesso a todas as tarefas e informações.`,
-        confirmar: 'Remover',
+        titulo: t('js.areas.removerTitulo'),
+        mensagem: t('js.areas.removerMensagem', membroNome),
+        confirmar: t('js.areas.remover'),
         perigo: true
     });
 
@@ -929,7 +929,7 @@ window.removerMembro = async function (membroId, membroNome, idArea) {
 
         // Verifica se a requisição deu erro (ex: 404, 500)
         if (!resposta.ok) {
-            throw new Error('Erro ao processar a remoção no servidor.');
+            throw new Error('remover');
         }
 
         // --- 2. Sucesso: Atualiza a Interface ---
@@ -951,12 +951,12 @@ window.removerMembro = async function (membroId, membroNome, idArea) {
             }, 300); // Espera a animação terminar
         }
 
-        Aviso.mostrar(`${membroNome} foi removido da área de trabalho.`, 'sucesso');
+        Aviso.mostrar(t('js.areas.membroRemovido', membroNome), 'sucesso');
 
     } catch (erro) {
         // --- 3. Tratamento de Erro ---
         console.error('Falha ao remover:', erro);
-        Aviso.mostrar('Ocorreu um erro ao tentar remover o membro. Tente novamente.', 'erro');
+        Aviso.mostrar(t('js.areas.erroRemover'), 'erro');
     }
 };
 

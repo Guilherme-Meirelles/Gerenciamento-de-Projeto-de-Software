@@ -248,8 +248,14 @@ window.abrirNotificacoes = async function () {
     const dados = await atualizarNotificacoes();
     if (dados) {
         const pref = dados.preferencias || { email: true, sistema: true };
-        document.getElementById('prefNotifEmail').checked = pref.email;
-        document.getElementById('prefNotifSistema').checked = pref.sistema;
+        // Estado carregado sem animar a bolinha (a animação é só do clique)
+        [['prefNotifEmail', pref.email], ['prefNotifSistema', pref.sistema]].forEach(([id, valor]) => {
+            const toggle = document.getElementById(id);
+            toggle.classList.add('sem-animacao');
+            toggle.checked = valor;
+            void toggle.offsetWidth;
+            toggle.classList.remove('sem-animacao');
+        });
         desenharNotificacoes(dados.itens, pref.sistema);
     } else {
         document.getElementById('listaNotificacoes').textContent = t('js.notif.erroCarregar');

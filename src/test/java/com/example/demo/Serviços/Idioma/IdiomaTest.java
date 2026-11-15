@@ -13,6 +13,13 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
@@ -209,5 +216,63 @@ class IdiomaTest {
                 .contains("window.t=function").contains("window.trocarIdioma=function").contains("todaily.idioma.campos");
         assertThat(resposta.getBody()).contains("\"js.acess.tema\":\"Tema\"").doesNotContain("msg.");
         assertThat(resposta.getHeaders().getCacheControl()).contains("no-store");
+    }
+
+    // ---------- coerência entre o código e os arquivos de tradução ----------
+
+    private static void chavesUsadas(Path pasta, String extensao, Pattern padrao, Set<String> destino) throws Exception {
+        try (Stream<Path> arquivos = Files.walk(pasta)) {
+            for (Path arquivo : (Iterable<Path>) arquivos.filter(a -> a.toString().endsWith(extensao))::iterator) {
+                Matcher m = padrao.matcher(Files.readString(arquivo, StandardCharsets.UTF_8));
+                while (m.find()) destino.add(m.group(1));
+            }
+        }
+    }
+
+    @Test
+    void todaChaveUsadaNosTemplatesNoJavaScriptENoJavaExisteNosArquivosDeTraducao() throws Exception {
+        Set<String> usadas = new HashSet<>();
+        Path recursos = Path.of("src/main/resources");
+        Pattern chaveJs = Pattern.compile("\\bt\\(\\s*['\"]([\\w.]+)['\"]");
+        chavesUsadas(recursos.resolve("templates"), ".html", Pattern.compile("#\\{([\\w.]+)}"), usadas);
+        chavesUsadas(recursos.resolve("templates"), ".html", chaveJs, usadas);
+        chavesUsadas(recursos.resolve("static/js"), ".js", chaveJs, usadas);
+        chavesUsadas(Path.of("src/main/java"), ".java", Pattern.compile("Mensagens\\.get\\(\\s*\"([\\w.]+)\""), usadas);
+
+        Set<String> existentes = carregar("mensagens.properties").stringPropertyNames();
+        usadas.removeIf(k -> !k.contains("."));
+        assertThat(usadas).isNotEmpty();
+        assertThat(usadas).as("chaves usadas mas ausentes em mensagens.properties").isSubsetOf(existentes);
+    }
+
+    @Test
+    void textosDeTarefasEmIngles() {
+        LocaleContextHolder.setLocale(Locale.ENGLISH);
+        assertThat(Mensagens.get("msg.tarefa.naoEncontrada")).isEqualTo("Task not found");
+        assertThat(Mensagens.get("msg.lista.naoEncontrada")).isEqualTo("List not found");
+        assertThat(Mensagens.get("msg.anexo.nenhumArquivo")).isEqualTo("No file uploaded.");
+    }
+
+    @Test
+    void textosComParametrosDeTarefasNoJavaScriptTemOsMarcadores() {
+        for (String idioma : new String[]{"pt-BR", "en", "es"}) {
+            Map<String, String> js = Mensagens.comPrefixo(Locale.forLanguageTag(idioma), "js.");
+            assertThat(js.get("js.checklist.concluidos")).as(idioma).contains("{0}").contains("{1}");
+            assertThat(js.get("js.tarefa.pessoas")).as(idioma).contains("{0}");
+            assertThat(js.get("js.cal.verMesDoAno")).as(idioma).contains("{0}").contains("{1}");
+        }
+    }
+
+    @Test
+    void textosDeAreasEConvitesNosTresIdiomas() {
+        assertThat(Mensagens.get(Locale.forLanguageTag("pt-BR"), "msg.convite.participa", "Casa"))
+                .isEqualTo("Você agora participa da área \"Casa\".");
+        assertThat(Mensagens.get(Locale.ENGLISH, "msg.convite.participa", "Casa"))
+                .isEqualTo("You are now a member of the workspace \"Casa\".");
+        assertThat(Mensagens.get(Locale.forLanguageTag("es"), "msg.convite.linkExpirado"))
+                .isEqualTo("Enlace de invitación caducado.");
+        Map<String, String> js = Mensagens.comPrefixo(Locale.ENGLISH, "js.");
+        assertThat(js.get("js.areas.permissaoAlterada")).contains("{0}").contains("{1}");
+        assertThat(js.get("js.arquivo.nenhum")).isEqualTo("No file chosen");
     }
 }

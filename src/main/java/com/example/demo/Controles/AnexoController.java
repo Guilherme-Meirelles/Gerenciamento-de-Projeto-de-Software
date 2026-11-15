@@ -1,5 +1,7 @@
 package com.example.demo.Controles;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -116,14 +118,14 @@ public class AnexoController {
         }
 
         if (arquivo == null || arquivo.isEmpty()) {
-            return ResponseEntity.badRequest().body("Nenhum arquivo enviado.");
+            return ResponseEntity.badRequest().body(Mensagens.get("msg.anexo.nenhumArquivo"));
         }
 
         try {
             Anexo anexo = anexoService.adicionar(tarefaId, arquivo);
             return ResponseEntity.ok(anexoParaJson(anexo));
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao salvar o arquivo.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Mensagens.get("msg.anexo.erroSalvar"));
         }
     }
 

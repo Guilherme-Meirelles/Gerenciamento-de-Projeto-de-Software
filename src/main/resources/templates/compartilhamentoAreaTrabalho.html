@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{lang}">
 <head>
     <meta charset="UTF-8">
-    <title>Compartilhamento de Área de Trabalho</title>
+    <title>{{email.compart.tituloPagina}}</title>
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
 
@@ -12,13 +12,11 @@
             <table width="500" style="background: white; padding: 30px; border-radius: 10px;">
                 <tr>
                     <td align="center">
-                        <h2 style="color: #333;">Compartilhamento de Área ToDaily</h2>
+                        <h2 style="color: #333;">{{email.compart.titulo}}</h2>
 
                         <p style="font-size: 16px; color: #555;">
-                            Olá, <strong>{nome}</strong>! <br><br>
-                            Clique no botão abaixo para ter acesso a área de trabalho: <strong>{area}</strong>.
-                            Compartilhada por <strong>{usuario}</strong>.<br><br>
-                            Seu nível de acesso: <strong>{permissao}</strong>.
+                            {{email.ola}}, <strong>{nome}</strong>! <br><br>
+                            {corpo}
                         </p>
 
                         <a href="{baseUrl}/compartilhamentoArea?token={token}&destID={destID}&areaID={areaID}"
@@ -31,12 +29,12 @@
                                border-radius: 6px;
                                font-size: 16px;
                                margin-top: 20px;">
-                            Acessar Área
+                            {{email.compart.botao}}
                         </a>
 
                         <p style="font-size: 13px; color: #999; margin-top: 25px;">
-                            Este link expira em 1 dia. <br>
-                            Se você não quer te acesso a esta área de trabalho ignore este email.
+                            {{email.compart.expira}} <br>
+                            {{email.compart.ignorar}}
                         </p>
 
                     </td>

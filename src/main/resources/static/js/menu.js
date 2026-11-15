@@ -15,15 +15,23 @@ let tarefaSelecionada = null;
 
 // Categorias da área atual (usadas para badges e seleção nas tarefas)
 let categorias = [];
+// Todas as categorias que o usuário enxerga (da área atual ou de todas as áreas) — só para exibir cores/nomes
+let categoriasConhecidas = [];
 let categoriaIdsSelecionadosTarefa = [];
 
 // Listas
 let listas = document.querySelectorAll('.lista');
 
 async function carregarCategorias() {
-    if (!window.areaAtualId) { categorias = []; return; }
+    if (!window.areaAtualId) {
+        categorias = [];
+        const todas = await fetch('/user/categorias');
+        categoriasConhecidas = todas.ok ? await todas.json() : [];
+        return;
+    }
     const resposta = await fetch(`/areasTrabalho/${window.areaAtualId}/categorias`);
     categorias = resposta.ok ? await resposta.json() : [];
+    categoriasConhecidas = categorias.slice();
 }
 
 async function carregarTarefas(listaId) {
@@ -123,9 +131,9 @@ function atualizarTextoResponsaveis() {
     const nomes = [...document.querySelectorAll('#tarefaResponsavelLista input[type="checkbox"]:checked')].map(c => c.dataset.nome);
     const texto = document.querySelector('#tarefaResponsavelBotao .multi-resp-texto');
     if (!texto) return;
-    texto.textContent = nomes.length === 0 ? 'Selecione...'
+    texto.textContent = nomes.length === 0 ? t('js.tarefa.selecione')
         : nomes.length <= 2 ? nomes.join(', ')
-        : `${nomes.length} pessoas`;
+        : t('js.tarefa.pessoas', nomes.length);
 }
 
 function alternarListaResponsaveis(abrir) {
@@ -166,7 +174,7 @@ async function atualizarCamposModalTarefa() {
     listasCarregadas = await respListas.json();
 
     const selectLista = document.getElementById("tarefaLista");
-    selectLista.innerHTML = `<option value="">Selecione uma lista...</option>`;
+    selectLista.innerHTML = `<option value="">${t('js.tarefa.selecioneLista')}</option>`;
 
     listasCarregadas.forEach(l => {
         selectLista.innerHTML += `
@@ -214,7 +222,7 @@ async function atualizarCamposModalTarefa() {
     if (!membrosUnicos.length) {
         const vazio = document.createElement('div');
         vazio.className = 'multi-resp-vazio';
-        vazio.textContent = 'Nenhum membro disponível';
+        vazio.textContent = t('js.tarefa.semMembro');
         listaResp.appendChild(vazio);
     }
     definirResponsaveisSelecionados([]);
@@ -245,6 +253,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // "em rascunho" (só na memória) e só são enviados ao backend quando a
     // tarefa é criada de fato — assim dá pra montá-los antes de salvar.
     let modoRascunho = false;
+
+    // Em "Detalhes da Tarefa" tudo é só pra ver: checklist, anexos e categorias
+    // abrem sem nenhuma ação de criar, editar ou remover.
+    let modoSomenteLeitura = false;
+    const descricaoPlaceholder = document.getElementById('tarefaDescricao').getAttribute('placeholder') || '';
+    function definirModoSomenteLeitura(valor) {
+        modoSomenteLeitura = valor;
+        document.body.classList.toggle('tarefa-somente-leitura', valor);
+        // Sem dica de preenchimento quando não dá para escrever
+        document.getElementById('tarefaDescricao').placeholder = valor ? '' : descricaoPlaceholder;
+    }
 
     btnParaHoje.innerText
 
@@ -543,11 +562,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Abrir modal
     btnAddTarefa.addEventListener('click', function() {
         btnOkTarefa.style.display = "block";
-        btnCancelarTarefa.textContent = "Cancelar";
+        btnCancelarTarefa.textContent = t('js.aviso.cancelar');
 
         tarefaSelecionada = null;
         modoRascunho = true;
-        document.getElementById("tituloModalTarefa").textContent = "Adicionar Tarefa";
+        definirModoSomenteLeitura(false);
+        document.getElementById("tituloModalTarefa").textContent = t('js.tarefa.tituloAdicionar');
 
         atualizarCamposModalTarefa();
         modalAddTarefa.style.display = "flex";
@@ -583,10 +603,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!listaId || !titulo) {
             const faltando = !listaId && !titulo
-                ? "Escolha a lista e digite o título da tarefa."
+                ? t('js.tarefa.faltaListaETitulo')
                 : !listaId
-                    ? "Escolha a lista em que a tarefa será criada."
-                    : "Digite o título da tarefa.";
+                    ? t('js.tarefa.faltaLista')
+                    : t('js.tarefa.faltaTitulo');
             if (!listaId) document.getElementById('tarefaLista').classList.add('campo-invalido');
             if (!titulo) document.getElementById('tarefaTitulo').classList.add('campo-invalido');
             mostrarAviso(faltando, () => {
@@ -633,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!resposta.ok) {
                 const txt = await resposta.text();
-                throw new Error("Erro ao salvar a tarefa: " + txt);
+                throw new Error(t('js.tarefa.erroSalvar', txt));
             }
 
             tarefaCriadaOuEditada = await resposta.json();
@@ -719,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarefaDataFim').value = '';
         definirResponsaveisSelecionados([]);
         alternarListaResponsaveis(false);
-        document.getElementById('tarefaNotificacoes').checked = false;
+        definirNotificacoesSemAnimar(false);
         mostrarNotificacoesSomenteLeitura(false);
         document.getElementById('tarefaRepeticao').value = 'NENHUMA';
         categoriaIdsSelecionadosTarefa = [];
@@ -727,6 +747,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btnCategoria.style.backgroundColor = '';
 
         modoRascunho = false;
+        definirModoSomenteLeitura(false);
         itensChecklistRascunho = [];
         anexosRascunho = [];
     }
@@ -736,6 +757,16 @@ document.addEventListener('DOMContentLoaded', function() {
     function mostrarNotificacoesSomenteLeitura(somenteLeitura) {
         document.getElementById('tarefaNotificacoes').style.display = somenteLeitura ? 'none' : '';
         document.getElementById('tarefaNotificacoesTexto').style.display = somenteLeitura ? '' : 'none';
+    }
+
+    // Ao abrir a tarefa o interruptor já aparece no estado certo, sem a bolinha "correr";
+    // a animação só acontece quando a pessoa clica nele.
+    function definirNotificacoesSemAnimar(valor) {
+        const toggle = document.getElementById('tarefaNotificacoes');
+        toggle.classList.add('sem-animacao');
+        toggle.checked = !!valor;
+        void toggle.offsetWidth;
+        toggle.classList.remove('sem-animacao');
     }
 
     window.preencherFormulario = async function (tarefa) {
@@ -751,6 +782,7 @@ document.addEventListener('DOMContentLoaded', function() {
         listasCarregadas = await respListas.json();
 
         modoRascunho = false;
+        definirModoSomenteLeitura(false);
 
         document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select, #modalAddTarefa .multi-resp-botao")
             .forEach(el => el.disabled = false);
@@ -759,7 +791,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById("btnCategoria").disabled = false;
 
         const selectLista = document.getElementById("tarefaLista");
-        selectLista.innerHTML = `<option value="">Selecione uma lista...</option>`;
+        selectLista.innerHTML = `<option value="">${t('js.tarefa.selecioneLista')}</option>`;
 
         listasCarregadas.forEach(l => {
             selectLista.innerHTML += `
@@ -773,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tarefaDescricao').value = tarefa.descricao;
         document.getElementById('tarefaDataFim').value = tarefa.dataFim;
         definirResponsaveisSelecionados(tarefa.responsavelIds);
-        document.getElementById('tarefaNotificacoes').checked = tarefa.notificacoes;
+        definirNotificacoesSemAnimar(tarefa.notificacoes);
         mostrarNotificacoesSomenteLeitura(false);
         document.getElementById('tarefaRepeticao').value = tarefa.repeticao || 'NENHUMA';
         categoriaIdsSelecionadosTarefa = (tarefa.categoriaIds || []).slice();
@@ -793,9 +825,10 @@ document.addEventListener('DOMContentLoaded', function() {
         listasCarregadas = await respListas.json();
 
         modoRascunho = false;
+        definirModoSomenteLeitura(true);
 
         const selectLista = document.getElementById("tarefaLista");
-        selectLista.innerHTML = `<option value="">Selecione uma lista...</option>`;
+        selectLista.innerHTML = `<option value="">${t('js.tarefa.selecioneLista')}</option>`;
 
         listasCarregadas.forEach(l => {
             selectLista.innerHTML += `
@@ -809,8 +842,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById("tarefaDescricao").value = tarefa.descricao || "";
         document.getElementById("tarefaDataFim").value = tarefa.dataFim || "";
         definirResponsaveisSelecionados(tarefa.responsavelIds);
-        document.getElementById("tarefaNotificacoes").checked = tarefa.notificacoes || false;
-        document.getElementById("tarefaNotificacoesTexto").textContent = tarefa.notificacoes ? "Sim" : "Não";
+        definirNotificacoesSemAnimar(tarefa.notificacoes || false);
+        document.getElementById("tarefaNotificacoesTexto").textContent = tarefa.notificacoes ? t('js.comum.sim') : t('js.comum.nao');
         mostrarNotificacoesSomenteLeitura(true);
         document.getElementById("tarefaRepeticao").value = tarefa.repeticao || "NENHUMA";
 
@@ -819,15 +852,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         document.querySelectorAll("#modalAddTarefa input, #modalAddTarefa textarea, #modalAddTarefa select, #modalAddTarefa .multi-resp-botao")
             .forEach(el => el.disabled = true);
-        // Visualizar (mesmo de outra área/lista) ainda permite ver/gerenciar
-        // checklist, anexos e categorias — só os campos da tarefa ficam travados.
+        // Visualizar (mesmo de outra área/lista) ainda permite ABRIR checklist,
+        // anexos e categorias, mas só para ver (modoSomenteLeitura).
         document.getElementById("btnAnexo").disabled = false;
         document.getElementById("btnChecklist").disabled = false;
         document.getElementById("btnCategoria").disabled = false;
 
-        document.querySelector(".titulo-modal-tarefa").textContent = "Detalhes da Tarefa";
+        document.querySelector(".titulo-modal-tarefa").textContent = t('js.tarefa.tituloDetalhes');
         document.getElementById("btnOkTarefa").style.display = "none";
-        document.getElementById("btnCancelarTarefa").textContent = "Fechar";
+        document.getElementById("btnCancelarTarefa").textContent = t('js.comum.fechar');
 
         modalAddTarefa.style.display = 'flex';
     }
@@ -935,22 +968,22 @@ document.addEventListener('DOMContentLoaded', function() {
             // Estado vazio no mesmo estilo dos cartões tracejados de "Áreas de Trabalho"
             const buscando = !!textoFiltro || (filtroAtivo && !['titulo', 'responsavel'].includes(filtroAtivo));
             let icone = 'clipboard-list';
-            let titulo = 'Nenhuma tarefa por aqui';
+            let titulo = t('js.tarefa.vazioTitulo');
             let texto = window.podeEditar === false
-                ? 'Ainda não há tarefas nesta lista.'
-                : 'Use "Adicionar Tarefa" para criar a primeira.';
+                ? t('js.tarefa.vazioLeitura')
+                : t('js.tarefa.vazioCriar');
             if (buscando) {
                 icone = 'search-x';
-                titulo = 'Nada encontrado';
-                texto = 'Nenhuma tarefa corresponde ao filtro escolhido.';
+                titulo = t('js.tarefa.nadaEncontrado');
+                texto = t('js.tarefa.nadaEncontradoTexto');
             } else if (listaFiltro === 'hoje') {
                 icone = 'calendar-check';
-                titulo = 'Nada para hoje';
-                texto = 'Nenhuma tarefa com prazo para hoje.';
+                titulo = t('js.tarefa.nadaHoje');
+                texto = t('js.tarefa.nadaHojeTexto');
             } else if (listaFiltro === 'agendadas') {
                 icone = 'calendar-clock';
-                titulo = 'Nada agendado';
-                texto = 'Nenhuma tarefa com prazo em outro dia.';
+                titulo = t('js.tarefa.nadaAgendado');
+                texto = t('js.tarefa.nadaAgendadoTexto');
             }
             const vazio = document.createElement('div');
             vazio.className = 'estado-vazio-tarefas';
@@ -1032,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (tarefa.categoriaIds) {
                     tarefa.categoriaIds.forEach(categoriaId => {
-                        const categoria = categorias.find(c => c.id === categoriaId);
+                        const categoria = categoriasConhecidas.find(c => c.id === categoriaId);
                         if (!categoria) return;
                         const badge = document.createElement('span');
                         badge.className = 'tarefa-categoria-badge';
@@ -1050,7 +1083,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if (tarefa.repeticao && tarefa.repeticao !== 'NENHUMA') {
-                    const rotulosRepeticao = { DIARIA: 'Diariamente', SEMANAL: 'Semanalmente', MENSAL: 'Mensalmente', ANUAL: 'Anualmente' };
+                    const rotulosRepeticao = { DIARIA: t('js.tarefa.repDiaria'), SEMANAL: t('js.tarefa.repSemanal'), MENSAL: t('js.tarefa.repMensal'), ANUAL: t('js.tarefa.repAnual') };
                     const badge = document.createElement('span');
                     badge.className = 'tarefa-repeticao-badge';
                     badge.innerHTML = `<i data-lucide="repeat"></i> ${rotulosRepeticao[tarefa.repeticao] || tarefa.repeticao}`;
@@ -1071,23 +1104,23 @@ document.addEventListener('DOMContentLoaded', function() {
             // Botão editar
             const btnEditar = document.createElement('button');
             btnEditar.className = 'tarefa-btn-editar';
-            btnEditar.title = 'Editar tarefa';
+            btnEditar.title = t('js.tarefa.editar');
             btnEditar.innerHTML = '<i data-lucide="edit-2"></i>';
             btnEditar.addEventListener('click', function(e) {
                 e.stopPropagation();
                 tarefaSelecionada = tarefa;
-                tituloModalTarefa.textContent = 'Editar Tarefa';
+                tituloModalTarefa.textContent = t('js.tarefa.tituloEditar');
                 preencherFormulario(tarefa);
                 document.getElementById('tarefaLista').disabled = true;
                 document.getElementById("btnOkTarefa").style.display = "block";
-                document.getElementById("btnCancelarTarefa").textContent = "Cancelar";
+                document.getElementById("btnCancelarTarefa").textContent = t('js.aviso.cancelar');
                 modalAddTarefa.style.display = 'flex';
             });
 
             // Botão excluir
             const btnExcluir = document.createElement('button');
             btnExcluir.className = 'tarefa-btn-excluir';
-            btnExcluir.title = 'Excluir tarefa';
+            btnExcluir.title = t('js.tarefa.excluir');
             btnExcluir.innerHTML = '<i data-lucide="trash-2"></i>';
             btnExcluir.addEventListener('click', function(e) {
                 e.stopPropagation();
@@ -1172,7 +1205,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } catch (erro) {
             console.error(erro);
-            Aviso.mostrar('Não foi possível salvar a nova ordem das tarefas.', 'erro');
+            Aviso.mostrar(t('js.tarefa.erroOrdem'), 'erro');
             renderizarTarefas(listaAtual); // volta para a ordem que está salva
         }
     }
@@ -1272,7 +1305,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!resposta.ok) {
                 const txt = await resposta.text();
-                throw new Error("Erro ao salvar a tarefa: " + txt);
+                throw new Error(t('js.tarefa.erroSalvar', txt));
             }
 
             tarefaCriadaOuEditada = await resposta.json();
@@ -1310,7 +1343,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tarefas = anteriores;
                 renderizarTarefas(list);
                 lucide.createIcons();
-                mostrarAviso('Não foi possível remover a tarefa. Tente novamente.');
+                mostrarAviso(t('js.tarefa.erroRemover'));
             });
     };
 
@@ -1421,7 +1454,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            Aviso.mostrar('Erro ao adicionar o item.', 'erro');
+            Aviso.mostrar(t('js.checklist.erroAdicionar'), 'erro');
             return;
         }
 
@@ -1432,7 +1465,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Botão "+" apagado até digitar o nome do item (mesmo padrão dos outros botões bloqueados)
-    Aviso.exigirTexto(novoItemChecklistInput, btnAdicionarItemChecklist, 'Digite o nome do item para adicionar');
+    Aviso.exigirTexto(novoItemChecklistInput, btnAdicionarItemChecklist, t('js.checklist.digiteItem'));
     const limparNovoItemChecklist = () => {
         novoItemChecklistInput.value = '';
         novoItemChecklistInput.dispatchEvent(new Event('input'));
@@ -1461,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            Aviso.mostrar('Erro ao atualizar o item.', 'erro');
+            Aviso.mostrar(t('js.checklist.erroAtualizar'), 'erro');
             return;
         }
 
@@ -1490,7 +1523,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            Aviso.mostrar('Erro ao renomear o item.', 'erro');
+            Aviso.mostrar(t('js.checklist.erroRenomear'), 'erro');
             return;
         }
 
@@ -1535,14 +1568,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const total = itensChecklistAtual.length;
         const concluidos = itensChecklistAtual.filter(i => i.concluido).length;
-        checklistProgressoEl.textContent = total > 0 ? `${concluidos}/${total} concluídos` : '';
+        checklistProgressoEl.textContent = total > 0 ? t('js.checklist.concluidos', concluidos, total) : '';
 
         if (itensChecklistAtual.length === 0) {
             listaChecklistItensEl.innerHTML = `
                 <div class="lista-checklists-vazia">
                     <i data-lucide="list-checks"></i>
-                    <p>Nenhuma subatividade adicionada</p>
-                    <span>Adicione itens usando o campo abaixo</span>
+                    <p>${t('js.checklist.vazioTitulo')}</p>
+                    <span>${t('js.checklist.vazioTexto')}</span>
                 </div>
             `;
             setTimeout(() => lucide.createIcons(), 10);
@@ -1557,6 +1590,7 @@ document.addEventListener('DOMContentLoaded', function() {
             checkbox.type = 'checkbox';
             checkbox.className = 'checklist-item-checkbox';
             checkbox.checked = !!item.concluido;
+            checkbox.disabled = modoSomenteLeitura;
             checkbox.addEventListener('change', function() {
                 alternarItemChecklist(item, checkbox.checked);
             });
@@ -1567,8 +1601,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const nome = document.createElement('div');
             nome.className = 'checklist-nome' + (item.concluido ? ' concluido' : '');
             nome.textContent = item.descricao;
-            nome.title = 'Clique para editar';
+            nome.title = t('js.checklist.cliqueEditar');
             nome.addEventListener('click', function() {
+                if (modoSomenteLeitura) return;
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.className = 'checklist-item-input';
@@ -1592,7 +1627,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const btnExcluirItem = document.createElement('button');
             btnExcluirItem.className = 'btn-excluir-checklist';
-            btnExcluirItem.title = 'Remover item';
+            btnExcluirItem.title = t('js.checklist.removerItem');
             btnExcluirItem.innerHTML = '<i data-lucide="trash-2"></i>';
             btnExcluirItem.addEventListener('click', function() {
                 itemChecklistParaRemover = item;
@@ -1625,6 +1660,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const listaAnexosEl = document.getElementById('listaAnexos');
     const btnFecharGerenciarAnexo = document.getElementById('btnFecharGerenciarAnexo');
     const novoAnexoInput = document.getElementById('novoAnexoInput');
+    const novoAnexoNome = document.getElementById('novoAnexoNome');
+    function atualizarNomeArquivoEscolhido() {
+        novoAnexoNome.textContent = novoAnexoInput.files.length ? novoAnexoInput.files[0].name : t('js.arquivo.nenhum');
+    }
+    novoAnexoInput.addEventListener('change', atualizarNomeArquivoEscolhido);
     const btnAdicionarAnexo = document.getElementById('btnAdicionarAnexo');
     const btnCancelarRemoverAnexo = document.getElementById('btnCancelarRemoverAnexo');
     const btnConfirmarRemoverAnexo = document.getElementById('btnConfirmarRemoverAnexo');
@@ -1671,20 +1711,21 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fechar modal
     btnFecharGerenciarAnexo.addEventListener('click', function() {
         modalGerenciarAnexo.style.display = 'none';
-        novoAnexoInput.value = '';
+        novoAnexoInput.value = ''; atualizarNomeArquivoEscolhido();
     });
 
     modalGerenciarAnexo.addEventListener('click', function(e) {
         if (e.target === modalGerenciarAnexo) {
             modalGerenciarAnexo.style.display = 'none';
-            novoAnexoInput.value = '';
+            novoAnexoInput.value = ''; atualizarNomeArquivoEscolhido();
         }
     });
 
     // Adicionar anexo
     btnAdicionarAnexo.addEventListener('click', async function() {
         const arquivo = novoAnexoInput.files[0];
-        if (!arquivo) return;
+        // Sem arquivo escolhido, o "+" abre a janela para escolher
+        if (!arquivo) { novoAnexoInput.click(); return; }
 
         if (modoRascunho) {
             anexosRascunho.push({
@@ -1694,7 +1735,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 arquivo
             });
             anexosAtuais = anexosRascunho;
-            novoAnexoInput.value = '';
+            novoAnexoInput.value = ''; atualizarNomeArquivoEscolhido();
             renderizarAnexos();
             return;
         }
@@ -1710,12 +1751,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         if (!resposta.ok) {
-            Aviso.mostrar('Erro ao adicionar o anexo.', 'erro');
+            Aviso.mostrar(t('js.anexo.erroAdicionar'), 'erro');
             return;
         }
 
         anexosAtuais.push(await resposta.json());
-        novoAnexoInput.value = '';
+        novoAnexoInput.value = ''; atualizarNomeArquivoEscolhido();
         renderizarAnexos();
         atualizarBadgeAnexoTarefa();
     });
@@ -1759,8 +1800,8 @@ document.addEventListener('DOMContentLoaded', function() {
             listaAnexosEl.innerHTML = `
                 <div class="lista-checklists-vazia">
                     <i data-lucide="paperclip"></i>
-                    <p>Nenhum anexo adicionado</p>
-                    <span>Escolha um arquivo abaixo para anexar</span>
+                    <p>${t('js.anexo.vazioTitulo')}</p>
+                    <span>${t('js.anexo.vazioTexto')}</span>
                 </div>
             `;
             setTimeout(() => lucide.createIcons(), 10);
@@ -1797,9 +1838,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const acoes = document.createElement('div');
             acoes.className = 'checklist-acoes';
 
+            // Só anexos já salvos podem ser baixados (os de rascunho ainda estão só no navegador)
+            if (!ehAnexoRascunho(anexo)) {
+                const btnBaixar = document.createElement('a');
+                btnBaixar.className = 'btn-baixar-anexo';
+                btnBaixar.href = `/anexos/${anexo.id}/download`;
+                btnBaixar.title = t('js.anexo.baixar');
+                btnBaixar.setAttribute('aria-label', t('js.anexo.baixar'));
+                btnBaixar.innerHTML = '<i data-lucide="download"></i>';
+                acoes.appendChild(btnBaixar);
+            }
+
             const btnExcluirAnexo = document.createElement('button');
             btnExcluirAnexo.className = 'btn-excluir-checklist';
-            btnExcluirAnexo.title = 'Remover anexo';
+            btnExcluirAnexo.title = t('js.anexo.remover');
             btnExcluirAnexo.innerHTML = '<i data-lucide="trash-2"></i>';
             btnExcluirAnexo.addEventListener('click', function() {
                 anexoParaRemover = anexo;
@@ -1851,7 +1903,7 @@ document.addEventListener('DOMContentLoaded', function() {
         categoriaNomeInput.value = valor;
         categoriaNomeInput.dispatchEvent(new Event('input'));
     };
-    Aviso.exigirTexto(categoriaNomeInput, btnSalvarCategoria, 'Digite o nome da categoria para salvar');
+    Aviso.exigirTexto(categoriaNomeInput, btnSalvarCategoria, t('js.categoria.digiteNomeSalvar'));
     const tituloModalCategoria = document.getElementById('tituloModalCategoria');
     const btnCancelarRemoverCategoria = document.getElementById('btnCancelarRemoverCategoria');
     const btnConfirmarRemoverCategoria = document.getElementById('btnConfirmarRemoverCategoria');
@@ -1871,12 +1923,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!areaIdCategoriaAtual) { categorias = []; return; }
         const resposta = await fetch(`/areasTrabalho/${areaIdCategoriaAtual}/categorias`);
         categorias = resposta.ok ? await resposta.json() : [];
+        categoriasConhecidas = categoriasConhecidas
+            .filter(c => String(c.areaId) !== String(areaIdCategoriaAtual))
+            .concat(categorias.map(c => ({ ...c, areaId: areaIdCategoriaAtual })));
     }
 
     // Aplica destaque no botão da tarefa quando há categorias selecionadas
     window.atualizarVisualBotaoCategoria = function () {
         if (categoriaIdsSelecionadosTarefa.length > 0) {
-            const primeira = categorias.find(c => c.id === categoriaIdsSelecionadosTarefa[0]);
+            const primeira = categoriasConhecidas.find(c => c.id === categoriaIdsSelecionadosTarefa[0]);
             if (primeira) {
                 btnCategoria.style.borderColor = primeira.cor;
                 btnCategoria.style.backgroundColor = primeira.cor + '33';
@@ -1891,7 +1946,7 @@ document.addEventListener('DOMContentLoaded', function() {
     btnCategoria.addEventListener('click', async function() {
         areaIdCategoriaAtual = resolverAreaIdParaCategorias();
         if (!areaIdCategoriaAtual) {
-            Aviso.mostrar('Escolha uma lista para a tarefa antes de gerenciar categorias.', 'alerta');
+            Aviso.mostrar(t('js.categoria.escolhaLista'), 'alerta');
             return;
         }
         await recarregarCategoriasDaAreaAtual();
@@ -2001,7 +2056,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Abrir modal de nova categoria
     btnNovaCategoria.addEventListener('click', function() {
         categoriaSelecionada = null;
-        tituloModalCategoria.textContent = 'Nova Categoria';
+        tituloModalCategoria.textContent = t('js.categoria.nova');
         definirNomeCategoria('');
         definirCorCategoria('#4caf50');
         modalAddCategoria.style.display = 'flex';
@@ -2019,7 +2074,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!nome) {
             categoriaNomeInput.classList.add('campo-invalido');
-            mostrarAviso('Digite o nome da categoria.', () => categoriaNomeInput.focus());
+            mostrarAviso(t('js.categoria.digiteNome'), () => categoriaNomeInput.focus());
             return;
         }
 
@@ -2039,7 +2094,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (!resposta.ok) {
-            Aviso.mostrar('Erro ao salvar a categoria.', 'erro');
+            Aviso.mostrar(t('js.categoria.erroSalvar'), 'erro');
             return;
         }
 
@@ -2114,34 +2169,37 @@ document.addEventListener('DOMContentLoaded', function() {
     window.renderizarCategorias = function () {
         listaCategoriasEl.innerHTML = '';
 
-        if (categorias.length === 0) {
+        const categoriasExibidas = modoSomenteLeitura
+            ? categorias.filter(c => categoriaIdsSelecionadosTarefa.includes(c.id))
+            : categorias;
+        if (categoriasExibidas.length === 0) {
             listaCategoriasEl.innerHTML = `
                 <div class="lista-checklists-vazia">
                     <i data-lucide="tag"></i>
-                    <p>Nenhuma categoria criada</p>
-                    <span>Clique em "Nova Categoria" para começar</span>
+                    <p>${t('js.categoria.vazioTitulo')}</p>
+                    <span>${t('js.categoria.vazioTexto')}</span>
                 </div>
             `;
             setTimeout(() => lucide.createIcons(), 10);
             return;
         }
 
-        categorias.forEach(categoria => {
+        categoriasExibidas.forEach(categoria => {
             const marcada = categoriaIdsSelecionadosTarefa.includes(categoria.id);
 
             const item = document.createElement('div');
             item.className = 'checklist-item';
             item.innerHTML = `
-                <input type="checkbox" class="categoria-checkbox" ${marcada ? 'checked' : ''} />
+                <input type="checkbox" class="categoria-checkbox" ${marcada ? 'checked' : ''} ${modoSomenteLeitura ? 'disabled' : ''} />
                 <div class="checklist-cor" style="background-color: ${categoria.cor};"></div>
                 <div class="checklist-info">
                     <div class="checklist-nome">${categoria.nome}</div>
                 </div>
                 <div class="checklist-acoes">
-                    <button class="btn-editar-checklist" data-id="${categoria.id}" title="Editar categoria">
+                    <button class="btn-editar-checklist" data-id="${categoria.id}" title="${t('js.categoria.editar')}">
                         <i data-lucide="edit-2"></i>
                     </button>
-                    <button class="btn-excluir-checklist" data-id="${categoria.id}" title="Excluir categoria">
+                    <button class="btn-excluir-checklist" data-id="${categoria.id}" title="${t('js.categoria.excluir')}">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>
@@ -2151,7 +2209,7 @@ document.addEventListener('DOMContentLoaded', function() {
             item.querySelector('.btn-editar-checklist').addEventListener('click', function(e) {
                 e.stopPropagation();
                 categoriaSelecionada = categoria;
-                tituloModalCategoria.textContent = 'Editar Categoria';
+                tituloModalCategoria.textContent = t('js.categoria.editarTitulo');
                 definirNomeCategoria(categoria.nome);
                 definirCorCategoria(normalizarHex(categoria.cor || '') || '#4caf50');
                 modalAddCategoria.style.display = 'flex';
@@ -2166,6 +2224,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Alterna a categoria na tarefa (permite selecionar mais de uma)
             item.addEventListener('click', function(e) {
+                if (modoSomenteLeitura) return;
                 if (e.target.closest('.btn-editar-checklist') || e.target.closest('.btn-excluir-checklist')) return;
 
                 const idx = categoriaIdsSelecionadosTarefa.indexOf(categoria.id);

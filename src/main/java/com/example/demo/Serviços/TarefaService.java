@@ -1,5 +1,7 @@
 package com.example.demo.Serviços;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -39,7 +41,7 @@ public class TarefaService {
                               List<Long> categoriaIds, String repeticao) {
 
         Lista lista = listaRepository.findById(listaId)
-                .orElseThrow(() -> new RuntimeException("Lista não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.lista.naoEncontrada")));
 
         Tarefa tarefa = new Tarefa();
         tarefa.setListaOrigem(lista);
@@ -67,10 +69,10 @@ public class TarefaService {
                                List<Long> categoriaIds, String repeticao) {
 
         Tarefa tarefa = tarefaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.tarefa.naoEncontrada")));
 
         Lista lista = listaRepository.findById(listaId)
-                .orElseThrow(() -> new RuntimeException("Lista não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.lista.naoEncontrada")));
 
         tarefa.setListaOrigem(lista);
         tarefa.setTitulo(titulo);
@@ -102,7 +104,7 @@ public class TarefaService {
         }
         for (Long usuarioId : new java.util.LinkedHashSet<>(responsavelIds)) {
             Usuario usuario = usuarioRepository.findById(usuarioId)
-                    .orElseThrow(() -> new RuntimeException("Responsável não encontrado"));
+                    .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.responsavel.naoEncontrado")));
             tarefa.getResponsaveis().add(usuario);
         }
     }
@@ -114,7 +116,7 @@ public class TarefaService {
         Set<Categoria> categorias = new HashSet<>();
         for (Long categoriaId : categoriaIds) {
             Categoria categoria = categoriaRepository.findById(categoriaId)
-                    .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                    .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.categoria.naoEncontrada")));
             categorias.add(categoria);
         }
         tarefa.setCategorias(categorias);
@@ -123,7 +125,7 @@ public class TarefaService {
     public Tarefa toggleTarefa(Long id, Boolean concluida) {
 
         Tarefa tarefa = tarefaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.tarefa.naoEncontrada")));
 
         boolean deveRepetir = Boolean.TRUE.equals(concluida)
                 && tarefa.getRepeticao() != null
@@ -171,7 +173,7 @@ public class TarefaService {
         List<Tarefa> tarefas = new ArrayList<>();
         for (Long id : ids) {
             tarefas.add(tarefaRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Tarefa não encontrada")));
+                    .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.tarefa.naoEncontrada"))));
         }
 
         List<Long> posicoes = new ArrayList<>();

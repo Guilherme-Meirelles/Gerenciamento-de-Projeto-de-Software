@@ -36,6 +36,13 @@ public class IdiomaController {
             sessionStorage.removeItem('todaily.idioma.campos');if(r.p!==location.pathname)return;
             for(var id in r.d){var c=document.getElementById(id);
             if(c&&!c.readOnly&&c.value!==r.d[id]){c.value=r.d[id];c.dispatchEvent(new Event('input'));}}}catch(e){}});
+            document.addEventListener('DOMContentLoaded',function(){
+            function perto(i,e){var b=i.getBoundingClientRect();return e.clientX>b.right-36&&e.clientX<=b.right;}
+            function ehData(e){return e.target&&e.target.type==='date';}
+            document.addEventListener('mousemove',function(e){if(!ehData(e))return;
+            if(perto(e.target,e)&&!e.target.disabled)e.target.title=window.t('js.data.abrir');else e.target.removeAttribute('title');});
+            document.addEventListener('click',function(e){if(!ehData(e))return;var i=e.target;
+            if(i.disabled||i.readOnly||!perto(i,e))return;try{i.showPicker();}catch(x){}});});
             """.replace("\n", "");
 
     @Autowired

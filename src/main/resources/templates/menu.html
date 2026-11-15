@@ -37,10 +37,10 @@
                     </script>
                 </div>
                 <div class="titulo-acoes">
-                    <button class="btn-filtro" id="btnFiltro" title="Filtrar tarefas">
+                    <button class="btn-filtro" id="btnFiltro" title="Filtrar tarefas" th:title="#{menu.filtrarTarefas}">
                         <i data-lucide="filter"></i>
                     </button>
-                    <button class="btn-ordenar" id="btnOrdenar" title="Ordenar tarefas">
+                    <button class="btn-ordenar" id="btnOrdenar" title="Ordenar tarefas" th:title="#{menu.ordenarTarefas}">
                     <i data-lucide="arrow-up-down"></i>
                     </button>
                 </div>
@@ -49,7 +49,7 @@
 
         <div class="add-tarefa" id="btnAddTarefa" th:style="${podeEditar == false} ? 'display:none'">
             <i data-lucide="plus"></i>
-            <span>Adicionar Tarefa</span>
+            <span th:text="#{menu.adicionarTarefa}">Adicionar Tarefa</span>
         </div>
 
         <!-- Container para as tarefas -->
@@ -59,64 +59,64 @@
 
         <!-- Menu de Filtro -->
         <div class="menu-filtro" id="menuFiltro" style="display: none;">
-            <h4 class="menu-filtro-titulo">Filtrar por</h4>
+            <h4 class="menu-filtro-titulo" th:text="#{menu.filtrarPor}">Filtrar por</h4>
 
             <div class="campo-filtro">
-                <input type="text" id="filtroTexto" placeholder="Pesquisa..." />
+                <input type="text" id="filtroTexto" placeholder="Pesquisa..." th:placeholder="#{menu.phPesquisa}" />
             </div>
 
             <button class="menu-filtro-item" data-filtro="todas">
-                <i data-lucide="list"></i> <span>Todas as tarefas</span>
+                <i data-lucide="list"></i> <span th:text="#{menu.filtroTodas}">Todas as tarefas</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
             <button class="menu-filtro-item" data-filtro="andamento">
-                <i data-lucide="clock"></i> <span>Tarefas em andamento</span>
+                <i data-lucide="clock"></i> <span th:text="#{menu.filtroAndamento}">Tarefas em andamento</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
             <button class="menu-filtro-item" data-filtro="concluidas">
-                <i data-lucide="circle-check"></i> <span>Tarefas concluídas</span>
+                <i data-lucide="circle-check"></i> <span th:text="#{menu.filtroConcluidas}">Tarefas concluídas</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
             <button class="menu-filtro-item" data-filtro="atrasadas">
-                <i data-lucide="alarm-clock"></i> <span>Atrasadas</span>
+                <i data-lucide="alarm-clock"></i> <span th:text="#{menu.filtroAtrasadas}">Atrasadas</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
             <button class="menu-filtro-item" data-filtro="titulo">
-                <i data-lucide="type"></i> <span>Título</span>
+                <i data-lucide="type"></i> <span th:text="#{menu.titulo}">Título</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
             <button class="menu-filtro-item" data-filtro="responsavel">
-                <i data-lucide="user"></i> <span>Responsável</span>
+                <i data-lucide="user"></i> <span th:text="#{menu.responsavel}">Responsável</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
         </div>
 
         <!-- Menu de Ordenação -->
         <div class="menu-filtro" id="menuOrdenar" style="display: none;">
-            <h4 class="menu-filtro-titulo">Ordenar por</h4>
+            <h4 class="menu-filtro-titulo" th:text="#{menu.ordenarPor}">Ordenar por</h4>
 
             <button class="menu-filtro-item" data-ordem="titulo">
-                <i data-lucide="type"></i> <span>Título</span>
+                <i data-lucide="type"></i> <span th:text="#{menu.titulo}">Título</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
             <button class="menu-filtro-item" data-ordem="responsavel">
-                <i data-lucide="user"></i> <span>Responsável</span>
+                <i data-lucide="user"></i> <span th:text="#{menu.responsavel}">Responsável</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
             <button class="menu-filtro-item" data-ordem="data-fim">
-                <i data-lucide="calendar"></i> <span>Data de fim</span>
+                <i data-lucide="calendar"></i> <span th:text="#{menu.ordemDataFim}">Data de fim</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
             <button class="menu-filtro-item" data-ordem="data-adicao">
-                <i data-lucide="calendar-plus"></i> <span>Data de adição</span>
+                <i data-lucide="calendar-plus"></i> <span th:text="#{menu.ordemDataAdicao}">Data de adição</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
             <button class="menu-filtro-item" data-ordem="status">
-                <i data-lucide="list-checks"></i> <span>Status de completude</span>
+                <i data-lucide="list-checks"></i> <span th:text="#{menu.ordemStatus}">Status de completude</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
-            <button class="menu-filtro-item" data-ordem="manual" title="Segure uma tarefa e arraste para a posição que quiser">
-                <i data-lucide="grip-vertical"></i> <span>Manual</span>
+            <button class="menu-filtro-item" data-ordem="manual" title="Segure uma tarefa e arraste para a posição que quiser" th:title="#{menu.ordemManualDica}">
+                <i data-lucide="grip-vertical"></i> <span th:text="#{menu.ordemManual}">Manual</span>
                 <i data-lucide="check" class="menu-filtro-marca"></i>
             </button>
         </div>
@@ -131,10 +131,10 @@
 <!-- Modal de Confirmação de Remoção -->
 <div class="overlay-tarefa" id="modalConfirmarRemocao" style="display: none;">
     <div class="modal-remover">
-        <p class="modal-remover-mensagem">Deseja realmente remover esta tarefa?</p>
+        <p class="modal-remover-mensagem" th:text="#{menu.removerTarefaPergunta}">Deseja realmente remover esta tarefa?</p>
         <div class="modal-remover-botoes">
-            <button class="btn-remover-nao" id="btnCancelarRemocao">Não</button>
-            <button class="btn-remover-sim" id="btnConfirmarRemocao">Sim</button>
+            <button class="btn-remover-nao" id="btnCancelarRemocao" th:text="#{sidebar.nao}">Não</button>
+            <button class="btn-remover-sim" id="btnConfirmarRemocao" th:text="#{sidebar.sim}">Sim</button>
         </div>
     </div>
 </div>
@@ -142,51 +142,51 @@
 <!-- Modal Adicionar Tarefa -->
 <div class="overlay-tarefa" id="modalAddTarefa" style="display: none;">
     <div class="modal-tarefa">
-        <h3 class="titulo-modal-tarefa" id="tituloModalTarefa">Adicionar Tarefa</h3>
+        <h3 class="titulo-modal-tarefa" id="tituloModalTarefa" th:text="#{menu.adicionarTarefa}">Adicionar Tarefa</h3>
         <form class="form-tarefa">
 
             <!-- LISTA -->
             <div class="campo-tarefa">
-                <label>Lista<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
+                <label><span th:text="#{menu.lista}">Lista</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
                 <select id="tarefaLista"></select>
             </div>
 
             <!-- TÍTULO -->
             <div class="campo-tarefa">
-                <label>Título<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
-                <input type="text" id="tarefaTitulo" placeholder="Digite o título da tarefa" />
+                <label><span th:text="#{menu.titulo}">Título</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
+                <input type="text" id="tarefaTitulo" placeholder="Digite o título da tarefa" th:placeholder="#{menu.phTitulo}" />
             </div>
 
             <!-- DESCRIÇÃO -->
             <div class="campo-tarefa">
-                <label>Descrição</label>
-                <textarea id="tarefaDescricao" rows="3" placeholder="Adicione uma descrição (opcional)"></textarea>
+                <label th:text="#{sidebar.descricao}">Descrição</label>
+                <textarea id="tarefaDescricao" rows="3" placeholder="Adicione uma descrição (opcional)" th:placeholder="#{sidebar.phDescricao}"></textarea>
             </div>
 
             <!-- DATA -->
             <div class="campo-tarefa">
-                <label>Data de Fim</label>
+                <label th:text="#{menu.dataFim}">Data de Fim</label>
                 <input type="date" id="tarefaDataFim" />
             </div>
 
             <!-- REPETIÇÃO -->
             <div class="campo-tarefa">
-                <label>Repetir</label>
+                <label th:text="#{menu.repetir}">Repetir</label>
                 <select id="tarefaRepeticao">
-                    <option value="NENHUMA">Não repetir</option>
-                    <option value="DIARIA">Diariamente</option>
-                    <option value="SEMANAL">Semanalmente</option>
-                    <option value="MENSAL">Mensalmente</option>
-                    <option value="ANUAL">Anualmente</option>
+                    <option value="NENHUMA" th:text="#{menu.repetirNenhuma}">Não repetir</option>
+                    <option value="DIARIA" th:text="#{menu.repetirDiaria}">Diariamente</option>
+                    <option value="SEMANAL" th:text="#{menu.repetirSemanal}">Semanalmente</option>
+                    <option value="MENSAL" th:text="#{menu.repetirMensal}">Mensalmente</option>
+                    <option value="ANUAL" th:text="#{menu.repetirAnual}">Anualmente</option>
                 </select>
             </div>
 
             <!-- RESPONSÁVEIS -->
             <div class="campo-tarefa">
-                <label>Responsáveis</label>
+                <label th:text="#{menu.responsaveis}">Responsáveis</label>
                 <div class="multi-resp" id="tarefaResponsavel">
                     <button type="button" class="multi-resp-botao" id="tarefaResponsavelBotao" aria-haspopup="listbox" aria-expanded="false">
-                        <span class="multi-resp-texto">Selecione...</span>
+                        <span class="multi-resp-texto" th:text="#{menu.selecione}">Selecione...</span>
                         <i data-lucide="chevron-down"></i>
                     </button>
                     <div class="multi-resp-lista" id="tarefaResponsavelLista" role="listbox" aria-multiselectable="true" hidden></div>
@@ -195,36 +195,36 @@
 
             <div class="campo-tarefa-row">
                 <div class="campo-tarefa-checkbox">
-                    <label>Checklist</label>
-                    <button type="button" class="btn-checklist" id="btnChecklist" title="Checklist da tarefa">
+                    <label th:text="#{menu.checklist}">Checklist</label>
+                    <button type="button" class="btn-checklist" id="btnChecklist" title="Checklist da tarefa" th:title="#{menu.checklistDica}">
                         <i data-lucide="list"></i>
                     </button>
                 </div>
 
                 <div class="campo-tarefa-checkbox">
-                    <label>Categorias</label>
-                    <button type="button" class="btn-checklist" id="btnCategoria" title="Categorias da tarefa">
+                    <label th:text="#{menu.categorias}">Categorias</label>
+                    <button type="button" class="btn-checklist" id="btnCategoria" title="Categorias da tarefa" th:title="#{menu.categoriasDica}">
                         <i data-lucide="tag"></i>
                     </button>
                 </div>
 
                 <div class="campo-tarefa-checkbox">
-                    <label>Notificações</label>
+                    <label th:text="#{sidebar.notificacoes}">Notificações</label>
                     <input type="checkbox" id="tarefaNotificacoes" class="toggle-switch" />
                     <span id="tarefaNotificacoesTexto" class="valor-somente-leitura" style="display: none;"></span>
                 </div>
 
                 <div class="campo-tarefa-checkbox">
-                    <label>Anexo(s)</label>
-                    <button type="button" class="btn-anexo" id="btnAnexo" title="Anexos da tarefa">
+                    <label th:text="#{menu.anexos}">Anexo(s)</label>
+                    <button type="button" class="btn-anexo" id="btnAnexo" title="Anexos da tarefa" th:title="#{menu.anexosDica}">
                         <i data-lucide="paperclip"></i>
                     </button>
                 </div>
             </div>
 
             <div class="botoes-acao-tarefa">
-                <button type="button" class="btn-cancelar-tarefa" id="btnCancelarTarefa">Cancelar</button>
-                <button type="button" class="btn-ok-tarefa" id="btnOkTarefa">OK</button>
+                <button type="button" class="btn-cancelar-tarefa" id="btnCancelarTarefa" th:text="#{comum.cancelar}">Cancelar</button>
+                <button type="button" class="btn-ok-tarefa" id="btnOkTarefa" th:text="#{sidebar.ok}">OK</button>
             </div>
         </form>
     </div>
@@ -234,7 +234,7 @@
 <!-- Modal: Checklist da Tarefa (subatividades marcáveis) -->
 <div class="overlay-tarefa" id="modalGerenciarChecklist" style="display: none;">
     <div class="modal-checklist">
-        <h3 class="titulo-modal-checklist">Checklist da Tarefa</h3>
+        <h3 class="titulo-modal-checklist" th:text="#{menu.checklistTitulo}">Checklist da Tarefa</h3>
         <div class="checklist-progresso" id="checklistProgresso"></div>
 
         <div class="lista-checklists" id="listaChecklistItens">
@@ -242,16 +242,14 @@
         </div>
 
         <div class="campo-checklist campo-novo-item-checklist">
-            <input type="text" id="novoItemChecklistInput" placeholder="Nova subatividade" />
-            <button type="button" class="btn-novo-checklist" id="btnAdicionarItemChecklist" title="Adicionar item">
+            <input type="text" id="novoItemChecklistInput" placeholder="Nova subatividade" th:placeholder="#{menu.phNovoItem}" />
+            <button type="button" class="btn-novo-checklist" id="btnAdicionarItemChecklist" title="Adicionar item" th:title="#{menu.adicionarItem}">
                 <i data-lucide="plus"></i>
             </button>
         </div>
 
         <div class="botoes-acao-checklist">
-            <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciar">
-                Fechar
-            </button>
+            <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciar" th:text="#{comum.fechar}">Fechar</button>
         </div>
     </div>
 </div>
@@ -259,10 +257,10 @@
 <!-- Modal: Remover Item da Checklist -->
 <div class="overlay-tarefa" id="modalRemoverChecklist" style="display: none;">
     <div class="modal-remover">
-        <p class="modal-remover-mensagem">Deseja realmente remover este item?</p>
+        <p class="modal-remover-mensagem" th:text="#{menu.removerItemPergunta}">Deseja realmente remover este item?</p>
         <div class="modal-remover-botoes">
-            <button class="btn-remover-nao" id="btnCancelarRemoverChecklist">Não</button>
-            <button class="btn-remover-sim" id="btnConfirmarRemoverChecklist">Sim</button>
+            <button class="btn-remover-nao" id="btnCancelarRemoverChecklist" th:text="#{sidebar.nao}">Não</button>
+            <button class="btn-remover-sim" id="btnConfirmarRemoverChecklist" th:text="#{sidebar.sim}">Sim</button>
         </div>
     </div>
 </div>
@@ -270,23 +268,26 @@
 <!-- Modal: Anexos da Tarefa -->
 <div class="overlay-tarefa" id="modalGerenciarAnexo" style="display: none;">
     <div class="modal-checklist">
-        <h3 class="titulo-modal-checklist">Anexos da Tarefa</h3>
+        <h3 class="titulo-modal-checklist" th:text="#{menu.anexosTitulo}">Anexos da Tarefa</h3>
 
         <div class="lista-checklists" id="listaAnexos">
             <!-- Anexos serão renderizados aqui -->
         </div>
 
         <div class="campo-checklist campo-novo-item-checklist">
-            <input type="file" id="novoAnexoInput" />
-            <button type="button" class="btn-novo-checklist" id="btnAdicionarAnexo" title="Anexar arquivo">
+            <!-- O campo nativo mostra "Escolher arquivo" no idioma do navegador; por isso fica escondido e o botão é nosso -->
+            <div class="campo-arquivo">
+                <input type="file" id="novoAnexoInput" hidden />
+                <label for="novoAnexoInput" class="btn-escolher-arquivo" th:text="#{comum.escolherArquivo}">Escolher arquivo</label>
+                <span class="nome-arquivo-escolhido" id="novoAnexoNome" th:text="#{comum.nenhumArquivo}">Nenhum arquivo escolhido</span>
+            </div>
+            <button type="button" class="btn-novo-checklist" id="btnAdicionarAnexo" title="Anexar arquivo" th:title="#{menu.anexarArquivo}">
                 <i data-lucide="plus"></i>
             </button>
         </div>
 
         <div class="botoes-acao-checklist">
-            <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciarAnexo">
-                Fechar
-            </button>
+            <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciarAnexo" th:text="#{comum.fechar}">Fechar</button>
         </div>
     </div>
 </div>
@@ -294,10 +295,10 @@
 <!-- Modal: Remover Anexo -->
 <div class="overlay-tarefa" id="modalRemoverAnexo" style="display: none;">
     <div class="modal-remover">
-        <p class="modal-remover-mensagem">Deseja realmente remover este anexo?</p>
+        <p class="modal-remover-mensagem" th:text="#{menu.removerAnexoPergunta}">Deseja realmente remover este anexo?</p>
         <div class="modal-remover-botoes">
-            <button class="btn-remover-nao" id="btnCancelarRemoverAnexo">Não</button>
-            <button class="btn-remover-sim" id="btnConfirmarRemoverAnexo">Sim</button>
+            <button class="btn-remover-nao" id="btnCancelarRemoverAnexo" th:text="#{sidebar.nao}">Não</button>
+            <button class="btn-remover-sim" id="btnConfirmarRemoverAnexo" th:text="#{sidebar.sim}">Sim</button>
         </div>
     </div>
 </div>
@@ -305,7 +306,7 @@
 <!-- Modal: Gerenciar Categorias -->
 <div class="overlay-tarefa" id="modalGerenciarCategoria" style="display: none;">
     <div class="modal-checklist">
-        <h3 class="titulo-modal-checklist">Categorias da Tarefa</h3>
+        <h3 class="titulo-modal-checklist" th:text="#{menu.categoriasTitulo}">Categorias da Tarefa</h3>
 
         <div class="lista-checklists" id="listaCategorias">
             <!-- Categorias serão renderizadas aqui -->
@@ -313,11 +314,9 @@
 
         <div class="botoes-acao-checklist">
             <button type="button" class="btn-novo-checklist" id="btnNovaCategoria">
-                <i data-lucide="plus"></i> Nova Categoria
+                <i data-lucide="plus"></i> <span th:text="#{menu.novaCategoria}">Nova Categoria</span>
             </button>
-            <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciarCategoria">
-                Fechar
-            </button>
+            <button type="button" class="btn-fechar-checklist" id="btnFecharGerenciarCategoria" th:text="#{comum.fechar}">Fechar</button>
         </div>
     </div>
 </div>
@@ -325,16 +324,16 @@
 <!-- Modal: Adicionar/Editar Categoria -->
 <div class="overlay-tarefa" id="modalAddCategoria" style="display: none;">
     <div class="modal-checklist-form">
-        <h3 class="titulo-modal-checklist" id="tituloModalCategoria">Nova Categoria</h3>
+        <h3 class="titulo-modal-checklist" id="tituloModalCategoria" th:text="#{menu.novaCategoria}">Nova Categoria</h3>
 
         <form class="form-checklist">
             <div class="campo-checklist">
-                <label>Nome da Categoria<span class="obrigatorio" title="Obrigatório" aria-hidden="true">*</span></label>
-                <input type="text" id="categoriaNome" placeholder="Digite o nome da categoria" />
+                <label><span th:text="#{menu.nomeCategoria}">Nome da Categoria</span><span class="obrigatorio" title="Obrigatório" th:title="#{comum.obrigatorio}" aria-hidden="true">*</span></label>
+                <input type="text" id="categoriaNome" placeholder="Digite o nome da categoria" th:placeholder="#{menu.phNomeCategoria}" />
             </div>
 
             <div class="campo-checklist">
-                <label>Cor</label>
+                <label th:text="#{menu.cor}">Cor</label>
                 <div class="seletor-cor">
                     <button type="button" class="btn-cor-selecionada" id="btnAbrirPaletaCategoria">
                         <div class="cor-preview" id="corPreviewCategoria" style="background-color: #4caf50;"></div>
@@ -344,11 +343,11 @@
                     <div class="paleta-cores" id="paletaCoresCategoria" style="display: none;">
                         <div class="picker-cor">
                             <div class="picker-sv" id="pickerSV"><div class="picker-sv-cursor" id="pickerSVCursor"></div></div>
-                            <input type="range" class="picker-hue" id="pickerHue" min="0" max="360" step="1" value="0" aria-label="Matiz">
+                            <input type="range" class="picker-hue" id="pickerHue" min="0" max="360" step="1" value="0" aria-label="Matiz" th:aria-label="#{menu.matiz}">
                             <div class="picker-hex">
                                 <div class="cor-preview" id="pickerPreview"></div>
                                 <input type="text" id="pickerHex" maxlength="7" placeholder="#RRGGBB" spellcheck="false" autocomplete="off">
-                                <button type="button" class="btn-ok-paleta" id="btnOkPaletaCategoria">OK</button>
+                                <button type="button" class="btn-ok-paleta" id="btnOkPaletaCategoria" th:text="#{sidebar.ok}">OK</button>
                             </div>
                         </div>
                         <button type="button" class="cor-opcao" data-cor="#4caf50" title="#4CAF50" style="background-color: #4caf50;"></button>
@@ -366,8 +365,8 @@
             </div>
 
             <div class="botoes-acao-checklist-form">
-                <button type="button" class="btn-cancelar-checklist" id="btnCancelarCategoria">Cancelar</button>
-                <button type="button" class="btn-salvar-checklist" id="btnSalvarCategoria">Salvar</button>
+                <button type="button" class="btn-cancelar-checklist" id="btnCancelarCategoria" th:text="#{comum.cancelar}">Cancelar</button>
+                <button type="button" class="btn-salvar-checklist" id="btnSalvarCategoria" th:text="#{menu.salvar}">Salvar</button>
             </div>
         </form>
     </div>
@@ -376,10 +375,10 @@
 <!-- Modal: Remover Categoria -->
 <div class="overlay-tarefa" id="modalRemoverCategoria" style="display: none;">
     <div class="modal-remover">
-        <p class="modal-remover-mensagem">Deseja realmente remover esta categoria?</p>
+        <p class="modal-remover-mensagem" th:text="#{menu.removerCategoriaPergunta}">Deseja realmente remover esta categoria?</p>
         <div class="modal-remover-botoes">
-            <button class="btn-remover-nao" id="btnCancelarRemoverCategoria">Não</button>
-            <button class="btn-remover-sim" id="btnConfirmarRemoverCategoria">Sim</button>
+            <button class="btn-remover-nao" id="btnCancelarRemoverCategoria" th:text="#{sidebar.nao}">Não</button>
+            <button class="btn-remover-sim" id="btnConfirmarRemoverCategoria" th:text="#{sidebar.sim}">Sim</button>
         </div>
     </div>
 </div>

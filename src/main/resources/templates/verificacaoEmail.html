@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="{lang}">
 <head>
     <meta charset="UTF-8">
-    <title>Confirmação de E-mail</title>
+    <title>{{email.verif.tituloPagina}}</title>
 </head>
 <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
 
@@ -12,11 +12,11 @@
             <table width="500" style="background: white; padding: 30px; border-radius: 10px;">
                 <tr>
                     <td align="center">
-                        <h2 style="color: #333;">Bem-vindo(a) ao ToDaily!</h2>
+                        <h2 style="color: #333;">{{email.verif.titulo}}</h2>
 
                         <p style="font-size: 16px; color: #555;">
-                            Olá, <strong>{nome}</strong>! <br><br>
-                            Clique no botão abaixo para confirmar seu e-mail e ativar sua conta.
+                            {{email.ola}}, <strong>{nome}</strong>! <br><br>
+                            {{email.verif.corpo}}
                         </p>
 
                         <a href="{baseUrl}/verificarEmail?token={token}"
@@ -29,12 +29,12 @@
                                border-radius: 6px;
                                font-size: 16px;
                                margin-top: 20px;">
-                            Confirmar E-mail
+                            {{email.verif.botao}}
                         </a>
 
                         <p style="font-size: 13px; color: #999; margin-top: 25px;">
-                            Este link expira em 30 minutos. <br>
-                            Se você não se cadastrou no ToDaily, apenas ignore este e-mail.
+                            {{email.verif.expira}} <br>
+                            {{email.verif.ignorar}}
                         </p>
 
                     </td>

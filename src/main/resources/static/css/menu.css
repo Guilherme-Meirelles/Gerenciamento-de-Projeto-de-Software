@@ -734,6 +734,28 @@ i {
     transform: translateX(20px);
 }
 
+/* Acabamento do interruptor: sem borda/margem herdada dos campos (que empurrava a bolinha para baixo)
+   e bolinha centralizada na vertical; sem animação quando o estado é só carregado (.sem-animacao). */
+input[type="checkbox"].toggle-switch {
+    box-sizing: border-box;
+    width: 44px;
+    height: 24px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+input[type="checkbox"].toggle-switch::before {
+    top: 50%;
+    margin-top: -9px;
+}
+
+.toggle-switch.sem-animacao,
+.toggle-switch.sem-animacao::before {
+    transition: none;
+}
+
 /* Valor exibido no lugar do toggle no modal "Detalhes da Tarefa" (só leitura) */
 .valor-somente-leitura {
     font-size: 14px;
@@ -2300,4 +2322,120 @@ a.checklist-nome:hover {
 
 .preferencia-linha .toggle-switch {
     flex-shrink: 0;
+}
+
+/* ===== Detalhes da tarefa (só leitura): campos parecem travados, igual aos campos readonly do cadastro ===== */
+.campo-tarefa input:disabled,
+.campo-tarefa textarea:disabled,
+.campo-tarefa select:disabled,
+.multi-resp-botao:disabled {
+    background-color: #1a1a1a;
+    border-color: #2c2c2c;
+    color: #999;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+.campo-tarefa select:disabled {
+    background-image: none;
+}
+
+/* Checklist, anexos e categorias abertos a partir dos detalhes: só ver, nada de criar/editar/remover */
+.tarefa-somente-leitura #modalGerenciarChecklist .campo-novo-item-checklist,
+.tarefa-somente-leitura #modalGerenciarAnexo .campo-novo-item-checklist,
+.tarefa-somente-leitura #modalGerenciarChecklist .checklist-acoes,
+.tarefa-somente-leitura #modalGerenciarAnexo .btn-excluir-checklist,
+.tarefa-somente-leitura #modalGerenciarCategoria .checklist-acoes,
+.tarefa-somente-leitura #btnNovaCategoria,
+.tarefa-somente-leitura .lista-checklists-vazia span {
+    display: none;
+}
+
+.tarefa-somente-leitura #modalGerenciarChecklist .checklist-item,
+.tarefa-somente-leitura #modalGerenciarCategoria .checklist-item {
+    cursor: default;
+}
+
+.tarefa-somente-leitura #modalGerenciarChecklist .checklist-nome {
+    cursor: default;
+}
+
+/* ===== Campo de arquivo próprio (o nativo mostra o texto no idioma do navegador) ===== */
+.campo-arquivo {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    background-color: #1e1e1e;
+    border: 1px solid #3a3a3a;
+    border-radius: 10px;
+    padding: 6px 10px;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.btn-escolher-arquivo {
+    flex: 0 0 auto;
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+    border-radius: 6px;
+    color: #ffffff;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-escolher-arquivo:hover {
+    background-color: #4a4a4a;
+}
+
+.nome-arquivo-escolhido {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #b0b0b0;
+}
+
+/* Botão de baixar o anexo (aparece também nos detalhes da tarefa) */
+.btn-baixar-anexo {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.btn-baixar-anexo:hover {
+    background-color: #3a3a3a;
+    color: #4caf50;
+}
+
+.btn-baixar-anexo i {
+    width: 16px;
+    height: 16px;
+}
+
+/* Ícones dos estados vazios: o <i> do Lucide é inline (altura 0) até virar SVG, o que fazia a caixa
+   "pular" a cada redesenho. Como blocos de tamanho fixo, a altura é a mesma antes e depois. */
+.notificacoes-vazio i,
+.notificacoes-vazio svg {
+    display: block;
+    margin: 0 auto 12px;
+}
+
+.lista-checklists-vazia i,
+.lista-checklists-vazia svg {
+    display: block;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 15px;
 }

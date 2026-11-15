@@ -1,5 +1,6 @@
 package com.example.demo.Controles;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
 import com.example.demo.ConsultasBD.*;
 import com.example.demo.Entidades.*;
 import com.example.demo.Serviços.AreaTrabalhoService;
@@ -118,7 +119,7 @@ public class AreaTrabalhoController {
         }
 
         AreaTrabalho area = areaTrabalhoRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Área não encontrada"));
+            .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.area.naoEncontrada")));
 
         boolean temAcesso = area.getParticipacoes().stream()
                 .anyMatch(p -> p.getUsuario().getId().equals(usuario.getId()));
@@ -243,23 +244,23 @@ public class AreaTrabalhoController {
     ) {
 
         String usuarioId = SessaoUtil.getUsuarioId(request);
-        if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Usuário não logado"));
+        if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", Mensagens.get("msg.area.naoLogado")));
 
         Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
-        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Usuário não encontrado"));
+        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", Mensagens.get("msg.area.usuarioNaoEncontrado")));
 
         AreaTrabalho area = areaTrabalhoRepository.findById(id).orElse(null);
-        if (area == null) return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Área não encontrada"));
+        if (area == null) return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.naoEncontrada")));
 
         // Observador não pode gerar convite (mesmo que fosse pra um nível menor que o dele).
         if (!permissaoAreaService.podeEditar(usuario.getId(), id)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Você não tem permissão para convidar pessoas nesta área"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", Mensagens.get("msg.area.semPermissaoConvidar")));
         }
 
         // Convite só concede Observador ou Editor: Administrador é o dono da área.
         PermissaoArea nivel = PermissaoArea.doConvite(permissao);
         if (nivel == null) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Nível de permissão inválido. Use OBSERVADOR ou EDITOR."));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.permissaoConviteInvalida")));
         }
 
         // Gera e salva um token de convite real (link genérico: sem e-mail associado,
@@ -394,10 +395,35 @@ public class AreaTrabalhoController {
                     mapa.put("id", c.getId());
                     mapa.put("nome", c.getNome());
                     mapa.put("cor", c.getCor());
+                    mapa.put("areaId", id);
                     return mapa;
                 })
                 .collect(Collectors.toList());
 
+        return ResponseEntity.ok(categoriasJson);
+    }
+
+    @GetMapping("/user/categorias")
+    @ResponseBody
+    public ResponseEntity<?> listarCategoriasPorUser(HttpServletRequest request) {
+        String usuarioId = SessaoUtil.getUsuarioId(request);
+        if (usuarioId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("NOT_LOGGED");
+
+        Usuario usuario = usuarioRepository.findById(Long.parseLong(usuarioId)).orElse(null);
+        if (usuario == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("USER_NOT_FOUND");
+
+        List<Map<String, Object>> categoriasJson = new ArrayList<>();
+        for (ParticipacaoArea participacao : participacaoAreaRepository.findByUsuario(usuario)) {
+            Long areaId = participacao.getArea().getId();
+            for (Categoria c : categoriaRepository.findByAreaId(areaId)) {
+                Map<String, Object> mapa = new HashMap<>();
+                mapa.put("id", c.getId());
+                mapa.put("nome", c.getNome());
+                mapa.put("cor", c.getCor());
+                mapa.put("areaId", areaId);
+                categoriasJson.add(mapa);
+            }
+        }
         return ResponseEntity.ok(categoriasJson);
     }
 
@@ -593,18 +619,18 @@ public class AreaTrabalhoController {
                                                     HttpServletRequest request) {
         String solicitanteId = SessaoUtil.getUsuarioId(request);
         if (solicitanteId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Não autenticado."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", Mensagens.get("msg.area.naoAutenticado")));
         }
 
         if (!permissaoAreaService.podeAdministrar(Long.parseLong(solicitanteId), areaId)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Apenas administradores podem alterar permissões."));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", Mensagens.get("msg.area.apenasAdminAlterar")));
         }
 
         PermissaoArea nova;
         try {
             nova = PermissaoArea.valueOf(String.valueOf(corpo.get("permissao")).toUpperCase());
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Permissão inválida."));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.permissaoInvalida")));
         }
         if (nova == PermissaoArea.ADMIN) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Use EDITOR ou OBSERVADOR."));
@@ -612,10 +638,10 @@ public class AreaTrabalhoController {
 
         ParticipacaoArea alvo = participacaoAreaRepository.findByUsuarioIdAndAreaId(usuarioId, areaId);
         if (alvo == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", "Este usuário não faz parte desta área."));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("success", false, "message", Mensagens.get("msg.area.naoFazParte")));
         }
         if (alvo.getPermissao() == PermissaoArea.ADMIN) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "A permissão de um administrador não pode ser alterada."));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.adminNaoAlteravel")));
         }
 
         alvo.setPermissao(nova);
@@ -631,11 +657,11 @@ public class AreaTrabalhoController {
             // 0. Só quem está logado pode remover membro
             String solicitanteId = SessaoUtil.getUsuarioId(request);
             if (solicitanteId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", "Não autenticado."));
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("success", false, "message", Mensagens.get("msg.area.naoAutenticado")));
             }
 
             if (map.get("usuarioId") == null || map.get("areaId") == null) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "IDs não fornecidos."));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.idsNaoFornecidos")));
             }
 
             // Trata tanto se vier como String quanto Integer/Long do JSON
@@ -647,11 +673,11 @@ public class AreaTrabalhoController {
             AreaTrabalho area = areaTrabalhoRepository.findById(idArea).orElse(null);
 
             if (area == null) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Área não encontrada."));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.naoEncontradaPonto")));
             }
 
             if (usuario == null) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Usuário não encontrado."));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.usuarioNaoEncontradoPonto")));
             }
 
             List<ParticipacaoArea> todosMembros = participacaoAreaRepository.findByArea(area);
@@ -662,7 +688,7 @@ public class AreaTrabalhoController {
                     .findFirst().orElse(null);
 
             if (participacaoSolicitante == null || participacaoSolicitante.getPermissao() != PermissaoArea.ADMIN) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", "Apenas administradores podem remover membros."));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "message", Mensagens.get("msg.area.apenasAdminRemover")));
             }
 
             boolean removeu = false;
@@ -676,14 +702,14 @@ public class AreaTrabalhoController {
             }
 
             if (!removeu) {
-                return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Este usuário não faz parte desta área."));
+                return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.naoFazParte")));
             }
 
-            return ResponseEntity.ok(Map.of("success", true, "message", "Membro removido com sucesso!"));
+            return ResponseEntity.ok(Map.of("success", true, "message", Mensagens.get("msg.area.membroRemovido")));
 
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Erro interno: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", Mensagens.get("msg.area.erroInterno", e.getMessage())));
         }
     }
 }

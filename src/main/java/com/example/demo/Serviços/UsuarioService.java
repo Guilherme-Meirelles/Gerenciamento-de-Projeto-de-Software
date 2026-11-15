@@ -32,7 +32,7 @@ public class UsuarioService {
     public void excluirConta(Usuario usuarioParam) {
         // 1. Busca a entidade gerenciada no contexto transacional atual
         Usuario usuario = usuarioRepository.findById(usuarioParam.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+                .orElseThrow(() -> new IllegalArgumentException(com.example.demo.Serviços.Idioma.Mensagens.get("msg.usuario.naoEncontrado")));
 
         // 2. Remove o usuário de todas as tarefas nas quais ele é responsável
         // (Remove registros da tabela intermediária responsaveis_tarefa)

@@ -1,5 +1,6 @@
 package com.example.demo.Serviços;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,16 +39,16 @@ public class ConviteAreaService {
         Token token = tokenRepository.findByToken(tokenString);
 
         if (token == null || token.getAreaId() == null || token.getEmail() != null) {
-            return new Resultado(false, "Link de convite inválido.", null);
+            return new Resultado(false, Mensagens.get("msg.convite.linkInvalido"), null);
         }
 
         if (token.getExpiraEm().isBefore(LocalDateTime.now())) {
-            return new Resultado(false, "Link de convite expirado.", null);
+            return new Resultado(false, Mensagens.get("msg.convite.linkExpirado"), null);
         }
 
         AreaTrabalho area = areaTrabalhoRepository.findById(token.getAreaId()).orElse(null);
         if (area == null) {
-            return new Resultado(false, "Área de trabalho não encontrada.", null);
+            return new Resultado(false, Mensagens.get("msg.convite.areaNaoEncontrada"), null);
         }
 
         boolean jaParticipa = area.getParticipacoes().stream()
@@ -60,6 +61,6 @@ public class ConviteAreaService {
             participacaoAreaRepository.save(new ParticipacaoArea(usuario, area, permissao));
         }
 
-        return new Resultado(true, "Você agora participa da área \"" + area.getNome() + "\".", area);
+        return new Resultado(true, Mensagens.get("msg.convite.participa", area.getNome()), area);
     }
 }

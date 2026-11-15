@@ -16,6 +16,13 @@ import com.example.demo.Entidades.Usuario;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.springframework.web.util.HtmlUtils;
+import org.springframework.web.util.UriUtils;
+import com.example.demo.Serviços.Idioma.Idioma;
+import com.example.demo.Serviços.Idioma.Mensagens;
 
 @Service
 public class EmailService {
@@ -49,15 +56,16 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(remetenteEmail, remetenteNome);
-            helper.setSubject("Redefinição de senha ToDaily");
+            Locale idioma = Mensagens.localeAtual(); // quem pediu está usando a tela agora: vale o idioma dela
+            helper.setSubject(Mensagens.get(idioma, "email.recup.assunto"));
             helper.setTo(destinatarioEmail);
 
-            String template = carregaTemplateEmail("templates/email_template.html");
+            String template = traduzirTemplate(carregaTemplateEmail("templates/email_template.html"), idioma);
 
             template = template.replace("{baseUrl}", baseUrl);
             template = template.replace("{token}", token);
             if (destinatarioNome != null) {
-                template = template.replace("{nome}", destinatarioNome);
+                template = template.replace("{nome}", HtmlUtils.htmlEscape(destinatarioNome));
             }
 
             helper.setText(template, true);
@@ -67,7 +75,7 @@ public class EmailService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("Erro ao enviar email: " + e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 
@@ -80,21 +88,24 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(remetenteEmail, remetenteNome);
-            helper.setSubject("Compartilhamento de Área de Trabalho ToDaily");
+            // Roda em outra thread (@Async), sem a requisição: vale o idioma salvo no perfil de quem recebe
+            Locale idioma = idiomaDoUsuario(destinatario);
+            helper.setSubject(Mensagens.get(idioma, "email.compart.assunto"));
             helper.setTo(destinatario.getEmail());
 
-            String template = carregaTemplateEmail("templates/compartilhamentoAreaTrabalho.html");
+            String template = traduzirTemplate(carregaTemplateEmail("templates/compartilhamentoAreaTrabalho.html"), idioma);
 
+            String nivel = Mensagens.get(idioma, permissao == PermissaoArea.OBSERVADOR
+                    ? "email.compart.permObservador"
+                    : "email.compart.permEditor");
+
+            template = template.replace("{corpo}", Mensagens.get(idioma, "email.compart.corpo",
+                    HtmlUtils.htmlEscape(area.getNome()), HtmlUtils.htmlEscape(nomeUsuario), nivel));
             template = template.replace("{baseUrl}", baseUrl);
-            template = template.replace("{nome}", destinatario.getNome());
+            template = template.replace("{nome}", HtmlUtils.htmlEscape(destinatario.getNome()));
             template = template.replace("{token}", token);
-            template = template.replace("{usuario}", nomeUsuario);
-            template = template.replace("{area}", area.getNome());
             template = template.replace("{areaID}", area.getId().toString());
             template = template.replace("{destID}", destinatario.getId().toString());
-            template = template.replace("{permissao}", permissao == PermissaoArea.OBSERVADOR
-                    ? "Observador (apenas visualiza)"
-                    : "Editor (visualiza, cria e edita tarefas)");
 
             helper.setText(template, true);
 
@@ -103,7 +114,7 @@ public class EmailService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("Erro ao enviar email: " + e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 
@@ -113,15 +124,16 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(remetenteEmail, remetenteNome);
-            helper.setSubject("Confirme seu e-mail - ToDaily");
+            Locale idioma = Mensagens.localeAtual(); // a pessoa acabou de se cadastrar: vale o idioma da tela
+            helper.setSubject(Mensagens.get(idioma, "email.verif.assunto"));
             helper.setTo(destinatarioEmail);
 
-            String template = carregaTemplateEmail("templates/verificacaoEmail.html");
+            String template = traduzirTemplate(carregaTemplateEmail("templates/verificacaoEmail.html"), idioma);
 
             template = template.replace("{baseUrl}", baseUrl);
             template = template.replace("{token}", token);
             if (destinatarioNome != null) {
-                template = template.replace("{nome}", destinatarioNome);
+                template = template.replace("{nome}", HtmlUtils.htmlEscape(destinatarioNome));
             }
 
             helper.setText(template, true);
@@ -131,7 +143,7 @@ public class EmailService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("Erro ao enviar email: " + e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
     }
 
@@ -141,19 +153,22 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setFrom(remetenteEmail, remetenteNome);
-            helper.setSubject("Lembrete: \"" + tarefa.getTitulo() + "\" vence em breve - ToDaily");
+            // Job agendado (sem requisição): vale o idioma salvo no perfil de quem recebe
+            Locale idioma = idiomaDoUsuario(destinatario);
+            helper.setSubject(Mensagens.get(idioma, "email.lembrete.assunto", tarefa.getTitulo()));
             helper.setTo(destinatario.getEmail());
 
             AreaTrabalho area = tarefa.getListaOrigem().getArea();
-            String dataFimFormatada = tarefa.getDataFim().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            String dataFimFormatada = tarefa.getDataFim()
+                    .format(DateTimeFormatter.ofPattern(Mensagens.get(idioma, "email.formatoData")));
 
-            String template = carregaTemplateEmail("templates/lembreteTarefa.html");
+            String template = traduzirTemplate(carregaTemplateEmail("templates/lembreteTarefa.html"), idioma);
+            template = template.replace("{corpo}", Mensagens.get(idioma, "email.lembrete.corpo",
+                    HtmlUtils.htmlEscape(tarefa.getTitulo()), HtmlUtils.htmlEscape(area.getNome()), dataFimFormatada));
             template = template.replace("{baseUrl}", baseUrl);
-            template = template.replace("{nome}", destinatario.getNome());
-            template = template.replace("{titulo}", tarefa.getTitulo());
-            template = template.replace("{dataFim}", dataFimFormatada);
+            template = template.replace("{nome}", HtmlUtils.htmlEscape(destinatario.getNome()));
             template = template.replace("{areaId}", area.getId().toString());
-            template = template.replace("{area}", area.getNome());
+            template = template.replace("{areaUrl}", UriUtils.encodePathSegment(area.getNome(), StandardCharsets.UTF_8));
 
             helper.setText(template, true);
 
@@ -162,8 +177,26 @@ public class EmailService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("Erro ao enviar email: " + e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    private static final Pattern CHAVE_NO_TEMPLATE = Pattern.compile("\\{\\{([\\w.]+)\\}\\}");
+
+    /** Idioma salvo no perfil de quem recebe o e-mail (português se ainda não escolheu). */
+    static Locale idiomaDoUsuario(Usuario usuario) {
+        return Idioma.deOuPadrao(usuario.getIdioma()).locale();
+    }
+
+    /** Troca os {{chave}} do HTML pelos textos do idioma e o {lang} pelo código do idioma. */
+    static String traduzirTemplate(String html, Locale idioma) {
+        Matcher m = CHAVE_NO_TEMPLATE.matcher(html);
+        StringBuilder saida = new StringBuilder();
+        while (m.find()) {
+            m.appendReplacement(saida, Matcher.quoteReplacement(Mensagens.get(idioma, m.group(1))));
+        }
+        m.appendTail(saida);
+        return saida.toString().replace("{lang}", idioma.toLanguageTag());
     }
 
     public String carregaTemplateEmail(String arquivoHTML) throws IOException {

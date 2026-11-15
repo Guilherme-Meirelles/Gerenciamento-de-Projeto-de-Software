@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ToDaily - Áreas de Trabalho</title>
+    <title th:text="#{areas.tituloPagina}">ToDaily - Áreas de Trabalho</title>
     <link rel="stylesheet" href="/css/sidebar.css" />
     <link rel="stylesheet" href="/css/areasTrabalho.css" />
     <link rel="stylesheet" href="/css/menu.css" />
@@ -22,7 +22,7 @@
     <!-- Conteúdo principal - Áreas de Trabalho -->
     <main class="conteudo-areas">
         <div class="titulo">
-            <h2>Áreas de Trabalho</h2>
+            <h2 th:text="#{sidebar.areasTrabalho}">Áreas de Trabalho</h2>
         </div>
 
         <!-- Renderiza cada área do usuário -->
@@ -38,23 +38,23 @@
                 <h3 th:text="${participacao.area.nome}"></h3>
                 <span class="badge-permissao"
                       th:classappend="${#strings.toLowerCase(participacao.permissao.name())}"
-                      th:text="${participacao.permissao.name() == 'ADMIN' ? 'Administrador' : (participacao.permissao.name() == 'EDITOR' ? 'Editor' : 'Observador')}"></span>
+                      th:text="${participacao.permissao.name() == 'ADMIN' ? #messages.msg('areas.administrador') : (participacao.permissao.name() == 'EDITOR' ? #messages.msg('areas.editor') : #messages.msg('areas.observador'))}"></span>
             </div>
 
             <div class="area-card area-add" onclick="abrirModalNovaArea()">
                 <i data-lucide="plus"></i>
-                <span>Nova área</span>
+                <span th:text="#{areas.novaArea}">Nova área</span>
             </div>
         </div>
         <!-- Botões de ação flutuantes -->
         <div class="acoes-flutuantes">
-            <button class="btn-acao" title="Compartilhar" onclick="abrirModalCompartilhar()">
+            <button class="btn-acao" title="Compartilhar" th:title="#{areas.compartilhar}" onclick="abrirModalCompartilhar()">
                 <i data-lucide="share-2"></i>
             </button>
-            <button class="btn-acao" title="Excluir / Sair da área" onclick="abrirModalExcluir()">
+            <button class="btn-acao" title="Excluir / Sair da área" th:title="#{areas.dicaExcluir}" onclick="abrirModalExcluir()">
                 <i data-lucide="trash-2"></i>
             </button>
-            <button class="btn-acao" title="Configurações" onclick="abrirModalGerenciamento()">
+            <button class="btn-acao" title="Configurações" th:title="#{areas.dicaConfig}" onclick="abrirModalGerenciamento()">
                 <i data-lucide="settings"></i>
             </button>
         </div>
@@ -72,19 +72,19 @@
             <div class="icone-modal-area" id="iconeModalArea">
                 <i data-lucide="briefcase"></i>
             </div>
-            <h2 class="titulo-modal" id="tituloModalArea">Nova Área de Trabalho</h2>
-            <p class="descricao-modal" id="descricaoModalArea">Dê um nome para a sua nova área.</p>
+            <h2 class="titulo-modal" id="tituloModalArea" th:text="#{areas.novaAreaTitulo}">Nova Área de Trabalho</h2>
+            <p class="descricao-modal" id="descricaoModalArea" th:text="#{areas.novaAreaDesc}">Dê um nome para a sua nova área.</p>
 
             <form class="formulario-nova-area" onsubmit="salvarArea(event)">
                 <input type="hidden" id="areaIdEdicao">
                 <div class="campo-modal">
-                    <label>Nome da área</label>
-                    <input type="text" id="inputNomeArea" placeholder="Ex: Projetos Pessoais" autofocus required />
+                    <label th:text="#{areas.nomeArea}">Nome da área</label>
+                    <input type="text" id="inputNomeArea" placeholder="Ex: Projetos Pessoais" th:placeholder="#{areas.phNomeArea}" autofocus required />
                 </div>
 
                 <div class="botoes-modal">
-                    <button type="submit" class="btn-criar">Criar</button>
-                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalArea()">Cancelar</button>
+                    <button type="submit" class="btn-criar" th:text="#{areas.criar}">Criar</button>
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalArea()" th:text="#{comum.cancelar}">Cancelar</button>
                 </div>
             </form>
         </div>
@@ -93,7 +93,7 @@
     <!-- Modal de Compartilhamento -->
     <div id="modalCompartilhar" class="overlay-modal" style="display: none;" onclick="fecharModalCompartilhar()">
         <div class="modal-compartilhar" onclick="event.stopPropagation()">
-            <h2 class="titulo-modal">Compartilhar Área de Trabalho</h2>
+            <h2 class="titulo-modal" th:text="#{areas.compartilharTitulo}">Compartilhar Área de Trabalho</h2>
 
             <!-- Lista de áreas para selecionar -->
             <div class="lista-areas-compartilhar">
@@ -102,22 +102,22 @@
 
             <!-- Nível de permissão do convite (vale para e-mail e para link) -->
             <div class="secao-permissao-convite">
-                <h3>Nível de permissão</h3>
+                <h3 th:text="#{areas.nivelPermissao}">Nível de permissão</h3>
 
                 <div class="opcoes-permissao opcoes-permissao-convite">
                     <div class="opcao-permissao" onclick="selecionarPermissaoConvite('OBSERVADOR')">
                         <input type="radio" name="permissaoConvite" id="convite-observador" value="OBSERVADOR">
                         <label for="convite-observador">
-                            <span class="titulo-permissao">Observador</span>
-                            <span class="desc-permissao">Apenas visualiza as tarefas, sem editar</span>
+                            <span class="titulo-permissao" th:text="#{areas.observador}">Observador</span>
+                            <span class="desc-permissao" th:text="#{areas.descObservador}">Apenas visualiza as tarefas, sem editar</span>
                         </label>
                     </div>
 
                     <div class="opcao-permissao selecionada" onclick="selecionarPermissaoConvite('EDITOR')">
                         <input type="radio" name="permissaoConvite" id="convite-editor" value="EDITOR" checked>
                         <label for="convite-editor">
-                            <span class="titulo-permissao">Editor</span>
-                            <span class="desc-permissao">Visualiza, cria e edita tarefas</span>
+                            <span class="titulo-permissao" th:text="#{areas.editor}">Editor</span>
+                            <span class="desc-permissao" th:text="#{areas.descEditor}">Visualiza, cria e edita tarefas</span>
                         </label>
                     </div>
                 </div>
@@ -125,22 +125,22 @@
 
             <!-- Métodos de compartilhamento -->
             <div class="secao-metodos-compartilhamento">
-                <h3>Compartilhar via</h3>
+                <h3 th:text="#{areas.compartilharVia}">Compartilhar via</h3>
 
                 <div class="metodos-compartilhamento">
                     <button class="btn-metodo-compartilhar" id="btnEmail" onclick="abrirModalEmail()" disabled>
                         <i data-lucide="mail"></i>
-                        E-mail
+                        <span th:text="#{areas.btnEmail}">E-mail</span>
                     </button>
 
                     <button class="btn-link-compartilhar" id="btnLink" onclick="gerarLinkCompartilhamento()" disabled>
                         <i data-lucide="link"></i>
-                        Copiar Link
+                        <span th:text="#{areas.btnLink}">Copiar Link</span>
                     </button>
                 </div>
 
                 <div class="botoes-modal">
-                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalCompartilhar()">Fechar</button>
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalCompartilhar()" th:text="#{comum.fechar}">Fechar</button>
                 </div>
             </div>
         </div>
@@ -149,21 +149,21 @@
     <!-- Modal de convite por e-mail -->
     <div id="ModalCompartilhamentoOverlay" class="overlay-modal" style="display: none;" onclick="fecharModalEmail()">
         <div class="modal-nova-area modal-email" onclick="event.stopPropagation()">
-            <h2 class="titulo-modal">Compartilhar por e-mail</h2>
+            <h2 class="titulo-modal" th:text="#{areas.emailTitulo}">Compartilhar por e-mail</h2>
             <p class="descricao-modal">
-                Informe o e-mail do usuário que receberá o convite com permissão de
+                <span th:text="#{areas.emailDesc}">Informe o e-mail do usuário que receberá o convite com permissão de</span>
                 <strong id="rotuloPermissaoEmail">Editor</strong>.
             </p>
 
             <form id="emailForm" class="formulario-nova-area" novalidate onsubmit="enviarViaAjax(); return false;">
                 <div class="campo-modal">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" required>
+                    <label for="email" th:text="#{comum.email}">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="exemplo@gmail.com" th:placeholder="#{areas.phEmail}" required>
                 </div>
 
                 <div class="botoes-modal">
-                    <button type="submit" class="btn-criar">Confirmar</button>
-                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalEmail()">Voltar</button>
+                    <button type="submit" class="btn-criar" th:text="#{comum.confirmar}">Confirmar</button>
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalEmail()" th:text="#{comum.voltar}">Voltar</button>
                 </div>
             </form>
 
@@ -175,8 +175,8 @@
     <!-- Modal de Exclusão -->
     <div id="modalExcluir" class="overlay-modal" style="display: none;" onclick="fecharModalExcluir()">
         <div class="modal-excluir" onclick="event.stopPropagation()">
-            <h2 class="titulo-modal">Excluir ou Sair de Áreas</h2>
-            <p class="descricao-modal">Marque as áreas que deseja excluir. Nas áreas que você não administra, você apenas sairá.</p>
+            <h2 class="titulo-modal" th:text="#{areas.excluirTitulo}">Excluir ou Sair de Áreas</h2>
+            <p class="descricao-modal" th:text="#{areas.excluirDesc}">Marque as áreas que deseja excluir. Nas áreas que você não administra, você apenas sairá.</p>
 
             <!-- Lista de áreas para excluir -->
             <div class="lista-areas-excluir" id="listaAreasExcluir">
@@ -186,9 +186,9 @@
             <div class="botoes-modal">
                 <button type="button" class="btn-excluir-areas" id="btnConfirmarExclusao" onclick="confirmarExclusao()" disabled>
                     <i data-lucide="trash-2"></i>
-                    Excluir Selecionadas
+                    <span th:text="#{areas.excluirSelecionadas}">Excluir Selecionadas</span>
                 </button>
-                <button type="button" class="btn-cancelar-modal" onclick="fecharModalExcluir()">Cancelar</button>
+                <button type="button" class="btn-cancelar-modal" onclick="fecharModalExcluir()" th:text="#{comum.cancelar}">Cancelar</button>
             </div>
         </div>
     </div>
@@ -198,32 +198,32 @@
         <div class="modal-gerenciamento" onclick="event.stopPropagation()">
             <!-- Etapa 1: Escolha da área (clicar numa área já abre os membros dela) -->
             <div id="etapaSelecaoArea" style="display: block;">
-                <h2 class="titulo-modal">Gerenciar Áreas de Trabalho</h2>
-                <p class="descricao-modal">Escolha uma área para ver e gerenciar os membros.</p>
+                <h2 class="titulo-modal" th:text="#{areas.gerenciarTitulo}">Gerenciar Áreas de Trabalho</h2>
+                <p class="descricao-modal" th:text="#{areas.gerenciarDesc}">Escolha uma área para ver e gerenciar os membros.</p>
 
                 <div class="lista-areas-gerenciar">
                     <!-- JS vai preencher as áreas aqui -->
                 </div>
 
                 <div class="botoes-modal">
-                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalGerenciamento()">Cancelar</button>
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalGerenciamento()" th:text="#{comum.cancelar}">Cancelar</button>
                 </div>
             </div>
 
             <!-- Etapa 2: Membros da área escolhida (quantidade no subtítulo) -->
             <div id="etapaMembros" style="display: none;">
                 <div class="detalhes-area-header">
-                    <button class="btn-voltar-gerenciar" title="Voltar" onclick="voltarParaSelecao()">
+                    <button class="btn-voltar-gerenciar" title="Voltar" th:title="#{comum.voltar}" onclick="voltarParaSelecao()">
                         <i data-lucide="arrow-left"></i>
                     </button>
                     <div class="titulo-detalhes">
-                        <h3>Membros</h3>
+                        <h3 th:text="#{areas.membros}">Membros</h3>
                         <span class="subtitulo-detalhes" id="subtituloMembros"></span>
                     </div>
                     <!-- Só o administrador da área vê este botão -->
                     <button type="button" class="btn-renomear-area" id="btnRenomearArea" style="display: none;"
-                            title="Renomear esta área de trabalho" onclick="renomearAreaGerenciada()">
-                        <i data-lucide="pencil"></i> Renomear
+                            title="Renomear esta área de trabalho" th:title="#{areas.renomearDica}" onclick="renomearAreaGerenciada()">
+                        <i data-lucide="pencil"></i> <span th:text="#{areas.renomear}">Renomear</span>
                     </button>
                 </div>
 
@@ -232,7 +232,7 @@
                 </div>
 
                 <div class="botoes-modal">
-                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalGerenciamento()">Fechar</button>
+                    <button type="button" class="btn-cancelar-modal" onclick="fecharModalGerenciamento()" th:text="#{comum.fechar}">Fechar</button>
                 </div>
             </div>
         </div>
@@ -241,8 +241,8 @@
     <!-- Modal de Alteração de Permissão -->
     <div id="modalPermissao" class="overlay-modal" style="display: none;" onclick="fecharModalPermissao()">
         <div class="modal-permissao" onclick="event.stopPropagation()">
-            <h2 class="titulo-modal" id="tituloModalPermissao">Alterar Permissão</h2>
-            <p style="color: #b0b0b0; font-size: 14px; margin-bottom: 25px;" id="descModalPermissao">
+            <h2 class="titulo-modal" id="tituloModalPermissao" th:text="#{areas.permissaoTitulo}">Alterar Permissão</h2>
+            <p style="color: #b0b0b0; font-size: 14px; margin-bottom: 25px;" id="descModalPermissao" th:text="#{areas.permissaoDesc}">
                 Selecione o nível de permissão para este membro
             </p>
 
@@ -250,23 +250,23 @@
                 <div class="opcao-permissao" onclick="selecionarPermissao('editar')">
                     <input type="radio" name="permissaoMembro" id="perm-editar" value="editar">
                     <label for="perm-editar">
-                        <span class="titulo-permissao">Pode editar</span>
-                        <span class="desc-permissao">Pode visualizar, criar e editar tarefas</span>
+                        <span class="titulo-permissao" th:text="#{areas.podeEditar}">Pode editar</span>
+                        <span class="desc-permissao" th:text="#{areas.descPodeEditar}">Pode visualizar, criar e editar tarefas</span>
                     </label>
                 </div>
 
                 <div class="opcao-permissao" onclick="selecionarPermissao('visualizar')">
                     <input type="radio" name="permissaoMembro" id="perm-visualizar" value="visualizar">
                     <label for="perm-visualizar">
-                        <span class="titulo-permissao">Pode visualizar</span>
-                        <span class="desc-permissao">Apenas visualizar tarefas, sem editar</span>
+                        <span class="titulo-permissao" th:text="#{areas.podeVisualizar}">Pode visualizar</span>
+                        <span class="desc-permissao" th:text="#{areas.descPodeVisualizar}">Apenas visualizar tarefas, sem editar</span>
                     </label>
                 </div>
             </div>
 
             <div class="botoes-modal">
-                <button type="button" class="btn-criar" id="btnSalvarPermissao" onclick="salvarPermissao()">Salvar</button>
-                <button type="button" class="btn-cancelar-modal" onclick="fecharModalPermissao()">Cancelar</button>
+                <button type="button" class="btn-criar" id="btnSalvarPermissao" onclick="salvarPermissao()" th:text="#{areas.salvar}">Salvar</button>
+                <button type="button" class="btn-cancelar-modal" onclick="fecharModalPermissao()" th:text="#{comum.cancelar}">Cancelar</button>
             </div>
         </div>
     </div>

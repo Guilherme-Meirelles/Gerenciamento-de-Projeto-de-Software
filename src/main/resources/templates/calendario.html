@@ -11,24 +11,24 @@
     <div class="overlay-calendario" id="modalCalendario" style="display: none;">
         <div class="modal-calendario" id="calendarioBox">
             <div class="calendario-header">
-                <button class="btn-nav-mes" id="btnMesAnterior" title="Mês anterior">
+                <button class="btn-nav-mes" id="btnMesAnterior" title="Mês anterior" th:title="#{cal.mesAnterior}">
                     <i data-lucide="chevron-left"></i>
                 </button>
                 <h3 class="calendario-titulo" id="calendarioTitulo">Novembro 2024</h3>
-                <button class="btn-nav-mes" id="btnMesProximo" title="Próximo mês">
+                <button class="btn-nav-mes" id="btnMesProximo" title="Próximo mês" th:title="#{cal.proximoMes}">
                     <i data-lucide="chevron-right"></i>
                 </button>
             </div>
 
             <div class="calendario-corpo">
                 <div class="calendario-dias-semana">
-                    <div class="dia-semana">Dom</div>
-                    <div class="dia-semana">Seg</div>
-                    <div class="dia-semana">Ter</div>
-                    <div class="dia-semana">Qua</div>
-                    <div class="dia-semana">Qui</div>
-                    <div class="dia-semana">Sex</div>
-                    <div class="dia-semana">Sáb</div>
+                    <div class="dia-semana" th:text="#{cal.dom}">Dom</div>
+                    <div class="dia-semana" th:text="#{cal.seg}">Seg</div>
+                    <div class="dia-semana" th:text="#{cal.ter}">Ter</div>
+                    <div class="dia-semana" th:text="#{cal.qua}">Qua</div>
+                    <div class="dia-semana" th:text="#{cal.qui}">Qui</div>
+                    <div class="dia-semana" th:text="#{cal.sex}">Sex</div>
+                    <div class="dia-semana" th:text="#{cal.sab}">Sáb</div>
                 </div>
                 <div class="calendario-grid" id="calendarioGrid">
                     <!-- Os dias serão gerados dinamicamente -->
@@ -48,9 +48,9 @@
             </div>
 
             <div class="calendario-footer">
-                <button class="btn-ver-ano" id="btnVerAno">Ver ano</button>
-                <button class="btn-hoje" id="btnHoje">Hoje</button>
-                <button class="btn-fechar-calendario" id="btnFecharCalendario">Fechar</button>
+                <button class="btn-ver-ano" id="btnVerAno" th:text="#{cal.verAno}">Ver ano</button>
+                <button class="btn-hoje" id="btnHoje" th:text="#{cal.hoje}">Hoje</button>
+                <button class="btn-fechar-calendario" id="btnFecharCalendario" th:text="#{cal.fechar}">Fechar</button>
             </div>
         </div>
     </div>
@@ -83,15 +83,16 @@
             let tarefasCalendario = [];
             let modoAno = false;
 
-            const meses = [
-                'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-                'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-            ];
-            const mesesAbrev = [
-                'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-                'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-            ];
-            const diasSemanaAbrev = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+            // Nomes de meses e dias da semana vêm do próprio navegador, no idioma da página
+            const idiomaPagina = document.documentElement.lang || 'pt-BR';
+            const maiuscula = texto => texto.charAt(0).toUpperCase() + texto.slice(1);
+            const meses = Array.from({ length: 12 }, (_, m) =>
+                maiuscula(new Date(2024, m, 1).toLocaleDateString(idiomaPagina, { month: 'long' })));
+            const mesesAbrev = Array.from({ length: 12 }, (_, m) =>
+                maiuscula(new Date(2024, m, 1).toLocaleDateString(idiomaPagina, { month: 'short' }).replace('.', '')));
+            // 07/01/2024 foi um domingo
+            const diasSemanaAbrev = Array.from({ length: 7 }, (_, d) =>
+                maiuscula(new Date(2024, 0, 7 + d).toLocaleDateString(idiomaPagina, { weekday: 'narrow' })));
 
             // Busca as tarefas da área atual (ou de todas as áreas do usuário) para
             // marcar os dias com atividade e listar as tarefas do dia selecionado.
@@ -116,14 +117,14 @@
                 calendarioBox.classList.remove('modo-ano');
                 calendarioAnoGrid.style.display = 'none';
                 calendarioCorpo.style.display = 'block';
-                btnVerAno.textContent = 'Ver ano';
+                btnVerAno.textContent = t('js.cal.verAno');
                 atualizarTitulosNavegacao();
             }
 
             // O botão de seta navega por mês na visão mensal e por ano na visão anual
             function atualizarTitulosNavegacao() {
-                btnMesAnterior.title = modoAno ? 'Ano anterior' : 'Mês anterior';
-                btnMesProximo.title = modoAno ? 'Próximo ano' : 'Próximo mês';
+                btnMesAnterior.title = modoAno ? t('js.cal.anoAnterior') : t('js.cal.mesAnterior');
+                btnMesProximo.title = modoAno ? t('js.cal.proximoAno') : t('js.cal.proximoMes');
             }
 
             // Abrir modal do calendário
@@ -210,7 +211,7 @@
                     calendarioBox.classList.add('modo-ano');
                     calendarioCorpo.style.display = 'none';
                     calendarioAnoGrid.style.display = 'grid';
-                    btnVerAno.textContent = 'Ver mês';
+                    btnVerAno.textContent = t('js.cal.verMes');
                     atualizarTitulosNavegacao();
                     renderizarAno();
                 } else {
@@ -287,7 +288,7 @@
                 const titulo = document.createElement('div');
                 titulo.className = 'mini-mes-titulo';
                 titulo.textContent = mesesAbrev[mes];
-                titulo.title = 'Ver ' + meses[mes] + ' de ' + ano;
+                titulo.title = t('js.cal.verMesDoAno', meses[mes], ano);
                 titulo.addEventListener('click', function() {
                     mesAtual = mes;
                     anoAtual = ano;
@@ -351,11 +352,15 @@
             function mostrarTarefasDoDia(iso, dia) {
                 const tarefasDoDia = tarefasCalendario.filter(t => t.dataFim === iso);
 
-                calendarioTarefasTitulo.textContent = `Tarefas em ${String(dia).padStart(2, '0')}/${String(mesAtual + 1).padStart(2, '0')}/${anoAtual}`;
+                calendarioTarefasTitulo.textContent = t('js.cal.tarefasEm', `${String(dia).padStart(2, '0')}/${String(mesAtual + 1).padStart(2, '0')}/${anoAtual}`);
                 calendarioTarefasLista.innerHTML = '';
 
                 if (tarefasDoDia.length === 0) {
-                    calendarioTarefasLista.innerHTML = '<p class="calendario-tarefas-vazia">Nenhuma tarefa nesse dia.</p>';
+                    calendarioTarefasLista.innerHTML = '';
+                    const vazia = document.createElement('p');
+                    vazia.className = 'calendario-tarefas-vazia';
+                    vazia.textContent = t('js.cal.semTarefas');
+                    calendarioTarefasLista.appendChild(vazia);
                 } else {
                     tarefasDoDia.forEach(tarefa => {
                         const item = document.createElement('div');
@@ -403,7 +408,7 @@
                 });
 
                 if (!resposta.ok) {
-                    Aviso.mostrar('Erro ao atualizar a tarefa.', 'erro');
+                    Aviso.mostrar(t('js.cal.erroAtualizar'), 'erro');
                     return;
                 }
 

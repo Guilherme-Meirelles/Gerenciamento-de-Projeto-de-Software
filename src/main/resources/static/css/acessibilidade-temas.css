@@ -406,6 +406,13 @@ html.tema-claro .preferencias-notificacao { border-top: 1px solid #c5c5c5 !impor
 html.tema-claro .preferencias-titulo { color: #292929 !important; }
 html.tema-claro .preferencia-linha { color: #1a1a1a !important; }
 html.tema-claro .preferencia-linha svg, html.tema-claro .preferencia-linha i { color: #444444 !important; }
+html.tema-claro .campo-tarefa input:disabled, html.tema-claro .campo-tarefa textarea:disabled, html.tema-claro .campo-tarefa select:disabled, html.tema-claro .multi-resp-botao:disabled { background-color: #f1f1f1 !important; border-color: #d3d3d3 !important; color: #666666 !important; }
+html.tema-claro .campo-arquivo { background-color: #efefef !important; border: 1px solid #c5c5c5 !important; color: #1a1a1a !important; }
+html.tema-claro .btn-escolher-arquivo { background-color: #dfdfdf !important; border: 1px solid #aaaaaa !important; color: #1a1a1a !important; }
+html.tema-claro .btn-escolher-arquivo:hover { background-color: #d6d6d6 !important; }
+html.tema-claro .nome-arquivo-escolhido { color: #4f4f4f !important; }
+html.tema-claro .btn-baixar-anexo { color: #6e6e6e !important; }
+html.tema-claro .btn-baixar-anexo:hover { background-color: #dfdfdf !important; color: #236726 !important; }
 /* sidebar.css */
 html.tema-claro body { background-color: #f5f5f5 !important; color: #1a1a1a !important; }
 html.tema-claro .sidebar { background-color: #efefef !important; border-right: 2px solid #ffffff !important; }
@@ -791,6 +798,13 @@ html.acess-contraste .preferencias-notificacao { border-top: 1px solid #ffffff !
 html.acess-contraste .preferencias-titulo { color: #ffffff !important; }
 html.acess-contraste .preferencia-linha { color: #ffffff !important; }
 html.acess-contraste .preferencia-linha svg, html.acess-contraste .preferencia-linha i { color: #ffffff !important; }
+html.acess-contraste .campo-tarefa input:disabled, html.acess-contraste .campo-tarefa textarea:disabled, html.acess-contraste .campo-tarefa select:disabled, html.acess-contraste .multi-resp-botao:disabled { background-color: #000000 !important; border-color: #ffffff !important; color: #ffffff !important; }
+html.acess-contraste .campo-arquivo { background-color: #000000 !important; border: 1px solid #ffffff !important; }
+html.acess-contraste .btn-escolher-arquivo { background-color: #000000 !important; border: 1px solid #ffffff !important; }
+html.acess-contraste .btn-escolher-arquivo:hover { background-color: #000000 !important; }
+html.acess-contraste .nome-arquivo-escolhido { color: #ffffff !important; }
+html.acess-contraste .btn-baixar-anexo { color: #ffffff !important; }
+html.acess-contraste .btn-baixar-anexo:hover { background-color: #000000 !important; }
 /* sidebar.css */
 html.acess-contraste body { background-color: #000000 !important; color: #ffffff !important; }
 html.acess-contraste .sidebar { background-color: #000000 !important; border-right: 2px solid #000000 !important; }

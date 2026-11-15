@@ -1,5 +1,7 @@
 package com.example.demo.Serviços;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,7 @@ public class CategoriaService {
 
     public Categoria criarCategoria(Long areaId, String nome, String cor) {
         AreaTrabalho area = areaTrabalhoRepository.findById(areaId)
-                .orElseThrow(() -> new RuntimeException("Área não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.area.naoEncontrada")));
 
         Categoria categoria = new Categoria();
         categoria.setArea(area);
@@ -39,7 +41,7 @@ public class CategoriaService {
 
     public Categoria editarCategoria(Long id, String nome, String cor) {
         Categoria categoria = categoriaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.categoria.naoEncontrada")));
 
         categoria.setNome(nome);
         categoria.setCor(cor);
@@ -50,7 +52,7 @@ public class CategoriaService {
     @Transactional
     public void remover(Long id) {
         Categoria categoria = categoriaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.categoria.naoEncontrada")));
 
         List<Tarefa> tarefasVinculadas = tarefaRepository.findByCategoriasId(id);
         for (Tarefa tarefa : tarefasVinculadas) {
@@ -67,6 +69,6 @@ public class CategoriaService {
 
     public Categoria getCategoria(Long id) {
         return categoriaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.categoria.naoEncontrada")));
     }
 }

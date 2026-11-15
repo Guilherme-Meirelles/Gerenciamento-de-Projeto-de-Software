@@ -1,5 +1,7 @@
 package com.example.demo.Serviços;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import com.example.demo.ConsultasBD.ListaRepository;
 import com.example.demo.ConsultasBD.AreaTrabalhoRepository;
 import com.example.demo.Entidades.Lista;
@@ -24,7 +26,7 @@ public class ListaService {
 
     public Lista criarLista(Long areaId, String nome, String descricao) {
         AreaTrabalho area = areaRepository.findById(areaId)
-                .orElseThrow(() -> new RuntimeException("Área não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.area.naoEncontrada")));
 
         Lista lista = new Lista();
         lista.setNome(nome);
@@ -35,13 +37,13 @@ public class ListaService {
     }
 
     public Lista getLista(long listaId){
-        Lista lista = listaRepository.findById(listaId).orElseThrow(() -> new RuntimeException("Lista não encontrada"));
+        Lista lista = listaRepository.findById(listaId).orElseThrow(() -> new RuntimeException(Mensagens.get("msg.lista.naoEncontrada")));
         return lista;
     }
 
     public Lista editarLista(Long id, String nome, String desc) {
         Lista lista = listaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Lista não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.lista.naoEncontrada")));
 
         lista.setNome(nome);
         lista.setDescricao(desc);

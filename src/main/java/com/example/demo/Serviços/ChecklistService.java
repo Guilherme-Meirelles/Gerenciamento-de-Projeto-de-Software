@@ -1,5 +1,7 @@
 package com.example.demo.Serviços;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,14 +27,14 @@ public class ChecklistService {
 
     public Checklist getChecklistDaTarefa(Long tarefaId) {
         Tarefa tarefa = tarefaRepository.findById(tarefaId)
-                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.tarefa.naoEncontrada")));
         return tarefa.getChecklist();
     }
 
     @Transactional
     public Checklist obterOuCriarChecklist(Long tarefaId) {
         Tarefa tarefa = tarefaRepository.findById(tarefaId)
-                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.tarefa.naoEncontrada")));
 
         if (tarefa.getChecklist() == null) {
             Checklist checklist = new Checklist();
@@ -58,7 +60,7 @@ public class ChecklistService {
 
     public ItemChecklist editarItem(Long itemId, String descricao, Boolean concluido) {
         ItemChecklist item = itemChecklistRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item de checklist não encontrado"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.checklist.itemNaoEncontrado")));
 
         if (descricao != null) item.setDescricao(descricao);
         if (concluido != null) item.setConcluido(concluido);

@@ -1,5 +1,7 @@
 package com.example.demo.Serviços;
 
+import com.example.demo.Serviços.Idioma.Mensagens;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class AnexoService {
 
     public Anexo adicionar(Long tarefaId, MultipartFile arquivo) throws IOException {
         Tarefa tarefa = tarefaRepository.findById(tarefaId)
-                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.tarefa.naoEncontrada")));
 
         Anexo anexo = new Anexo();
         anexo.setTarefa(tarefa);
@@ -41,7 +43,7 @@ public class AnexoService {
 
     public Anexo buscarPorId(Long anexoId) {
         return anexoRepository.findById(anexoId)
-                .orElseThrow(() -> new RuntimeException("Anexo não encontrado"));
+                .orElseThrow(() -> new RuntimeException(Mensagens.get("msg.anexo.naoEncontrado")));
     }
 
     public void remover(Long anexoId) {

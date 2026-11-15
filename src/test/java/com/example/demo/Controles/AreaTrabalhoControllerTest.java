@@ -391,4 +391,44 @@ class AreaTrabalhoControllerTest {
 
         assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
+
+    // ---------- categorias do usuário ----------
+
+    @Test
+    void listarCategoriasPorUser_retornaCategoriasDasAreasDoUsuarioComAreaId() {
+        Usuario usuario = criarUsuario("cat@teste.com");
+        Usuario outro = criarUsuario("outro-cat@teste.com");
+        entityManager.clear();
+
+        Long areaId = Long.valueOf(controller.criarArea("Área com categoria", requestAutenticado(usuario.getId())));
+        Long areaDeOutro = Long.valueOf(controller.criarArea("Área alheia", requestAutenticado(outro.getId())));
+
+        com.example.demo.Entidades.Categoria minha = new com.example.demo.Entidades.Categoria();
+        minha.setNome("Trabalho");
+        minha.setCor("#ff0000");
+        minha.setArea(areaTrabalhoRepository.findById(areaId).orElseThrow());
+        entityManager.persist(minha);
+        com.example.demo.Entidades.Categoria alheia = new com.example.demo.Entidades.Categoria();
+        alheia.setNome("Secreta");
+        alheia.setCor("#00ff00");
+        alheia.setArea(areaTrabalhoRepository.findById(areaDeOutro).orElseThrow());
+        entityManager.persist(alheia);
+        entityManager.flush();
+        entityManager.clear();
+
+        ResponseEntity<?> resposta = controller.listarCategoriasPorUser(requestAutenticado(usuario.getId()));
+
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.OK);
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> corpo = (List<Map<String, Object>>) resposta.getBody();
+        assertThat(corpo).hasSize(1);
+        assertThat(corpo.get(0).get("nome")).isEqualTo("Trabalho");
+        assertThat(corpo.get(0).get("areaId")).isEqualTo(areaId);
+    }
+
+    @Test
+    void listarCategoriasPorUser_naoLogado_retorna401() {
+        ResponseEntity<?> resposta = controller.listarCategoriasPorUser(requestAutenticado(null));
+        assertThat(resposta.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
 }
